@@ -25,17 +25,19 @@ SHARED_N2O = Path("/work/chxmr/shared/Gridded_fluxes/N2O")
 N2O_MW = 44.02
 
 def xr_read(file):
+    """ Read in netcdf to xarray. """
     with xr.open_dataset(file) as load:
         xr_data = load.load()
     return xr_data
 
 def mid_month_date(start_year, end_year):
+    """ Create array of pandas datetime for the 15th of each month. """
     start_month = pd.date_range(start=f"1/1/{start_year}", end=f"12/31/{end_year}", freq="MS")
     mid_month = start_month + pd.DateOffset(days=14)
     return mid_month
 
 def ems_regrid(ems):
-    # xesmf?
+    """ Regrid emissions to GEOS-Chem grid and format to nice xarray object. """
     ems_regridded = np.zeros((len(ems["time"]), len(geos_lat), len(geos_lon)))
     with mzt.suppress_stdout():
         for month in range(len(ems["time"])):
@@ -52,13 +54,22 @@ def ems_regrid(ems):
     return ems
 
 def to_tgyr(ems, var="emi_n2o"):
+    """ Converts 2008 emissions to Tgyr-1 for comparison to Wells paper.
+        (Assumes LEAP YEAR, so not widely applicable).
+        My answers are all lower than Wells but my answer agrees with 
+        GFED totals better... Part of the issue could be that acrg code 
+        disagrees with GEOS-Chem about the area of the grid. Should be
+        minor problem as most differences at the poles where there are no
+        emissions.
+    """
+    # take GEOS-Chem area if GEOS-Chem grid
     if np.logical_and(len(ems["lat"].values) == 46, len(ems["lon"].values) == 72):
         out_path = Path("/work/as16992/geoschem/N2O/output/")
         sc_fns = sorted(out_path.glob("GEOSChem.SpeciesConc.*"))
-        with xr.open_dataset(sc_fns[0]) as load:
-            ds_conc = load.load()
+        ds_conc = xr_read(sc_fns[0])
         area = xr.Dataset({"area":(("lat", "lon"), ds_conc.AREA.values)},
                             coords={"lat":ds_conc.lat.values, "lon":ds_conc.lon.values})
+    # Otherwise work out area    
     else:
         area = xr.Dataset({"area":(("lat", "lon"), areagrid(ems["lat"].values, ems["lon"].values))},
                             coords={"lat":ems["lat"].values, "lon":ems["lon"].values})
@@ -71,12 +82,15 @@ def to_tgyr(ems, var="emi_n2o"):
     else:
         return np.sum(area_weight_sum * (60*60*24*366) * 10**-9)
 
-def reset_year(orig_ems, new_year):
-    new_ems = orig_ems.copy()
-    new_ems["time"] = mid_month_date(new_year, new_year)
-    return new_ems
+def make_climatology(ems, new_year):
+    """ Turn time varying emissions into a monthly climatology. """
+    monthly_mean = ems.groupby(ems.time.dt.month).mean()
+    monthly_mean = monthly_mean.rename({"month":"time"})
+    monthly_mean["time"] = mid_month_date(new_year, new_year)
+    return monthly_mean
 
 def basic_plot(ems):
+    """ Basic line plot of annual emissions. """
     annual_sum = [to_tgyr(ems.isel(time=slice(t, t+12))) for t in range(0, len(ems["time"]), 12)]
     plt.plot(ems.resample(time="Y").mean()["time"], annual_sum)
     plt.show()
@@ -86,9 +100,9 @@ if __name__ == "__main__":
     # =============================================================================
     # GEOSChem constants
     # =============================================================================
-    
-    # How does geoschem count time?
-    geos_time = mid_month_date(1970, 2020)
+    geos_start_year = 1970
+    geos_end_year = 2020
+    geos_time = mid_month_date(geos_start_year, geos_end_year)
     
     geos_lat = np.array([-89, -86, -82, -78, -74, -70, -66, -62, -58, -54, -50,
                          -46, -42, -38, -34, -30, -26, -22, -18, -14, -10, -6,
@@ -128,7 +142,6 @@ if __name__ == "__main__":
     
     edgar_ems = edgar_ems.interp(time=geos_time, method="nearest", kwargs={"fill_value":"extrapolate"})
     
-    
     # Print 2008 total
     print(f"GEOS EDGAR 2008 ems: {to_tgyr(edgar_ems.isel(time=slice(456, 468)))} Tgyr-1")
     
@@ -156,16 +169,12 @@ if __name__ == "__main__":
     # regrid
     saikawa_ems = ems_regrid(saikawa_ems)
     
-    saikawa_ems_1990 = saikawa_ems.isel(time=slice(0, 12))
-    saikawa_ems_2008 = saikawa_ems.isel(time=slice(-12, len(saikawa_ems["time"])))
-    
     # Print 2008 total
+    saikawa_ems_2008 = saikawa_ems.isel(time=slice(-12, len(saikawa_ems["time"])))
     print(f"GEOS Saikawa 2008 ems: {to_tgyr(saikawa_ems_2008)} Tgyr-1")
     
-    saikawa_ems_70_89 = xr.concat([reset_year(saikawa_ems_1990, year) for year in range(1970, 1990)], dim="time")
-    saikawa_ems_09_20 = xr.concat([reset_year(saikawa_ems_2008, year) for year in range(2009, 2021)], dim="time")
-    
-    saikawa_ems = xr.concat([saikawa_ems_70_89, saikawa_ems, saikawa_ems_09_20], dim="time")
+    saikawa_ems = xr.concat([make_climatology(saikawa_ems, year) 
+                             for year in range(geos_start_year, geos_end_year+1)], dim="time")
     
     # Visualise
     basic_plot(saikawa_ems)
@@ -199,17 +208,12 @@ if __name__ == "__main__":
     # regrid
     gfed_ems = ems_regrid(gfed_ems)
     
-    gfed_ems_1997 = gfed_ems.isel(time=slice(0, 12))
-    gfed_ems_2019 = gfed_ems.isel(time=slice(-12, len(gfed_ems["time"])))
-    
     # Print 2008 total
     gfed_ems_2008 = gfed_ems.isel(time=slice(132, 144))
     print(f"GEOS GFED4 2008 ems: {to_tgyr(gfed_ems_2008)} Tgyr-1")
     
-    gfed_ems_70_96 = xr.concat([reset_year(gfed_ems_1997, year) for year in range(1970, 1997)], dim="time")
-    gfed_ems_20 = xr.concat([reset_year(gfed_ems_2019, year) for year in range(2020, 2021)], dim="time")
-    
-    gfed_ems = xr.concat([gfed_ems_70_96, gfed_ems, gfed_ems_20], dim="time")
+    gfed_ems = xr.concat([make_climatology(gfed_ems, year) 
+                          for year in range(geos_start_year, geos_end_year+1)], dim="time")
     
     # Visualise
     basic_plot(gfed_ems)
@@ -220,7 +224,6 @@ if __name__ == "__main__":
     # =============================================================================
     # ECCO2
     # =============================================================================
-    # is this actually the file I want?
     
     ecco2_path = Path("/work/chxmr/shared/Gridded_fluxes/N2O/ECCO2_Dawrin_Ocean")
     
@@ -244,17 +247,12 @@ if __name__ == "__main__":
     # regrid
     ecco2_ems = ems_regrid(ecco2_ems)
     
-    ecco2_ems_2006 = ecco2_ems.isel(time=slice(0, 12))
-    ecco2_ems_2013 = ecco2_ems.isel(time=slice(-12, len(ecco2_ems["time"])))
-    
     # Print 2008 total
     ecco2_ems_2008 = ecco2_ems.isel(time=slice(24, 36))
     print(f"GEOS ECCO2 2008 ems: {to_tgyr(ecco2_ems_2008)} Tgyr-1")
     
-    ecco2_ems_70_05 = xr.concat([reset_year(ecco2_ems_2006, year) for year in range(1970, 2006)], dim="time")
-    ecco2_ems_14_20 = xr.concat([reset_year(ecco2_ems_2013, year) for year in range(2014, 2021)], dim="time")
-    
-    ecco2_ems = xr.concat([ecco2_ems_70_05, ecco2_ems, ecco2_ems_14_20], dim="time")
+    ecco2_ems = xr.concat([make_climatology(ecco2_ems, year)
+                           for year in range(geos_start_year, geos_end_year+1)], dim="time")
     
     # Visualise
     basic_plot(ecco2_ems)
