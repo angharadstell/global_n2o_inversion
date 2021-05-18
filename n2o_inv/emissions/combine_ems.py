@@ -5,24 +5,28 @@ Created on Wed Mar  3 10:32:26 2021
 
 @author: as16992
 """
+import calendar
+import configparser
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import sys
 import xarray as xr
 
 from acrg_grid import areagrid
 from acrg_grid import regrid
 from acrg_mozart import acrg_MOZART_angharad as mzt
 
-sys.path.insert(0, "/home/as16992/d2h_ch4")
-import make_pretty_d2h_map_plots as make_pretty
+from n2o_inv.plots import map_plot
 
-SHARED_N2O = Path("/work/chxmr/shared/Gridded_fluxes/N2O")
-
-N2O_MW = 44.02
+# read in variables fromthe config file
+config = configparser.ConfigParser()
+config.read("../../config.ini")
+N2O_MW = float(config["gas_info"]["molecular_weight"])
+SHARED_N2O = Path(config["paths"]["raw_ems"]) # still relies on a file structure match BP1
+GEOS_OUT = Path(config["paths"]["geos_out"])
+GEOS_EMS = Path(config["paths"]["geos_ems"])
 
 def xr_read(file):
     """ Read in netcdf to xarray. """
@@ -54,8 +58,7 @@ def ems_regrid(ems):
     return ems
 
 def to_tgyr(ems, var="emi_n2o"):
-    """ Converts 2008 emissions to Tgyr-1 for comparison to Wells paper.
-        (Assumes LEAP YEAR, so not widely applicable).
+    """ Converts emissions to Tg for comparison to Wells paper.
         My answers are all lower than Wells but my answer agrees with 
         GFED totals better... Part of the issue could be that acrg code 
         disagrees with GEOS-Chem about the area of the grid. Should be
@@ -64,7 +67,7 @@ def to_tgyr(ems, var="emi_n2o"):
     """
     # take GEOS-Chem area if GEOS-Chem grid
     if np.logical_and(len(ems["lat"].values) == 46, len(ems["lon"].values) == 72):
-        out_path = Path("/work/as16992/geoschem/N2O/output/")
+        out_path = GEOS_OUT / "base"
         sc_fns = sorted(out_path.glob("GEOSChem.SpeciesConc.*"))
         ds_conc = xr_read(sc_fns[0])
         area = xr.Dataset({"area":(("lat", "lon"), ds_conc.AREA.values)},
@@ -73,14 +76,18 @@ def to_tgyr(ems, var="emi_n2o"):
     else:
         area = xr.Dataset({"area":(("lat", "lon"), areagrid(ems["lat"].values, ems["lon"].values))},
                             coords={"lat":ems["lat"].values, "lon":ems["lon"].values})
-    days_in_month = np.array([31,29,31,30,31,30,31,31,30,31,30,31])
+
+    year = ems.time.dt.year
+    month = ems.time.dt.month
+    if year.values.size > 1:
+        zipped = zip(year.values, month.values)
+    else:
+        zipped = [(year.values, month.values)]
+    days_in_month = np.array([calendar.monthrange(m[0], m[1])[1] for m in zipped])
     
     area_weight_sum = (ems[var] * area["area"]).sum(["lat", "lon"]).values
     
-    if ems[var].shape[0] == 12:
-        return np.sum(area_weight_sum * days_in_month * (60*60*24) * 10**-9)
-    else:
-        return np.sum(area_weight_sum * (60*60*24*366) * 10**-9)
+    return np.sum(area_weight_sum * days_in_month * (60*60*24) * 10**-9)
 
 def make_climatology(ems, new_year):
     """ Turn time varying emissions into a monthly climatology. """
@@ -121,18 +128,18 @@ if __name__ == "__main__":
     # EDGAR
     # =============================================================================
     # List of EDGAR files
-    edgar_path = SHARED_N2O / "EDGAR_v5.0/yearly"
+    edgar_path = SHARED_N2O / "N2O/EDGAR_v5.0/yearly"
     edgar_files = list(edgar_path.glob("v50_N2O_????.0.1x0.1.nc"))
     edgar_files.sort()
     # Read in EDGAR files
-    edgar_ems = xr.concat([xr_read(file)for file in edgar_files], dim="time")
+    edgar_ems = xr.concat([xr_read(file) for file in edgar_files], dim="time")
     # Sort out time and dimension order
     edgar_ems_time = pd.date_range(start="1/1/1970", end="1/1/2015", freq="YS") + pd.DateOffset(months=6)
     edgar_ems = edgar_ems.assign_coords(time=edgar_ems_time)
     edgar_ems = edgar_ems.transpose("time", "lat", "lon")
     
     # Print 2008 total
-    print(f"Original EDGAR 2008 ems: {to_tgyr(edgar_ems.isel(time=38))} Tgyr-1")
+    print(f"Original EDGAR 2008 ems: {to_tgyr(edgar_ems.isel(time=38)) * 12} Tgyr-1")
     
     # regrid to GEOSChem
     edgar_ems = ems_regrid(edgar_ems)
@@ -148,13 +155,13 @@ if __name__ == "__main__":
     # Visualise
     basic_plot(edgar_ems)
     
-    make_pretty.cartopy_plot(edgar_ems["emi_n2o"].mean("time"), "EDGAR N2O ems / kg m-2 s-1", None)
+    map_plot.cartopy_plot(edgar_ems["emi_n2o"].mean("time"), "EDGAR N2O ems / kg m-2 s-1", None)
     
     # =============================================================================
     # Saikawa 2013
     # =============================================================================
     
-    saikawa_file = SHARED_N2O / "Saikawa_natural_soil/N2O_flux_natsoil_global_1990_2008.nc"
+    saikawa_file = SHARED_N2O / "N2O/Saikawa_natural_soil/N2O_flux_natsoil_global_1990_2008.nc"
     
     saikawa_ems = xr_read(saikawa_file)
     saikawa_ems = saikawa_ems.assign_coords(time=mid_month_date(1990, 2008))
@@ -179,14 +186,14 @@ if __name__ == "__main__":
     # Visualise
     basic_plot(saikawa_ems)
     
-    make_pretty.cartopy_plot(saikawa_ems["emi_n2o"].mean("time"), "Saikawa N2O ems / kg m-2 s-1", None)
+    map_plot.cartopy_plot(saikawa_ems["emi_n2o"].mean("time"), "Saikawa N2O ems / kg m-2 s-1", None)
     
     # =============================================================================
     # GFED4s
     # =============================================================================
     # Do these emissions actually agree with GFED table?
     # List of GFED4 files
-    gfed_path = Path("/work/chxmr/shared/Gridded_fluxes/GFED4/processed_nc_files")
+    gfed_path = SHARED_N2O / "GFED4/processed_nc_files"
     gfed_files = list(gfed_path.glob("n2o-fire_GLOBAL_????.nc"))
     gfed_files.sort()
     # Read in GFED4 files
@@ -218,14 +225,14 @@ if __name__ == "__main__":
     # Visualise
     basic_plot(gfed_ems)
     
-    make_pretty.cartopy_plot(gfed_ems["emi_n2o"].mean("time"), "GFED4 N2O ems / kg m-2 s-1", None)
+    map_plot.cartopy_plot(gfed_ems["emi_n2o"].mean("time"), "GFED4 N2O ems / kg m-2 s-1", None)
     
     
     # =============================================================================
     # ECCO2
     # =============================================================================
     
-    ecco2_path = Path("/work/chxmr/shared/Gridded_fluxes/N2O/ECCO2_Dawrin_Ocean")
+    ecco2_path = SHARED_N2O / "N2O/ECCO2_Dawrin_Ocean"
     
     ecco2_ems = xr_read(ecco2_path / "File_N2OFLXS_1by1_2006_2013_WK92_ECCO2Darwin.nc")
     ecco2_ems = ecco2_ems.assign_coords(time=mid_month_date(2006, 2013))
@@ -257,7 +264,7 @@ if __name__ == "__main__":
     # Visualise
     basic_plot(ecco2_ems)
     
-    make_pretty.cartopy_plot(ecco2_ems["emi_n2o"].mean("time"), "ECCO2 N2O ems / kg m-2 s-1", None)
+    map_plot.cartopy_plot(ecco2_ems["emi_n2o"].mean("time"), "ECCO2 N2O ems / kg m-2 s-1", None)
     
     # =============================================================================
     # Total emissions
@@ -268,7 +275,7 @@ if __name__ == "__main__":
     # Visualise
     basic_plot(total_ems)
     
-    make_pretty.cartopy_plot(total_ems["emi_n2o"].mean("time"), "Total N2O ems / kg m-2 s-1", None)
+    map_plot.cartopy_plot(total_ems["emi_n2o"].mean("time"), "Total N2O ems / kg m-2 s-1", None)
     
     # Match time coords to HEMCO
     hours_since_start = (total_ems["time"].values - total_ems["time"].values[0]) / np.timedelta64(1, 'h') 
@@ -280,13 +287,8 @@ if __name__ == "__main__":
     total_ems["time"].attrs["units"] = "hours since 1970-1-1 00:00:00"
     total_ems["emi_n2o"].attrs["units"] = "kg/m2/s"
     
-    # Testing
-    #total_ems["emi_n2o"][-24,:,:] = 0.
-    
-    # Mask anything below zero - dunno if this is right
-    total_ems = total_ems.where(total_ems["emi_n2o"] > 0)
     # Replace nan with zero
     total_ems = total_ems.fillna(0)
     
     # Save total emissions
-    total_ems.to_netcdf("/work/as16992/geoschem/N2O/emissions/base_emissions.nc")
+    total_ems.to_netcdf(GEOS_EMS / "base_emissions.nc")

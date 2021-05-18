@@ -5,15 +5,19 @@ Created on Mon Mar 22 14:24:39 2021
 
 @author: as16992
 """
+import configparser
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import xarray as xr
 
+# read in variables fromthe config file
+config = configparser.ConfigParser()
+config.read("../../config.ini")
+GEOS_EMS = Path(config["paths"]["geos_ems"])
+TRANSCOM_MASK = Path(config["paths"]["transcom_mask"])
 
-EMS_FILE = "/work/as16992/geoschem/N2O/emissions/base_emissions.nc"
-TRANSCOM_MASK = "/work/chxmr/shared/TRANSCOM/TRANSCOM3_basis_functions/TRANSCOM_Map_MZT.nc"
-
-with xr.open_dataset(EMS_FILE) as load:
+with xr.open_dataset(GEOS_EMS / "base_emissions.nc") as load:
     ems = load.load()
     
 with xr.open_dataset(TRANSCOM_MASK) as load:
@@ -41,4 +45,4 @@ for region in range(mask["regions"].min().values.astype(int),
 # Replace nan with zero
 ems = ems.fillna(0)
     
-ems.to_netcdf("/work/as16992/geoschem/N2O/emissions/base_emissions_tagged.nc")
+ems.to_netcdf(GEOS_EMS / "base_emissions_tagged.nc")
