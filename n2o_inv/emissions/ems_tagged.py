@@ -11,7 +11,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import xarray as xr
 
-# read in variables fromthe config file
+# read in variables from the config file
 config = configparser.ConfigParser()
 config.read("../../config.ini")
 GEOS_EMS = Path(config["paths"]["geos_ems"])

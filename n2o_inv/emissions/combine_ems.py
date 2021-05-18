@@ -20,7 +20,7 @@ from acrg_mozart import acrg_MOZART_angharad as mzt
 
 from n2o_inv.plots import map_plot
 
-# read in variables fromthe config file
+# read in variables from the config file
 config = configparser.ConfigParser()
 config.read("../../config.ini")
 N2O_MW = float(config["gas_info"]["molecular_weight"])
