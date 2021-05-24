@@ -24,9 +24,9 @@ from n2o_inv.plots import map_plot
 config = configparser.ConfigParser()
 config.read("../../config.ini")
 N2O_MW = float(config["gas_info"]["molecular_weight"])
-SHARED_N2O = Path(config["paths"]["raw_ems"]) # still relies on a file structure match BP1
+SHARED_N2O = Path(config["em_n_loss"]["raw_ems"]) # still relies on a file structure match BP1
 GEOS_OUT = Path(config["paths"]["geos_out"])
-GEOS_EMS = Path(config["paths"]["geos_ems"])
+GEOS_EMS = Path(config["em_n_loss"]["geos_ems"])
 
 def xr_read(file):
     """ Read in netcdf to xarray. """
@@ -67,7 +67,7 @@ def to_tgyr(ems, var="emi_n2o"):
     """
     # take GEOS-Chem area if GEOS-Chem grid
     if np.logical_and(len(ems["lat"].values) == 46, len(ems["lon"].values) == 72):
-        out_path = GEOS_OUT / "base"
+        out_path = GEOS_OUT / "base"                                    # will only work if youve already run GEOSCHEM!
         sc_fns = sorted(out_path.glob("GEOSChem.SpeciesConc.*"))
         ds_conc = xr_read(sc_fns[0])
         area = xr.Dataset({"area":(("lat", "lon"), ds_conc.AREA.values)},

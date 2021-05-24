@@ -14,8 +14,8 @@ import xarray as xr
 # read in variables from the config file
 config = configparser.ConfigParser()
 config.read("../../config.ini")
-GEOS_EMS = Path(config["paths"]["geos_ems"])
-TRANSCOM_MASK = Path(config["paths"]["transcom_mask"])
+GEOS_EMS = Path(config["em_n_loss"]["geos_ems"])
+TRANSCOM_MASK = Path(config["inversion_constants"]["transcom_mask"])
 
 with xr.open_dataset(GEOS_EMS / "base_emissions.nc") as load:
     ems = load.load()

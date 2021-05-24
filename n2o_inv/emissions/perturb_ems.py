@@ -12,10 +12,10 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-# read in variables fromthe config file
+# read in variables from the config file
 config = configparser.ConfigParser()
 config.read("../../config.ini")
-GEOS_EMS = Path(config["paths"]["geos_ems"])
+GEOS_EMS = Path(config["em_n_loss"]["geos_ems"])
 PERTURB_START = config["dates"]["perturb_start"]
 PERTURB_END = config["dates"]["perturb_end"]
 
@@ -26,6 +26,9 @@ friendly_dates = ems.time.dt.strftime("%Y%m%d")
     
 perturb_dates = pd.date_range(PERTURB_START, PERTURB_END, freq="MS").strftime("%Y%m%d")
 
+# if geoschem ends on the start of month, no point perturbing this month
+if PERTURB_END[8:] == '01':
+    perturb_dates = perturb_dates[:-1]
    
 for date in perturb_dates:
     mask = np.ones(np.shape(ems["emi_n2o"]))
