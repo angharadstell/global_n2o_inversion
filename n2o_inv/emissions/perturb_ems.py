@@ -14,7 +14,7 @@ import xarray as xr
 
 # read in variables from the config file
 config = configparser.ConfigParser()
-config.read("../../config.ini")
+config.read(Path(__file__).parent.parent.parent / 'config.ini')
 GEOS_EMS = Path(config["em_n_loss"]["geos_ems"])
 PERTURB_START = config["dates"]["perturb_start"]
 PERTURB_END = config["dates"]["perturb_end"]

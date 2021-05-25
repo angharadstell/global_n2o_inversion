@@ -9,7 +9,7 @@ import xarray as xr
 
 # read in variables from the config file
 config = configparser.ConfigParser()
-config.read("../../config.ini")
+config.read(Path(__file__).parent.parent.parent / 'config.ini')
 BCKGRND_CONC = float(config["gas_info"]["background_conc"])
 GEOS_EMS = Path(config["em_n_loss"]["geos_ems"])
 GEOS_OUT = Path(config["paths"]["geos_out"])
@@ -34,12 +34,8 @@ if PERTURB_START[8:] == '01':
     ems = ems.isel(time=slice(0, -1))
 
 # get GEOSCHEM area
-out_path = GEOS_OUT / "base"                                    # will only work if youve already run GEOSCHEM!
-sc_fns = sorted(out_path.glob("GEOSChem.SpeciesConc.*"))
-with xr.open_dataset(sc_fns[0]) as load:
-    ds_conc = load.load()
-area = xr.Dataset({"area":(("lat", "lon"), ds_conc.AREA.values)},
-                    coords={"lat":ds_conc.lat.values, "lon":ds_conc.lon.values})
+with xr.open_dataset(Path(__file__).parent / "geos_grid_info.nc") as load:
+    area = load.load()
 
 
 
