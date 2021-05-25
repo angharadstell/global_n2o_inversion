@@ -11,18 +11,6 @@ from pathlib import Path
 import xarray as xr
 
 """ 
-Read in config global variables
-"""
-
-# read in variables from the config file
-config = configparser.ConfigParser()
-config.read("config.ini")
-RAW_OBSPACK_DIR = Path(config["paths"]["raw_obspack_dir"])
-OBSPACK_DIR = Path(config["paths"]["obspack_dir"])
-SPINUP_START = config["dates"]["spinup_start"]
-PERTURB_END = config["dates"]["perturb_end"]
-
-""" 
 Define useful functions
 """
 
@@ -76,8 +64,43 @@ def read_noaa_obspack(obspack_folder):
     
     return noaa_obspack_data
 
+def geoschem_date_mask(obspack_data, date):
+    """
+    Create a mask that runs from 23.55 for 24h, because geoschem timestep is 10min.
+    """
+    late_mask = np.logical_and(obspack_data["time_components"][:,3] >= 23,
+                            obspack_data["time_components"][:,4] >= 55)
+
+    # select obs from day before
+    day_before_mask = date_mask(obspack_data, date - pd.Timedelta(1, "D"))
+    late_day_before = np.logical_and(day_before_mask, late_mask)
+    
+    # select obs from that day
+    that_day_mask = date_mask(obspack_data, date)
+    
+    # remove obs that sample from next day
+    late_that_day = np.logical_and(that_day_mask, late_mask)
+    
+    # combine masks
+    combined_2masks = np.logical_or(late_day_before, that_day_mask)
+    combined_3masks = np.logical_and(combined_2masks, ~late_that_day)
+
+    return combined_3masks
+
 
 if __name__ == "__main__":
+    """ 
+    Read in config global variables
+    """
+
+    # read in variables from the config file
+    config = configparser.ConfigParser()
+    config.read(Path(__file__).parent.parent.parent / 'config.ini')
+    RAW_OBSPACK_DIR = Path(config["paths"]["raw_obspack_dir"])
+    OBSPACK_DIR = Path(config["paths"]["obspack_dir"])
+    SPINUP_START = config["dates"]["spinup_start"]
+    PERTURB_END = config["dates"]["perturb_end"]
+
     """ 
     Read in desired obspacks
     """
@@ -111,47 +134,34 @@ if __name__ == "__main__":
     # Remove missing data
     missing_data_mask = obspack_data.value == -999.99
     obspack_data = obspack_data.where(~missing_data_mask)
-    # There are like 3500 entries where its all nan? Have I done something wrong?
+    # some aircraft have missing uncertainty - replace with median value
+    obspack_data["value_unc"] = obspack_data.value_unc.fillna(obspack_data.value_unc.median())
+    # large number of missing lat/lon/alt because it looks like there are calibration sites? BLD and TST
     obspack_data = obspack_data.dropna("obs") 
     # do I want to ignore col 2 too?
     bad_data_mask = [flag.decode('utf-8')[0] == "." for flag in obspack_data.qcflag.values]
     bad_data_mask = xr.DataArray(data=bad_data_mask, dims=["obs"], coords={"obs":obspack_data.obs})
-    obspack_data = obspack_data.where(bad_data_mask)
-    obspack_data = obspack_data.dropna("obs") 
+    obspack_data = obspack_data.where(bad_data_mask, drop=True)
 
     # reindex so monotoically increasing
     obspack_data = obspack_data.sortby("time").assign_coords(obs=range(0, len(obspack_data.obs)))
 
 
 
-    # special mask
-    late_mask = np.logical_and(obspack_data["time_components"][:,3] >= 23,
-                            obspack_data["time_components"][:,4] >= 55)
 
     # Desired times
     daily_dates = pd.date_range(SPINUP_START, PERTURB_END)
 
+    # geoschem wants a series of daily files
     for date in daily_dates:
-        # select obs from day before
-        day_before_mask = date_mask(obspack_data, date - pd.Timedelta(1, "D"))
-        late_day_before = np.logical_and(day_before_mask, late_mask)
-        
-        # select obs from that day
-        that_day_mask = date_mask(obspack_data, date)
-        
-        # remove obs that sample from next day
-        late_that_day = np.logical_and(that_day_mask, late_mask)
-        
-        # combine masks
-        combined_2masks = np.logical_or(late_day_before, that_day_mask)
-        combined_3masks = np.logical_and(combined_2masks, ~late_that_day)
-        
+        # create mask - geoschem reads 23.55 form the day before, through to 23.55 that day
+        geoschem_mask = geoschem_date_mask(obspack_data, date)
         # Do filtering
-        obspack_date = obspack_data.where(combined_3masks, drop=True)
+        obspack_date = obspack_data.where(geoschem_mask, drop=True)
         
         # Geoschem can't read file without this
         for i in range(len(obspack_date["obspack_id"])):
             obspack_date["obspack_id"][i] = obspack_date["obspack_id"][i] + b' ' * (200 - len(obspack_date["obspack_id"].values[i]))
 
-        
+        # save file
         obspack_date.to_netcdf(OBSPACK_DIR /f"obspack_n2o.{date.strftime('%Y%m%d')}.nc")

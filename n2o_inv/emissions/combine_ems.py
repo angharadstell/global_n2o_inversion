@@ -20,28 +20,6 @@ from acrg_mozart import acrg_MOZART_angharad as mzt
 
 from n2o_inv.plots import map_plot
 
-# read in variables from the config file
-config = configparser.ConfigParser()
-config.read("../../config.ini")
-N2O_MW = float(config["gas_info"]["molecular_weight"])
-SHARED_N2O = Path(config["em_n_loss"]["raw_ems"]) # still relies on a file structure match BP1
-GEOS_OUT = Path(config["paths"]["geos_out"])
-GEOS_EMS = Path(config["em_n_loss"]["geos_ems"])
-
-# geos grid constants
-geos_lat = np.array([-89, -86, -82, -78, -74, -70, -66, -62, -58, -54, -50,
-                        -46, -42, -38, -34, -30, -26, -22, -18, -14, -10, -6,
-                        -2, 2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50,
-                        54, 58, 62, 66, 70, 74, 78, 82, 86, 89])
-
-geos_lon = np.array([-180, -175, -170, -165, -160, -155, -150, -145, -140,
-                        -135, -130, -125, -120, -115, -110, -105, -100, -95,
-                        -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40,
-                        -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25,
-                        30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 
-                        100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 
-                        155, 160, 165, 170, 175])
-
 def xr_read(file):
     """ Read in netcdf to xarray. """
     with xr.open_dataset(file) as load:
@@ -56,19 +34,23 @@ def mid_month_date(start_year, end_year):
 
 def ems_regrid(ems):
     """ Regrid emissions to GEOS-Chem grid and format to nice xarray object. """
-    ems_regridded = np.zeros((len(ems["time"]), len(geos_lat), len(geos_lon)))
+    # geos grid constants
+    geos_grid = xr_read(Path(__file__).parent / "geos_grid_info.nc")
+
+    ems_regridded = np.zeros((len(ems["time"]), len(geos_grid.lat), len(geos_grid.lon)))
     with mzt.suppress_stdout():
         for month in range(len(ems["time"])):
             ems_regridded[month, :, :] = regrid.regrid2d(ems["emi_n2o"].values[month, :, :], 
                                                          ems["lat"].values,
                                                          ems["lon"].values, 
-                                                         geos_lat, geos_lon, 
+                                                         geos_grid.lat.values,
+                                                         geos_grid.lon.values, 
                                                          global_grid=True)[0]
     
     ems = xr.Dataset({"emi_n2o":(("time", "lat", "lon"), ems_regridded)},
                              coords={"time":ems["time"],
-                                     "lat":geos_lat,
-                                     "lon":geos_lon})
+                                     "lat":geos_grid.lat.values,
+                                     "lon":geos_grid.lon.values})
     return ems
 
 def to_tgyr(ems, var="emi_n2o"):
@@ -81,11 +63,8 @@ def to_tgyr(ems, var="emi_n2o"):
     """
     # take GEOS-Chem area if GEOS-Chem grid
     if np.logical_and(len(ems["lat"].values) == 46, len(ems["lon"].values) == 72):
-        out_path = GEOS_OUT / "base"                                    # will only work if youve already run GEOSCHEM!
-        sc_fns = sorted(out_path.glob("GEOSChem.SpeciesConc.*"))
-        ds_conc = xr_read(sc_fns[0])
-        area = xr.Dataset({"area":(("lat", "lon"), ds_conc.AREA.values)},
-                            coords={"lat":ds_conc.lat.values, "lon":ds_conc.lon.values})
+        # geos grid constants
+        area = xr_read(Path(__file__).parent / "geos_grid_info.nc")
     # Otherwise work out area    
     else:
         area = xr.Dataset({"area":(("lat", "lon"), areagrid(ems["lat"].values, ems["lon"].values))},
@@ -118,6 +97,14 @@ def basic_plot(ems):
     plt.close()
 
 if __name__ == "__main__":
+    # read in variables from the config file
+    config = configparser.ConfigParser()
+    config.read(Path(__file__).parent.parent.parent / 'config.ini')
+    N2O_MW = float(config["gas_info"]["molecular_weight"])
+    SHARED_N2O = Path(config["em_n_loss"]["raw_ems"]) # still relies on a file structure match BP1
+    GEOS_OUT = Path(config["paths"]["geos_out"])
+    GEOS_EMS = Path(config["em_n_loss"]["geos_ems"])
+
     # =============================================================================
     # GEOSChem constants
     # =============================================================================

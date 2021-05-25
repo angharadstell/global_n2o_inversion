@@ -29,7 +29,7 @@ def test_preprocess_surface():
                         "longitude":(("obs"), np.array([0])), 
                         "altitude":(("obs"), np.array([0])), 
                         "time":(("obs"), [np.datetime64("2012-02-29T09:07")]), 
-                        "time_components":(("obs", "calendar_components"), [[2018, 2, 29, 9, 7, 0]]),
+                        "time_components":(("obs", "calendar_components"), [[2012, 2, 29, 9, 7, 0]]),
                         "obspack_id":(("obs"), np.array([999])), 
                         "obspack_num":(("obs"), np.array([888])), 
                         "value":(("obs"), np.array([300])), 
@@ -42,7 +42,7 @@ def test_preprocess_surface():
                          "longitude":(("obs"), np.array([0])), 
                          "altitude":(("obs"), np.array([0])), 
                          "time":(("obs"), [np.datetime64("2012-02-29T09:07")]), 
-                         "time_components":(("obs", "calendar_components"), [[2018, 2, 29, 9, 7, 0]]),
+                         "time_components":(("obs", "calendar_components"), [[2012, 2, 29, 9, 7, 0]]),
                          "obspack_id":(("obs"), np.array([999])),
                          "value":(("obs"), np.array([300])), 
                          "value_unc":(("obs"), np.array([2])), 
@@ -56,7 +56,7 @@ def test_preprocess_aircraft_no_value_unc():
                         "longitude":(("obs"), np.array([0])), 
                         "altitude":(("obs"), np.array([0])), 
                         "time":(("obs"), [np.datetime64("2012-02-29T09:07")]), 
-                        "time_components":(("obs", "calendar_components"), [[2018, 2, 29, 9, 7, 0]]),
+                        "time_components":(("obs", "calendar_components"), [[2012, 2, 29, 9, 7, 0]]),
                         "obspack_id":(("obs"), np.array([999])), 
                         "obspack_num":(("obs"), np.array([888])), 
                         "value":(("obs"), np.array([300])),
@@ -68,7 +68,7 @@ def test_preprocess_aircraft_no_value_unc():
                          "longitude":(("obs"), np.array([0])), 
                          "altitude":(("obs"), np.array([0])), 
                          "time":(("obs"), [np.datetime64("2012-02-29T09:07")]), 
-                         "time_components":(("obs", "calendar_components"), [[2018, 2, 29, 9, 7, 0]]),
+                         "time_components":(("obs", "calendar_components"), [[2012, 2, 29, 9, 7, 0]]),
                          "obspack_id":(("obs"), np.array([999])),
                          "value":(("obs"), np.array([300])), 
                          "value_unc":(("obs"), np.array([np.nan])), 
@@ -77,3 +77,26 @@ def test_preprocess_aircraft_no_value_unc():
 
     xr.testing.assert_equal(format_obspack_geoschem.preprocess(in_df), out_df)
 
+def test_geoschem_date_mask_2355():
+
+    df = xr.Dataset({"time_components":(("obs", "calendar_components"), [[2012, 2, 29, 23, 55, 0]]),
+                     "fake_value":(("obs"), np.array([300]))},
+                     coords={"obs": np.array([888]), "calendar_components": range(6)})
+
+
+    dates = pd.date_range("2012-02-28", "2012-03-01")
+    correct_answer = [False, False, True, False]
+    for i in range(len(dates)):
+        assert format_obspack_geoschem.geoschem_date_mask(df, dates[i]) == correct_answer[i]
+
+def test_geoschem_date_mask_2354():
+
+    df = xr.Dataset({"time_components":(("obs", "calendar_components"), [[2012, 2, 29, 23, 54, 0]]),
+                     "fake_value":(("obs"), np.array([300]))},
+                     coords={"obs": np.array([888]), "calendar_components": range(6)})
+
+
+    dates = pd.date_range("2012-02-28", "2012-03-01")
+    correct_answer = [False, True, False, False]
+    for i in range(len(dates)):
+        assert format_obspack_geoschem.geoschem_date_mask(df, dates[i]) == correct_answer[i]

@@ -13,17 +13,6 @@ import numpy as np
 from acrg_obs import read
 
 """ 
-Read in config global variables
-"""
-
-# read in variables from the config file
-config = configparser.ConfigParser()
-config.read("config.ini")
-OBSPACK_DIR = Path(config["paths"]["obspack_dir"])
-SPINUP_START = config["dates"]["spinup_start"]
-PERTURB_END = config["dates"]["perturb_end"]
-
-""" 
 Define useful functions
 """
 
@@ -86,6 +75,17 @@ def create_noaa_style_flag(status_flag, integration_flag):
     return f"{first_char}{second_char}.".encode()
     
 if __name__ == "__main__":
+    """ 
+    Read in config global variables
+    """
+
+    # read in variables from the config file
+    config = configparser.ConfigParser()
+    config.read(Path(__file__).parent.parent.parent / 'config.ini')
+    OBSPACK_DIR = Path(config["paths"]["obspack_dir"])
+    SPINUP_START = config["dates"]["spinup_start"]
+    PERTURB_END = config["dates"]["perturb_end"]
+
     """ 
     Read in the AGAGE site observations for the inversion period
     """
