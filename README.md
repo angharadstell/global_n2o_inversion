@@ -11,5 +11,15 @@
 2. Format all the obspack observations to be fed into GEOSChem (run n2o_inv/obs/format_obspack_geoschem.py)
 
 ### Make initial conditions
-1. Set up GEOSChem spinup for the bae run (run n2o_inv/spinup/configure_base_run_spinup.sh)
+1. Set up GEOSChem spinup for the base run (run n2o_inv/spinup/configure_base_run_spinup.sh)
 2. Run the GEOSChem spinup (submit gcclassic_submit.sh in the GEOSChem rundir)
+
+### Make base run
+1. Convert the spinup to the base run (run n2o_inv/base_run/convert_spinup.sh)
+2. Run the GEOSChem base run (submit gcclassic_submit.sh in the GEOSChem rundir)
+
+### Make perturbed runs
+1. Create the perturbed run directories (run n2o_inv/perturbed_runs/setup_perturbed.sh)
+2. Run the GEOSChem perturbed runs
+
+
