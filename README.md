@@ -13,6 +13,7 @@
 ### Make initial conditions
 1. Set up GEOSChem spinup for the base run (run n2o_inv/spinup/configure_base_run_spinup.sh)
 2. Run the GEOSChem spinup (submit gcclassic_submit.sh in the GEOSChem rundir)
+3. Check the output looks sensible (run n2o_inv/plots/plot_output.py for the spinup)
 
 ### Make base run
 1. Convert the spinup to the base run (run n2o_inv/base_run/convert_spinup.sh)
@@ -20,6 +21,6 @@
 
 ### Make perturbed runs
 1. Create the perturbed run directories (run n2o_inv/perturbed_runs/setup_perturbed.sh)
-2. Run the GEOSChem perturbed runs
+2. Run the GEOSChem perturbed runs (run n2o_inv/perturbed_runs/submit_perturbed.sh)
 
 
