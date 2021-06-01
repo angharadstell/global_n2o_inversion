@@ -1,0 +1,18 @@
+    !-------------------
+    ! %name%
+    !-------------------
+    DgnName = 'CH4_%name%'
+    CALL GetHcoDiagn( HcoState, ExtState, DgnName, .FALSE., RC, Ptr2D=Ptr2D )
+
+    ! Trap potential errors and assign HEMCO pointer to array
+    IF ( RC /= GC_SUCCESS ) THEN
+       ErrMsg = 'Cannot get pointer to HEMCO field ' // TRIM(DgnName)
+       CALL GC_Error( ErrMsg, RC, ThisLoc )
+       RETURN
+    ELSEIF ( .NOT. ASSOCIATED(Ptr2D) ) THEN
+       ErrMsg = 'Unassociated pointer to HEMCO field ' // TRIM(DgnName)
+       CALL GC_Warning( ErrMsg, RC, ThisLoc=ThisLoc )
+    ELSE
+       CH4_EMIS(:,:,%number%) =  Ptr2D(:,:)
+    ENDIF
+    Ptr2D => NULL()

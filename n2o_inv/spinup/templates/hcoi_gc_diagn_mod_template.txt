@@ -1,0 +1,35 @@
+    !-----------------------------------------------------------------
+    ! %%%%% CH4 from region %number% (Category %number% or species %name%)  %%%%%
+    !-----------------------------------------------------------------
+
+    ! Check if tagged CH4 simulation
+    ! Otherwise, use CH4 category 1 emissions
+    Cat   = %number%
+    HcoID = HCO_GetHcoID( '%name%', HcoState )
+    IF ( HcoID <= 0 ) THEN
+       HcoID = id_CH4
+    ENDIF
+
+    IF ( HcoID > 0 ) THEN
+
+       ! Create diagnostic container
+       DiagnName = '%name%'
+       CALL Diagn_Create( HcoState  = HcoState,                              &
+                          cName     = TRIM( DiagnName ),                     &
+                          ExtNr     = ExtNr,                                 &
+                          Cat       = Cat,                                   &
+                          Hier      = -1,                                    &
+                          HcoID     = HcoID,                                 &
+                          SpaceDim  = 2,                                     &
+                          LevIDx    = -1,                                    &
+                          OutUnit   = 'kg/m2/s',                             &
+                          COL       = HcoState%Diagn%HcoDiagnIDManual,       &
+                          AutoFill  = 1,                                     &
+                          RC        = RC                                    )
+       IF ( RC /= HCO_SUCCESS ) RETURN
+    ENDIF
+
+
+
+
+
