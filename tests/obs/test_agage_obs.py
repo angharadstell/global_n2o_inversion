@@ -26,3 +26,15 @@ def test_create_noaa_style_flag():
     correct_answer = [b"...", b"a..", b".a.", b"aa."]
     for i in range(4):
         assert agage_obs.create_noaa_style_flag(status_flag[i], integration_flag[i]) == correct_answer[i]
+
+def test_datetime_to_unix_zero():
+    assert agage_obs.datetime_to_unix(np.datetime64("1970-01-01T00:00:00")) == 0
+
+def test_datetime_to_unix_day():
+    assert agage_obs.datetime_to_unix(np.datetime64("1970-01-02T00:00:00")) == (60*60*24)
+
+def test_datetime_to_unix_month():
+    assert agage_obs.datetime_to_unix(np.datetime64("1970-02-01T00:00:00")) == (60*60*24*31)
+
+def test_datetime_to_unix_year():
+    assert agage_obs.datetime_to_unix(np.datetime64("1971-01-01T00:00:00")) == (60*60*24*365)

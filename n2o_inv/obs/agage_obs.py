@@ -39,7 +39,7 @@ def dt2cal(dt):
     Y, M, D, h, m, s = [dt.astype(f"M8[{x}]") for x in "YMDhms"]
     out[..., 0] = Y + 1970 # Gregorian Year
     out[..., 1] = (M - Y) + 1 # month
-    out[..., 2] = (D - M) + 1 # dat
+    out[..., 2] = (D - M) + 1 # day
     out[..., 3] = (dt - D).astype("m8[h]") # hour
     out[..., 4] = (dt - h).astype("m8[m]") # minute
     out[..., 5] = (dt - m).astype("m8[s]") # second
@@ -74,6 +74,9 @@ def create_noaa_style_flag(status_flag, integration_flag):
 
     return f"{first_char}{second_char}.".encode()
     
+def datetime_to_unix(array):
+    return array.astype('datetime64[s]').astype("int") 
+
 if __name__ == "__main__":
     """ 
     Read in config global variables
@@ -134,6 +137,9 @@ if __name__ == "__main__":
 
         # time components
         agage_obs[site][0]["time_components"] = (("obs", "calendar_components"), dt2cal(agage_obs[site][0]["time"].values))
+
+        # make time into unix time
+        agage_obs[site][0]["time"] = (("obs"), datetime_to_unix(agage_obs[site][0]["time"].values))
 
         # obspack_id
         obspack_id = [create_obspack_id(site, 
