@@ -18,7 +18,7 @@ do
         cp $geo_rundirs/$case/HEMCO_Config.rc $geo_rundirs/$perturb_case/HEMCO_Config.rc
         cp $geo_rundirs/$case/HEMCO_Diagn.rc $geo_rundirs/$perturb_case/HEMCO_Diagn.rc
         cp $geo_rundirs/$case/HISTORY.rc $geo_rundirs/$perturb_case/HISTORY.rc
-        cp $geo_rundirs/$case/species_database.yml $geo_rundirs/$pertub_case/species_database.yml
+        cp $geo_rundirs/$case/species_database.yml $geo_rundirs/$perturb_case/species_database.yml
 
         # Change run date so only run from perturbed month, for 6 months
         cd $geo_rundirs/$perturb_case
