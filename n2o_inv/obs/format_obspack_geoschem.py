@@ -117,6 +117,11 @@ if __name__ == "__main__":
     with xr.open_mfdataset(agage_n2o_files, decode_times=False) as load:
         agage_obspack_data = load.load() 
 
+    # add in network variable
+    noaa_surface_obspack_data["network"] = (("obs"), np.array(["NOAAsurf"] * len(noaa_surface_obspack_data["obs"])))
+    noaa_aircraft_obspack_data["network"] = (("obs"), np.array(["NOAAair"] * len(noaa_aircraft_obspack_data["obs"])))
+    agage_obspack_data["network"] = (("obs"), np.array(["AGAGEsurf"] * len(agage_obspack_data["obs"])))
+
     # combine the datasets
     obspack_data = xr.merge([noaa_surface_obspack_data, noaa_aircraft_obspack_data, agage_obspack_data])
         
