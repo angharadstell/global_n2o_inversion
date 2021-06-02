@@ -131,3 +131,7 @@ dmypy.json
 
 # VSCode setting
 .vscode/
+
+# PBS pro scripts
+*.sh.o*
+
