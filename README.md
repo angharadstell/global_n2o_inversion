@@ -24,19 +24,21 @@
 2. Run the GEOSChem perturbed runs (run n2o_inv/perturbed_runs/submit_perturbed.sh)
 
 ### Make inversion intermediates
-## Make emissions intermediates
+#### Make emissions intermediates
 1. process_geos_ems.py
 2. control-emissions.R
 3. perturbations.R
 
-## Make mole fraction intermediates
+#### Make mole fraction intermediates
 1. process_geos_output.py
 2. control-mole-fraction.R
 3. sensitivities.R
 4. observations.R
 
-## Make model intermediates
-
+#### Make model intermediates
+1. make_process_model.sh
+2. make_measurement_model.sh
+3. make-real-model-case.sh
 
 
 
