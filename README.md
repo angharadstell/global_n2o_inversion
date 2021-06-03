@@ -23,4 +23,20 @@
 1. Create the perturbed run directories (run n2o_inv/perturbed_runs/setup_perturbed.sh)
 2. Run the GEOSChem perturbed runs (run n2o_inv/perturbed_runs/submit_perturbed.sh)
 
+### Make inversion intermediates
+## Make emissions intermediates
+1. process_geos_ems.py
+2. control-emissions.R
+3. perturbations.R
+
+## Make mole fraction intermediates
+1. process_geos_output.py
+2. control-mole-fraction.R
+3. sensitivities.R
+4. observations.R
+
+## Make model intermediates
+
+
+
 
