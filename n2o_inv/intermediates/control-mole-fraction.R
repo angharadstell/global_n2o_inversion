@@ -38,7 +38,8 @@ control_full <- tibble(
   longitude = as.vector(v("obs_lon")),
   co2 = as.vector(v("CH4_sum")),
   model_id = seq_len(length(v("CH4_sum"))),
-)
+) %>%
+arrange(time)
 
 # remove nan
 control_full <- control_full %>% filter(if_any(co2, ~ !is.na(.)))
