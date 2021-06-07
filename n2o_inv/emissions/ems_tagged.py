@@ -15,12 +15,13 @@ import xarray as xr
 config = configparser.ConfigParser()
 config.read(Path(__file__).parent.parent.parent / 'config.ini')
 GEOS_EMS = Path(config["em_n_loss"]["geos_ems"])
-TRANSCOM_MASK = Path(config["inversion_constants"]["transcom_mask"])
+MZT_TRANSCOM_MASK = Path(config["inversion_constants"]["mzt_transcom_mask"])
+GEO_TRANSCOM_MASK = Path(config["inversion_constants"]["geo_transcom_mask"])
 
 with xr.open_dataset(GEOS_EMS / "base_emissions.nc") as load:
     ems = load.load()
     
-with xr.open_dataset(TRANSCOM_MASK) as load:
+with xr.open_dataset(MZT_TRANSCOM_MASK) as load:
     mask = load.load()  
 
 mask["lon"] = (mask["lon"] + 180) % 360 - 180
@@ -31,6 +32,8 @@ mask = mask.reindex_like(ems, method="nearest")
 mask["regions"].plot()
 plt.show()
 plt.close()
+
+mask.to_netcdf(GEO_TRANSCOM_MASK)
 
 # 23 regions but 0 not optimised
 for region in range(mask["regions"].min().values.astype(int),
