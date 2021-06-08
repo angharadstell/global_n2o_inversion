@@ -64,11 +64,17 @@ combined_obspack <- process_obspack(paste0(geos_out_dir, "/", case, "/combined_m
 combined_obspack <- combined_obspack %>% filter(if_any(co2, ~ !is.na(.)))
 
 # can't cope with sites with one observation
-#attenuation_factor <- as.factor(test$observation_group)
-#no_obs_each_site <- sapply(1:nlevels(attenuation_factor),
-#                           function(i) sum(test$observation_group == levels(attenuation_factor)[i]))
-#mask <- no_obs_each_site == 1
-#test <- filter(test, !mask)
+attenuation_factor <- as.factor(combined_obspack$observation_group)
+no_obs_each_site <- sapply(1:nlevels(attenuation_factor),
+                           function(i) sum(combined_obspack$observation_group == levels(attenuation_factor)[i]))
+mask <- no_obs_each_site < 12
+mask_levels <- levels(attenuation_factor)[mask]
+mask_df <- combined_obspack$observation_group %in% mask_levels
+combined_obspack <- filter(combined_obspack, !mask_df)
+
+# remove aircraft data
+air_mask <- str_detect(combined_obspack$observation_group, "NOAAair")
+combined_obspack <- filter(combined_obspack, !air_mask)
 
 # save the observations
 fst::write_fst(combined_obspack, sprintf("%s/observations.fst", inte_out_dir))
