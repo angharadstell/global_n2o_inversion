@@ -38,5 +38,11 @@
 #### Make model intermediates
 1. make_models.sh
 
+### Do the inversion
+1. make_real_mcmc_samples.sh
+2. traceplots.R
 
+### Plot the results
+1. flux_aggregators.sh
+2. plots.sh
 
