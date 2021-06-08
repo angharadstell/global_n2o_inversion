@@ -36,9 +36,7 @@
 4. observations.R
 
 #### Make model intermediates
-1. make_process_model.sh
-2. make_measurement_model.sh
-3. make-real-model-case.sh
+1. make_models.sh
 
 
 
