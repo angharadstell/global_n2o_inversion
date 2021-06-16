@@ -23,6 +23,7 @@ geos_out_dir <- config$paths$geos_out
 inte_out_dir <- config$paths$geos_inte
 
 perturb_start <- as.Date(config$dates$perturb_start)
+perturb_end <- as.Date(config$dates$perturb_end)
 
 ###############################################################################
 # FUNCTIONS
@@ -60,21 +61,22 @@ process_perturbation_part <- function(month, year, region) {
 
   # bit of a hacky way to stop hitting index error - improve!
   first_year <- as.numeric(format(perturb_start, format = "%Y"))
+  last_year <- as.numeric(format(perturb_end, format = "%Y")) - 1
+  no_years <- last_year - first_year + 1
   month_start <- (as.numeric(year) - first_year) * 12 + month
-  month_end <- 12
+  month_end <- 12 * no_years
 
   as_tibble(cbind(locations, data.frame(
     region = region,
     from_month_start = lubridate::ymd(sprintf("%s-%02d-01", year, month)),
-    region_00 = as.vector(v("EMIS_CH4_R00")),
-    land = as.vector(sum_ch4_tracers(v_base, v, 1, 11, region, month_start, month_end)),
+    land = as.vector(sum_ch4_tracers(v_base, v, 0, 11, region, month_start, month_end)),
     ocean = as.vector(sum_ch4_tracers(v_base, v, 12, 22, region, month_start, month_end))
     )
   )) %>%
     select(region, from_month_start, month_start, everything()) %>%
     filter(month_start == from_month_start) %>%
     pivot_longer(
-      c(region_00, land, ocean),
+      c(land, ocean),
       names_to = "type",
       values_to = "flux_density"
     ) %>%
@@ -117,11 +119,15 @@ control <- fst::read_fst(sprintf("%s/control-emissions.fst", inte_out_dir))
 fn <- nc_open(sprintf("%s/%s/monthly_fluxes.nc", geos_out_dir, case))
 v_base <- function(...) ncdf4::ncvar_get(fn, ...)
 
-first_year <- format(perturb_start, format = "%Y")
 
-perturbations <- mapply(function(x, y) process_perturbation_part(x, first_year, y),
-                        rep(1:12, each = (no_regions + 1)),
-                        rep(0:no_regions, 12),
+first_year <- as.numeric(format(perturb_start, format = "%Y"))
+last_year <- as.numeric(format(perturb_end, format = "%Y")) - 1
+no_years <- last_year - first_year + 1
+
+perturbations <- mapply(function(m, y, r) process_perturbation_part(m, y, r),
+                        rep(rep(1:12, each = (no_regions + 1)), no_years),
+                        rep(first_year:last_year, each = (12 * (no_regions + 1))),
+                        rep(0:no_regions, 12 * no_years),
                         SIMPLIFY = FALSE)
 
 perturbations_combined <- bind_rows(perturbations)
