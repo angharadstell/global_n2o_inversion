@@ -17,7 +17,7 @@ Rscript ${paths[location_of_this_file]}/../results/flux-aggregators.R \
 
 # Aggregate MCMC samples
 Rscript ${paths[wombat_paper]}/3_inversion/src/flux-aggregates-samples.R \
-    --flux-aggregators $result_dir/flux-aggregators.rds \
+    --flux-aggregators ${paths[inversion_results]}/flux-aggregators.rds \
     --model-case ${paths[geos_inte]}/real-model-$case.rds \
     --process-model ${paths[geos_inte]}/process-model.rds \
     --samples ${paths[geos_inte]}/real-mcmc-samples-$case.rds \

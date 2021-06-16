@@ -59,8 +59,8 @@ if (show_mip_fluxes) {
       name = MIP_REGION_TO_REGION[region_name]
     ) %>%
     filter(
-      month_start >= '2010-01-01',
-      month_start < '2011-01-01',
+      month_start >= start_date,
+      month_start < end_date,
       type != 'fossil',
       case %in% c('Prior', 'IS')
     ) %>%
@@ -113,7 +113,7 @@ annual_fluxes <- flux_samples %>%
   ) %>%
   filter(
     #name %in% MIP_REGION_TO_REGION,
-    year %in% c(2010)
+    year %in% head(substr(start_date, 1, 4):substr(end_date, 1, 4), -1)
   )
 
 if (show_mip_fluxes) {
@@ -130,7 +130,7 @@ if (show_mip_fluxes) {
       flux_mean = mean(flux_mean, na.rm = TRUE)
     ) %>%
     filter(
-      year %in% c(2010)
+      year %in% head(substr(start_date, 1, 4):substr(end_date, 1, 4), -1)
     )
 } else {
   annual_mip_fluxes <- NULL
@@ -139,8 +139,8 @@ if (show_mip_fluxes) {
 monthly_fluxes <- flux_samples %>%
   filter(
     #name %in% MIP_REGION_TO_REGION,
-    month_start >= '2010-01-01',
-    month_start < '2011-01-01'
+    month_start >= start_date,
+    month_start < end_date
   ) %>%
   ungroup() %>%
   mutate(
@@ -182,7 +182,7 @@ region_plots <- lapply(args$region, function(region_i) {
   annual_plot <- ggplot() +
     geom_tile(
       mapping = aes(
-        x = '2010',
+        x = substr(start_date, 1, 4),
         y = 0,
         width = 1,
         height = Inf
@@ -227,8 +227,8 @@ region_plots <- lapply(args$region, function(region_i) {
   monthly_plot <- ggplot() +
     geom_rect(
       mapping = aes(
-        xmin = as.Date('2010-01-01'),
-        xmax = as.Date('2010-12-01'),
+        xmin = as.Date(start_date),
+        xmax = as.Date(paste0(substr(start_date, 1, 4), '-12-01')),
         ymin = -Inf,
         ymax = Inf
       ),

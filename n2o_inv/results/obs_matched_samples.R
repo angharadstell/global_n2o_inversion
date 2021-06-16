@@ -1,43 +1,44 @@
+library(argparser)
+library(coda)
+library(Matrix)
 library(tidyr, warn.conflicts = FALSE)
 
 ###############################################################################
 # GLOBAL CONSTANTS
 ###############################################################################
 
-fileloc <- (function() {
-  attr(body(sys.function()), "srcfile")
-})()$filename
+args <- arg_parser('', hide.opts = TRUE) %>%
+  add_argument('--model-case', '') %>%
+  add_argument('--process-model', '') %>%
+  add_argument('--samples', '') %>%
+  add_argument('--observations', '') %>%
+  add_argument('--output', '') %>%
+  parse_args()
 
-config <- read.ini(paste0(gsub("n2o_inv/inversion.*", "", fileloc), "config.ini"))
-
-intermediate_dir <- config$paths$geos_inte
-
-case <- "IS-FIXEDAO-FIXEDWO5-NOBIAS"
-
-source(paste0(config$paths$wombat_paper, "/4_results/src/partials/base.R"))
-source(paste0(config$paths$wombat_paper, "/4_results/src/partials/display.R"))
-source(paste0(config$paths$wombat_paper, "/4_results/src/partials/tables.R"))
+source(Sys.getenv('RESULTS_BASE_PARTIAL'))
+source(Sys.getenv('RESULTS_TABLES_PARTIAL'))
+source(Sys.getenv('RESULTS_DISPLAY_PARTIAL'))
 
 ###############################################################################
 # EXECUTION
 ###############################################################################
 
 log_info('Loading observations')
-observations <- fst::read_fst(paste0(intermediate_dir, "/observations.fst"))
+observations <- fst::read_fst(args$observations)
 
 log_info('Loading model case')
-model_case <- readRDS(paste0(intermediate_dir, "/real-model-", case, ".rds"))
+model_case <- readRDS(args$model_case)
 
 if (is.null(model_case$process_model$H)) {
   log_info('Loading process model')
-  process_model <- readRDS(paste0(intermediate_dir, "/process-model.rds"))
+  process_model <- readRDS(args$process_model)
   model_case$process_model$H <- process_model$H
   rm(process_model)
   gc(verbose = FALSE)
 }
 
 log_info('Loading samples')
-samples <- readRDS(paste0(intermediate_dir, "/real-mcmc-samples-", case, ".rds"))
+samples <- readRDS(args$samples)
 
 log_info('Computing obs samples')
 obs_matching <- match(
@@ -74,4 +75,4 @@ output <- as_tibble(observations) %>%
     Y2_tilde_samples
   )
 
-saveRDS(output, paste0(config$paths$inversion_results, "/obs_matched_samples.rds"))
+saveRDS(output, args$output)

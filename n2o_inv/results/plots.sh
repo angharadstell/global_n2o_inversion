@@ -11,22 +11,41 @@ export RESULTS_FLUX_AGGREGATES_PARTIAL=${paths[location_of_this_file]}/../result
 
 case=IS-FIXEDAO-FIXEDWO5-NOBIAS
 
+echo "flux-aggregates-table.R"
 Rscript ${paths[location_of_this_file]}/../results/flux-aggregates-table.R \
     --flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$case.rds \
+    --start-date ${dates[perturb_start]} \
+    --end-date ${dates[perturb_end]} \
     --output ${paths[inversion_results]}/flux-aggregates-table.txt
 
+echo "flux-aggregates.R"
 Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
     --region 'N extratropics (23.5 - 90)' 'N tropics (0 - 23.5)' 'S tropics (-23.5 - 0)' 'S extratropics (-90 - -23.5)' \
     --flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$case.rds \
     --height 18 \
     --small-y-axes \
+    --start-date ${dates[perturb_start]} \
+    --end-date ${dates[perturb_end]} \
     --output ${paths[inversion_results]}/flux-aggregates-zonal.pdf
 
+echo "flux-aggregates.R"
 Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
 		--region Global "Global land" "Global oceans" \
 		--flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$case.rds \
 		--height 16.5 \
+        --start-date ${dates[perturb_start]} \
+        --end-date ${dates[perturb_end]} \
 		--output ${paths[inversion_results]}/flux-aggregates-globals.pdf
 
-Rscript ${paths[location_of_this_file]}/../results/obs_matched_samples.R
-Rscript ${paths[location_of_this_file]}/../results/plot_mf.R
+echo "obs_matched_samples.R"
+Rscript ${paths[location_of_this_file]}/../results/obs_matched_samples.R \
+    --model-case ${paths[geos_inte]}/real-model-$case.rds \
+    --process-model ${paths[geos_inte]}/process-model.rds \
+    --samples ${paths[geos_inte]}/real-mcmc-samples-$case.rds \
+    --observations ${paths[geos_inte]}/observations.fst \
+    --output ${paths[inversion_results]}/obs_matched_samples.rds
+
+echo "plot_mf.R"
+Rscript ${paths[location_of_this_file]}/../results/plot_mf.R \
+    --obs-samples ${paths[inversion_results]}/obs_matched_samples.rds \
+    --output ${paths[inversion_results]}/obs_time_series.pdf

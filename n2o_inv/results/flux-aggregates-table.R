@@ -6,6 +6,8 @@ library(tidyr)
 
 parser <- ArgumentParser()
 parser$add_argument('--flux-samples')
+parser$add_argument('--start-date')
+parser$add_argument('--end-date')
 parser$add_argument('--output')
 args <- parser$parse_args()
 
@@ -42,14 +44,14 @@ annual_fluxes <- flux_samples %>%
   ungroup() %>%
   filter(
     #name %in% MIP_REGION_TO_REGION,
-    year %in% c(2010)
+    year %in% unique(flux_samples$year)
   )
 
 monthly_fluxes <- flux_samples %>%
   filter(
     #name %in% MIP_REGION_TO_REGION,
-    month_start >= '2010-01-01',
-    month_start < '2011-01-01'
+    month_start >= args$start_date,
+    month_start < args$end_date
   ) %>%
   ungroup() %>%
   mutate(
@@ -70,7 +72,7 @@ bind_rows(
 cat('\n\n\n============ Average over the years:\n')
 flux_samples %>%
   filter(
-    year %in% c(2010),
+    year %in% head(substr(args$start_date, 1, 4):substr(args$end_date, 1, 4), -1),
     name %in% c('Global', 'Global land'),
     estimate %in% c('WOMBAT IS')
   ) %>%

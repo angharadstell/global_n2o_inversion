@@ -1,18 +1,18 @@
+library(argparser)
 library(tidyr, warn.conflicts = FALSE)
 
 ###############################################################################
 # GLOBAL CONSTANTS
 ###############################################################################
 
-fileloc <- (function() {
-  attr(body(sys.function()), "srcfile")
-})()$filename
+args <- arg_parser('', hide.opts = TRUE) %>%
+  add_argument('--obs-samples', '') %>%
+  add_argument('--output', '') %>%
+  parse_args()
 
-config <- read.ini(paste0(gsub("n2o_inv/inversion.*", "", fileloc), "config.ini"))
-
-source(paste0(config$paths$wombat_paper, "/4_results/src/partials/base.R"))
-source(paste0(config$paths$wombat_paper, "/4_results/src/partials/display.R"))
-source(paste0(config$paths$wombat_paper, "/4_results/src/partials/tables.R"))
+source(Sys.getenv('RESULTS_BASE_PARTIAL'))
+source(Sys.getenv('RESULTS_TABLES_PARTIAL'))
+source(Sys.getenv('RESULTS_DISPLAY_PARTIAL'))
 
 ###############################################################################
 # EXECUTION
@@ -24,7 +24,7 @@ NAME_COLOURS <- c(
   'WOMBAT IS (mean, 95% cred. int.)' = get_colour('wombat_lg')
 )
 
-obs_samples <- readRDS(paste0(config$paths$inversion_results, "/obs_matched_samples.rds")) %>%
+obs_samples <- readRDS(args$obs_samples) %>%
   filter(variant == 'Correlated') %>%
   mutate(month = lubridate::floor_date(time, 'month'))
 
@@ -116,7 +116,7 @@ output <- df_complete %>%
     )
 
 ggsave_base(
-  paste0(config$paths$inversion_results, "/obs_time_series.pdf"),
+  args$output,
   output,
   width = 30,
   height = 50

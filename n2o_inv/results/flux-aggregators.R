@@ -1,3 +1,10 @@
+library(dplyr)
+library(ini)
+library(logger)
+library(raster)
+library(ncdf4)
+
+source(Sys.getenv('INVERSION_BASE_PARTIAL'))
 
 options(dplyr.summarise.inform = FALSE)
 
@@ -5,24 +12,21 @@ options(dplyr.summarise.inform = FALSE)
 # GLOBAL CONSTANTS
 ###############################################################################
 
-fileloc <- (function() {
-  attr(body(sys.function()), "srcfile")
-})()$filename
-
-config <- read.ini(paste0(gsub("n2o_inv/inversion.*", "", fileloc), "config.ini"))
-
-
-intermediate_dir <- config$paths$geos_inte
+args <- arg_parser('', hide.opts = TRUE) %>%
+  add_argument('--process-model', '') %>%
+  add_argument('--transcom-mask', '') %>%
+  add_argument('--output', '') %>%
+  parse_args()
 
 ###############################################################################
 # EXECUTION
 ###############################################################################
 
 log_info('Loading process model')
-process_model <- readRDS(paste0(intermediate_dir, "/process-model.rds"))
+process_model <- readRDS(args$process_model)
 
 log_info('Loading Transcom mask')
-fn <- ncdf4::nc_open(config$inversion_constants$geo_transcom_mask)
+fn <- ncdf4::nc_open(args$transcom_mask)
 v <- function(...) ncdf4::ncvar_get(fn, ...)
 transcom_mask <- raster(nrows=72,
                         ncols=46,
@@ -164,6 +168,6 @@ aggregators <- lapply(emission_groups, function(emission_group) {
 })
 
 log_info('Saving')
-saveRDS(aggregators, paste0(intermediate_dir, "/flux-aggregators.rds"))
+saveRDS(aggregators, args$output)
 
 log_info('Done')

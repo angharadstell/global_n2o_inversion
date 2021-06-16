@@ -13,6 +13,8 @@ parser$add_argument('--height', type = 'double')
 parser$add_argument('--flux-samples')
 parser$add_argument('--show-prior-uncertainty', action = 'store_true', default = FALSE)
 parser$add_argument('--small-y-axes', action = 'store_true', default = FALSE)
+parser$add_argument('--start-date')
+parser$add_argument('--end-date')
 parser$add_argument('--output')
 args <- parser$parse_args()
 
@@ -35,4 +37,8 @@ legend_n_columns <- 2
 show_prior_uncertainty <- FALSE
 show_mip_fluxes <- FALSE
 small_y_axes <- args$small_y_axes
+
+start_date <- args$start_date
+end_date <- args$end_date
+
 source(Sys.getenv('RESULTS_FLUX_AGGREGATES_PARTIAL'))
