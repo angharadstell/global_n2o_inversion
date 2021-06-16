@@ -67,7 +67,8 @@ combined_obspack <- combined_obspack %>% filter(if_any(co2, ~ !is.na(.)))
 attenuation_factor <- as.factor(combined_obspack$observation_group)
 no_obs_each_site <- sapply(1:nlevels(attenuation_factor),
                            function(i) sum(combined_obspack$observation_group == levels(attenuation_factor)[i]))
-mask <- no_obs_each_site < 12
+# 57 sites for 3 years
+mask <- no_obs_each_site < 33
 mask_levels <- levels(attenuation_factor)[mask]
 mask_df <- combined_obspack$observation_group %in% mask_levels
 combined_obspack <- filter(combined_obspack, !mask_df)
