@@ -19,6 +19,7 @@ no_regions <- as.numeric(config$inversion_constants$no_regions)
 geos_out_dir <- config$paths$geos_out
 inte_out_dir <- config$paths$geos_inte
 perturb_start <- as.Date(config$dates$perturb_start)
+perturb_end <- as.Date(config$dates$perturb_end)
 
 ###############################################################################
 # FUNCTIONS
@@ -44,9 +45,8 @@ sum_ch4_tracers_perturbed <- function(v_base, v_pert, perturbed_region) {
   total_ch4
 }
 
-process_sensitivity_part <- function(month) {
+process_sensitivity_part <- function(year, month) {
   # Read in combined file
-  year <- format(perturb_start, format = "%Y")
   combined_file <- sprintf("%s/%s%02d/combined_mf.nc", geos_out_dir, year, month)
   print(combined_file)
   perturbed <- ncdf4::nc_open(combined_file)
@@ -89,7 +89,14 @@ control_tibble <- select(control,
                          control_co2 = co2)
 
 # process each perturbed sensitivity run
-sensitivities_parts <- lapply(1:12, process_sensitivity_part)
+first_year <- as.numeric(format(perturb_start, format = "%Y"))
+last_year <- as.numeric(format(perturb_end, format = "%Y")) - 1
+no_years <- last_year - first_year + 1
+
+sensitivities_parts <- mapply(process_sensitivity_part,
+                              year = rep(first_year:last_year, each = 12),
+                              month = rep(1:12, no_years),
+                              SIMPLIFY = FALSE)
 
 # stick all the perturbed sensitivities together
 sensitivities <- bind_rows(sensitivities_parts) %>%
