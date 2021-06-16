@@ -53,7 +53,12 @@ do
         sed -i "s#/$case/#/$perturb_case/#" HEMCO_Config.rc
 
         # Get ic file
-        ln -s $output_dir/$case/GEOSChem.Restart.${perturb_case}01_0000z.nc4 $geo_rundirs/$perturb_case/GEOSChem.Restart.${perturb_case}01_0000z.nc4
+        if ["$perturb_case" = "${dates[perturb_start]:0:4}01"]
+        then
+            ln -s $output_dir/$case/su_$(printf '%02d' $((no_spinup_years+1)))/GEOSChem.Restart.${perturb_case}01_0000z.nc4 $geo_rundirs/$perturb_case/GEOSChem.Restart.${perturb_case}01_0000z.nc4
+        else
+            ln -s $output_dir/$case/GEOSChem.Restart.${perturb_case}01_0000z.nc4 $geo_rundirs/$perturb_case/GEOSChem.Restart.${perturb_case}01_0000z.nc4
+        fi
 
         # Run script
         cp $location_of_this_file/templates/gcclassic_submit.sh $geo_rundirs/$perturb_case/gcclassic_submit.sh
