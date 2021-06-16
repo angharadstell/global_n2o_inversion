@@ -155,7 +155,7 @@ if __name__ == "__main__":
 
 
     # Desired times
-    daily_dates = pd.date_range(SPINUP_START, PERTURB_END)
+    daily_dates = pd.date_range(SPINUP_START, PERTURB_END)[:-1]
 
     # geoschem wants a series of daily files
     for date in daily_dates:
