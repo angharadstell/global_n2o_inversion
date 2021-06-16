@@ -4,10 +4,12 @@
 cd ../spinup
 source bash_var.sh
 
+case=IS-FIXEDAO-FIXEDWO5-NOBIAS
 
 export INVERSION_BASE_PARTIAL=${paths[wombat_paper]}/3_inversion/src/partials/base.R
+export CASE=$case
+export INTERMEDIATE_DIR=${paths[geos_inte]}
 
-case=IS-FIXEDAO-FIXEDWO5-NOBIAS
 
 # Do MCMC sampling
 Rscript ${paths[location_of_this_file]}/../inversion/mcmc-samples.R \

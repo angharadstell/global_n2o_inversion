@@ -8,16 +8,9 @@ source(Sys.getenv("INVERSION_BASE_PARTIAL"))
 ###############################################################################
 # GLOBAL CONSTANTS
 ###############################################################################
-fileloc <- (function() {
-  attr(body(sys.function()), "srcfile")
-})()$filename
-
-config <- read.ini(paste0(gsub("n2o_inv/inversion.*", "", fileloc), "config.ini"))
-
 # locations of files
-intermediate_dir <- config$paths$geos_inte
-
-casename <- "IS-FIXEDAO-FIXEDWO5-NOBIAS"
+intermediate_dir <-  Sys.getenv("INTERMEDIATE_DIR")
+casename <- Sys.getenv("CASE")
 
 ###############################################################################
 # EXECUTION
@@ -41,8 +34,8 @@ log_info(sprintf("Using tensorflow: %d", tensorflow_switch))
 # check there are no sites with one observation
 no_obs_each_site <- sapply(1:nlevels(model_case$measurement_model$attenuation_factor),
                            function(i) sum(model_case$measurement_model$attenuation_factor == levels(model_case$measurement_model$attenuation_factor)[i]))
-log_info(print("Number of observations at each site:"))
-log_info(print(no_obs_each_site))
+#log_info(print("Number of observations at each site:"))
+#log_info(print(no_obs_each_site))
 
 log_info("Running MCMC")
 output <- inversion_mcmc(
