@@ -104,7 +104,8 @@ if __name__ == "__main__":
     total_obs = 0
 
     # iterate through each site, format, and save
-    for site in sites:
+    # use j so can extend runs without ruining obspack numbers
+    for j, site in enumerate(sites):
         print(site)
 
         # rename to match NOAA
@@ -146,7 +147,7 @@ if __name__ == "__main__":
                                         agage_obs[site][0]["time_components"][i][0].values,
                                         agage_obs[site][0]["time_components"][i][1].values,
                                         agage_obs[site][0]["time_components"][i][2].values,
-                                        99999999 + i + total_obs) for i in range(no_obs)]  # hacky way to create unique identifier
+                                        (111111111 * (j + 1)) + i + total_obs) for i in range(no_obs)]  # hacky way to create unique identifier
         agage_obs[site][0]["obspack_id"] = (("obs"), np.array(obspack_id))
 
         # keep track of number of observations so that each obs gets a unique identifier
