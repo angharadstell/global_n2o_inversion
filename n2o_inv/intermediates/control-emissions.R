@@ -58,12 +58,11 @@ locations <- expand.grid(
 
 emissions <- cbind(locations, data.frame(
   # Comes in kg/m^2/s
-  region_00 = as.vector(v("EMIS_CH4_R00")),
-  land = as.vector(sum_ch4_tracers(v, 1, 11)),
+  land = as.vector(sum_ch4_tracers(v, 0, 11)),
   ocean = as.vector(sum_ch4_tracers(v, 12, 22))
 ))
   
-emissions <- pivot_longer(emissions, c(region_00, land, ocean),
+emissions <- pivot_longer(emissions, c(land, ocean),
                           names_to = "type", values_to = "flux_density")
 
 emissions <- emissions %>% left_join(
