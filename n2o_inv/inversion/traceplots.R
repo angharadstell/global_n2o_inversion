@@ -12,7 +12,7 @@ fileloc <- (function() {
 
 config <- read.ini(paste0(gsub("n2o_inv/inversion.*", "", fileloc), "config.ini"))
 
-casename <- "IS-FIXEDAO-FIXEDWO5-NOBIAS"
+casename <- config$inversion_constants$model_case
 
 source(paste0(config$paths$wombat_paper, "/3_inversion/src/partials/base.R"))
 source(paste0(config$paths$wombat_paper, "/3_inversion/src/partials/display.R"))
@@ -22,7 +22,7 @@ source(paste0(config$paths$wombat_paper, "/3_inversion/src/partials/display.R"))
 ###############################################################################
 
 log_info('Loading MCMC samples')
-samples <- readRDS(sprintf("%s/real-mcmc-samples-%s-copy.rds", config$paths$geos_inte, casename)) %>%
+samples <- readRDS(sprintf("%s/real-mcmc-samples-%s.rds", config$paths$geos_inte, casename)) %>%
   window(start = 101)
 
 log_info('Plotting')

@@ -7,9 +7,6 @@ source bash_var.sh
 # all threee scripts need this
 export INVERSION_BASE_PARTIAL=${paths[wombat_paper]}/3_inversion/src/partials/base.R
 
-# choose model case
-case=IS-FIXEDAO-FIXEDWO5-NOBIAS
-
 # Make process model
 Rscript ${paths[wombat_paper]}/3_inversion/src/process-model.R \
 --control-emissions ${paths[geos_inte]}/control-emissions.fst \
@@ -26,7 +23,7 @@ Rscript ${paths[wombat_paper]}/3_inversion/src/measurement-model.R \
 
 # Make real model case
 Rscript ${paths[location_of_this_file]}/../intermediates/real-model-case.R \
---case $case \
+--case ${inversion_constants[model_case]} \
 --measurement-model ${paths[geos_inte]}/measurement-model.rds \
 --process-model ${paths[geos_inte]}/process-model.rds \
---output ${paths[geos_inte]}/real-model-$case.rds
+--output ${paths[geos_inte]}/real-model-${inversion_constants[model_case]}.rds

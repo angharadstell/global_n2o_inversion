@@ -28,7 +28,7 @@ if (is.null(model_case$process_model$H)) {
 }
 
 # check running with tensorflow if desired
-tensorflow_switch <- Sys.getenv("WOMBAT_TENSORFLOW") == "1" && is.null(model_case$measurement_model[["rho"]])
+tensorflow_switch <- Sys.getenv("WOMBAT_TENSORFLOW") == "1" #&& is.null(model_case$measurement_model[["rho"]])
 log_info(sprintf("Using tensorflow: %d", tensorflow_switch))
 
 # check there are no sites with one observation

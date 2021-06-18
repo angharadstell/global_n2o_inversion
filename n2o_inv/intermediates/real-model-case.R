@@ -44,6 +44,11 @@ measurement_model <- measurement_model %>%
 
 n_groups <- nlevels(measurement_model$attenuation_factor)
 
+if ('RHO0' %in% case_parts) {
+  measurement_model[['rho']] <- rep(0, n_groups)
+  measurement_model[['ell']] <- rep(1, n_groups)
+}
+
 if ('FIXEDAO' %in% case_parts) {
   process_model[['a']] <- c(rep(NA, 12), rep(0, 11))
 }
