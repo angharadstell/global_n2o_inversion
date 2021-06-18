@@ -60,7 +60,7 @@ if __name__ == "__main__":
     # read in variables from the config file
     config = configparser.ConfigParser()
     #config.read(Path(__file__).parent.parent.parent / 'config.ini')
-    config.read(sys.argv[1] + '../../config.ini')
+    config.read(sys.argv[1] + '/../../config.ini')
     NO_REGIONS = int(config["inversion_constants"]["no_regions"])
     CASE = config["inversion_constants"]["case"]
     OBSPACK_DIR = Path(config["paths"]["obspack_dir"])
