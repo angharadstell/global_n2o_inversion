@@ -1,5 +1,6 @@
 library(dplyr)
 library(fst)
+library(ini)
 library(lubridate)
 library(ncdf4)
 library(tibble)
@@ -75,39 +76,40 @@ process_sensitivity_part <- function(year, month) {
 ###############################################################################
 # EXECUTION
 ###############################################################################
+if (sys.nframe() == 0){
+  # read in the base run tracers
+  v_base <- base_ch4_tracers()
 
-# read in the base run tracers
-v_base <- base_ch4_tracers()
+  # read in the processed base run
+  control <- fst::read_fst(sprintf("%s/control-mole-fraction.fst", inte_out_dir))
+  control_tibble <- select(control,
+                          model_id,
+                          observation_id,
+                          observation_type,
+                          resolution,
+                          control_co2 = co2)
 
-# read in the processed base run
-control <- fst::read_fst(sprintf("%s/control-mole-fraction.fst", inte_out_dir))
-control_tibble <- select(control,
-                         model_id,
-                         observation_id,
-                         observation_type,
-                         resolution,
-                         control_co2 = co2)
+  # process each perturbed sensitivity run
+  first_year <- as.numeric(format(perturb_start, format = "%Y"))
+  last_year <- as.numeric(format(perturb_end, format = "%Y")) - 1
+  no_years <- last_year - first_year + 1
 
-# process each perturbed sensitivity run
-first_year <- as.numeric(format(perturb_start, format = "%Y"))
-last_year <- as.numeric(format(perturb_end, format = "%Y")) - 1
-no_years <- last_year - first_year + 1
+  sensitivities_parts <- mapply(process_sensitivity_part,
+                                year = rep(first_year:last_year, each = 12),
+                                month = rep(1:12, no_years),
+                                SIMPLIFY = FALSE)
 
-sensitivities_parts <- mapply(process_sensitivity_part,
-                              year = rep(first_year:last_year, each = 12),
-                              month = rep(1:12, no_years),
-                              SIMPLIFY = FALSE)
+  # stick all the perturbed sensitivities together
+  sensitivities <- bind_rows(sensitivities_parts) %>%
+                  arrange(region, from_month_start, model_id, resolution)
 
-# stick all the perturbed sensitivities together
-sensitivities <- bind_rows(sensitivities_parts) %>%
-                 arrange(region, from_month_start, model_id, resolution)
+  # turn any nans in the sensitivity into zeros
+  sensitivities$co2_sensitivity <- ifelse(
+    is.nan(sensitivities$co2_sensitivity),
+    0,
+    sensitivities$co2_sensitivity
+  )
 
-# turn any nans in the sensitivity into zeros
-sensitivities$co2_sensitivity <- ifelse(
-  is.nan(sensitivities$co2_sensitivity),
-  0,
-  sensitivities$co2_sensitivity
-)
-
-# save the sensitivities
-fst::write_fst(sensitivities, sprintf("%s/sensitivities.fst", inte_out_dir))
+  # save the sensitivities
+  fst::write_fst(sensitivities, sprintf("%s/sensitivities.fst", inte_out_dir))
+}
