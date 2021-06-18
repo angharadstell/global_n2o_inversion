@@ -23,8 +23,18 @@ def test_mid_month_date():
     
     assert (combine_ems.mid_month_date(2012, 2012) == desired_dates).all()
 
-def test_ems_regrid(geos_grid):
+def test_ems_regrid_zero(geos_grid):
     ems_field = np.zeros((12, len(geos_grid.lat), len(geos_grid.lon)))
+    ems_time = pd.date_range(start="1/1/2012", end="12/31/2012", freq="MS")
+    ems = xr.Dataset({"emi_n2o":(("time", "lat", "lon"), ems_field)},
+                            coords={"time":ems_time,
+                                    "lat":geos_grid.lat,
+                                    "lon":geos_grid.lon})
+
+    xr.testing.assert_equal(combine_ems.ems_regrid(ems), ems)
+
+def test_ems_regrid_one(geos_grid):
+    ems_field = np.ones((12, len(geos_grid.lat), len(geos_grid.lon)))
     ems_time = pd.date_range(start="1/1/2012", end="12/31/2012", freq="MS")
     ems = xr.Dataset({"emi_n2o":(("time", "lat", "lon"), ems_field)},
                             coords={"time":ems_time,
