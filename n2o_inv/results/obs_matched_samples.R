@@ -1,5 +1,6 @@
 library(argparser)
 library(coda)
+library(ini)
 library(Matrix)
 library(tidyr, warn.conflicts = FALSE)
 
@@ -18,6 +19,27 @@ args <- arg_parser('', hide.opts = TRUE) %>%
 source(Sys.getenv('RESULTS_BASE_PARTIAL'))
 source(Sys.getenv('RESULTS_TABLES_PARTIAL'))
 source(Sys.getenv('RESULTS_DISPLAY_PARTIAL'))
+
+# interactive
+# fileloc <- (function() {
+#   attr(body(sys.function()), "srcfile")
+# })()$filename
+
+# config <- read.ini(paste0(gsub("n2o_inv/results.*", "", fileloc), "config.ini"))
+
+# casename <- config$inversion_constants$model_case
+
+# args <- vector(mode = "list", length = 5)
+
+# args$model_case <- paste0(config$paths$geos_inte, "/real-model-", config$inversion_constants$model_case, ".rds")
+# args$process_model <- paste0(config$paths$geos_inte, "/process-model.rds")
+# args$samples <- paste0(config$paths$geos_inte, "/real-mcmc-samples-", config$inversion_constants$model_case, ".rds")
+# args$observations <- paste0(config$paths$geos_inte, "/observations.fst")
+# args$output <- paste0(config$paths$inversion_result, "/obs_matched_samples.rds")
+
+# source(paste0(config$paths$wombat_paper, "/4_results/src/partials/base.R"))
+# source(paste0(config$paths$wombat_paper, "/4_results/src/partials/tables.R"))
+# source(paste0(config$paths$wombat_paper, "/4_results/src/partials/display.R"))
 
 ###############################################################################
 # EXECUTION
@@ -51,8 +73,8 @@ Psi_obs <- model_case$process_model$Psi[obs_matching, ]
 
 Y2_prior <- model_case$process_model$control_mole_fraction$co2[obs_matching]
 Y2_tilde_samples <- as.matrix(
-  H_obs %*% t(as.matrix(window(coda::mcmc(samples$alpha), thin = 10)))
-  + if (ncol(samples$eta) > 0) Psi_obs %*% t(as.matrix(window(coda::mcmc(samples$eta), thin = 10))) else 0
+  H_obs %*% t(as.matrix(window(coda::mcmc(samples$alpha), thin = 1)))
+  + if (ncol(samples$eta) > 0) Psi_obs %*% t(as.matrix(window(coda::mcmc(samples$eta), thin = 1))) else 0
 )
 
 output <- as_tibble(observations) %>%

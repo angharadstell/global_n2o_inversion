@@ -1,4 +1,5 @@
 library(argparser)
+library(ini)
 library(tidyr, warn.conflicts = FALSE)
 
 ###############################################################################
@@ -13,6 +14,24 @@ args <- arg_parser('', hide.opts = TRUE) %>%
 source(Sys.getenv('RESULTS_BASE_PARTIAL'))
 source(Sys.getenv('RESULTS_TABLES_PARTIAL'))
 source(Sys.getenv('RESULTS_DISPLAY_PARTIAL'))
+
+# interactive
+# fileloc <- (function() {
+#   attr(body(sys.function()), "srcfile")
+# })()$filename
+
+# config <- read.ini(paste0(gsub("n2o_inv/results.*", "", fileloc), "config.ini"))
+
+# casename <- config$inversion_constants$model_case
+
+# args <- vector(mode = "list", length = 5)
+
+# args$obs_samples <- paste0(config$paths$inversion_result, "/obs_matched_samples.rds")
+# args$output <- paste0(config$paths$inversion_result, "/obs_time_series.pdf")
+
+# source(paste0(config$paths$wombat_paper, "/4_results/src/partials/base.R"))
+# source(paste0(config$paths$wombat_paper, "/4_results/src/partials/tables.R"))
+# source(paste0(config$paths$wombat_paper, "/4_results/src/partials/display.R"))
 
 ###############################################################################
 # EXECUTION
@@ -56,8 +75,8 @@ obs_time_series_monthly <- obs_samples %>%
     )),
     Z2_lower = Y2_prior + matrixStats::rowQuantiles(Z2_tilde_samples, probs = 0.025),
     Z2_upper = Y2_prior + matrixStats::rowQuantiles(Z2_tilde_samples, probs = 0.975)
-  ) %>%
-  select(-Z2_tilde_samples)
+  ) #%>%
+  #select(-Z2_tilde_samples)
 
 df_long <- bind_rows(
 obs_time_series_monthly %>%
