@@ -20,28 +20,22 @@ do
         cp $geo_rundirs/$case/HISTORY.rc $geo_rundirs/$perturb_case/HISTORY.rc
         cp $geo_rundirs/$case/species_database.yml $geo_rundirs/$perturb_case/species_database.yml
 
-        # Change run date so only run from perturbed month, for 6 months
+        # Change run date so only run from perturbed month, for 2 years
         cd $geo_rundirs/$perturb_case
 
-    # for 6 month sensitivity
-	#if [ $MONTH -le 6 ]
-    #    then
-    #        end_date_year=$YEAR
-    #        end_date_month=$((MONTH+6))
-    #    else
-    #        end_date_year=$((YEAR+1))
-    #        end_date_month=$((MONTH-6))
-    #    fi
+        # for 2 year sensitivity
+        end_date_year=$((YEAR+2))
+        end_date_month=$MONTH
 
-    #    # check doesn't go beyond end date
-    #    if [ $((end_date_year)) -ge ${dates[perturb_end]:0:4} ]
-    #    then
-    #        end_date_year=${dates[perturb_end]:0:4}
-    #        end_date_month=1
-    #    fi
-    #    end_date="$end_date_year$(printf '%02d' $end_date_month)"         
+       # check doesn't go beyond end date
+       if [ $((end_date_year)) -ge ${dates[perturb_end]:0:4} ]
+       then
+           end_date_year=${dates[perturb_end]:0:4}
+           end_date_month=1
+       fi
+       end_date="$end_date_year$(printf '%02d' $end_date_month)"         
 
-        sed -i -e "s/Start YYYYMMDD, hhmmss  : .*/Start YYYYMMDD, hhmmss  : ${perturb_case}01 000000/" -e "s/End   YYYYMMDD, hhmmss  : .*/End   YYYYMMDD, hhmmss  : ${dates[perturb_end]//-} 000000/" input.geos
+        sed -i -e "s/Start YYYYMMDD, hhmmss  : .*/Start YYYYMMDD, hhmmss  : ${perturb_case}01 000000/" -e "s/End   YYYYMMDD, hhmmss  : .*/End   YYYYMMDD, hhmmss  : ${end_date}01 000000/" input.geos
 
         # Change emissions file
         sed -i "s/base_emissions_tagged.nc/ems_${perturb_case}.nc/" HEMCO_Config.rc        
@@ -53,7 +47,7 @@ do
         sed -i "s#/$case/#/$perturb_case/#" HEMCO_Config.rc
 
         # Get ic file
-        if ["$perturb_case" = "${dates[perturb_start]:0:4}01"]
+        if [ "$perturb_case" = "${dates[perturb_start]:0:4}01" ]
         then
             ln -s $output_dir/$case/su_$(printf '%02d' $((no_spinup_years+1)))/GEOSChem.Restart.${perturb_case}01_0000z.nc4 $geo_rundirs/$perturb_case/GEOSChem.Restart.${perturb_case}01_0000z.nc4
         else
@@ -62,7 +56,7 @@ do
 
         # Run script
         cp $location_of_this_file/templates/gcclassic_submit.sh $geo_rundirs/$perturb_case/gcclassic_submit.sh
-        sed -i -e "s#%exe_path%#$geo_rundirs/$perturb_case#" -e "s/72:00:00/10:00:00/" gcclassic_submit.sh
+        sed -i -e "s#%exe_path%#$geo_rundirs/$perturb_case#" -e "s/72:00:00/24:00:00/" gcclassic_submit.sh
 
         # Compile
         cd $geo_rundirs/$perturb_case/build
