@@ -216,7 +216,7 @@ region_plots <- lapply(args$region, function(region_i) {
       fill = guide_legend(ncol = legend_n_columns),
       linetype = guide_legend(ncol = legend_n_columns)
     ) +
-    labs(x = 'Year', y = expression('Flux [PgC '*yr^-1*']'), colour = NULL, fill = NULL, linetype = NULL)
+    labs(x = 'Year', y = expression('Flux [TgN '*yr^-1*']'), colour = NULL, fill = NULL, linetype = NULL)
 
   monthly_data <- bind_rows(
     monthly_fluxes,
@@ -261,7 +261,7 @@ region_plots <- lapply(args$region, function(region_i) {
     scale_colour_estimate +
     scale_linetype_estimate +
     scale_fill_estimate +
-    labs(x = 'Month', y = expression('Flux [PgC '*mo^-1*']'), colour = NULL, fill = NULL, linetype = NULL) +
+    labs(x = 'Month', y = expression('Flux [TgN '*mo^-1*']'), colour = NULL, fill = NULL, linetype = NULL) +
     guides(fill = FALSE, colour = FALSE, linetype = FALSE)
 
   region_name <- region_i
