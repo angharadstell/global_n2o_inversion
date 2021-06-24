@@ -8,7 +8,7 @@ source bash_var.sh
 export INVERSION_BASE_PARTIAL=${paths[wombat_paper]}/3_inversion/src/partials/base.R
 
 # Make process model
-Rscript ${paths[wombat_paper]}/3_inversion/src/process-model.R \
+Rscript ${paths[location_of_this_file]}/../intermediates/process-model.R \
 --control-emissions ${paths[geos_inte]}/control-emissions.fst \
 --perturbations ${paths[geos_inte]}/perturbations.fst \
 --control-mole-fraction ${paths[geos_inte]}/control-mole-fraction.fst \
