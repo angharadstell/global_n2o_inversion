@@ -42,6 +42,9 @@ def obspack_geos_preprocess(ds, obspack_obs, no_regions):
     return ds
 
 def read_obs(obspack_dir, spinup_start, perturb_end, final_end):
+    """
+    Read in obspack observation files as xarray dataset.
+    """
     all_obs_files = set(obspack_dir.glob("obspack_n2o.*.nc"))
     unwanted_obs_files = list(obspack_dir.glob(f"obspack_n2o.{spinup_start.year}*.nc"))
     if final_end != perturb_end:
@@ -55,6 +58,9 @@ def read_obs(obspack_dir, spinup_start, perturb_end, final_end):
     return obspack_obs
 
 def read_geos(output_dir, spinup_start, obspack_obs, no_regions):
+    """
+    Read in obspack geoschem files as xarray dataset.
+    """
     geos_files = list(set(output_dir.glob("GEOSChem.ObsPack.*_0000z.nc4")) - set(output_dir.glob(f"GEOSChem.ObsPack.{spinup_start.year}*_0000z.nc4")))
     geos_files.sort()
 
@@ -187,8 +193,6 @@ if __name__ == "__main__":
         year = int(str(output_dir)[-6:-2])
         month = int(str(output_dir)[-2:])
         site_combined = site_combined.where(site_combined["obs_time"] >= np.datetime64(f"{year}-{month:02d}-01"))
-
-
 
     # save combined file
     site_combined.to_netcdf(output_dir / "combined_mf.nc")
