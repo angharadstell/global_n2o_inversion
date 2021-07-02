@@ -133,5 +133,6 @@ dmypy.json
 .vscode/
 
 # PBS pro scripts
+*_submit.sh
 *.sh.o*
 
