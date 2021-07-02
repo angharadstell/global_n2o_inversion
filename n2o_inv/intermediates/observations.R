@@ -63,9 +63,9 @@ combined_obspack <- process_obspack(paste0(geos_out_dir, "/", case, "/combined_m
 # remove nan
 combined_obspack <- combined_obspack %>% filter(if_any(co2, ~ !is.na(.)))
 
-# remove aircraft data
-air_mask <- str_detect(combined_obspack$observation_group, "NOAAair")
-combined_obspack <- filter(combined_obspack, !air_mask)
+# # remove aircraft data
+# air_mask <- str_detect(combined_obspack$observation_group, "NOAAair")
+# combined_obspack <- filter(combined_obspack, !air_mask)
 
 # can't cope with sites with one observation if correlated
 attenuation_factor <- as.factor(combined_obspack$observation_group)
@@ -73,10 +73,13 @@ no_obs_each_site <- sapply(1:nlevels(attenuation_factor),
                            function(i) sum(combined_obspack$observation_group == levels(attenuation_factor)[i]))
 # 57 sites for 3 years
 print(no_obs_each_site)
-# mask <- no_obs_each_site < 1
+# mask <- no_obs_each_site == 18
 # mask_levels <- levels(attenuation_factor)[mask]
 # mask_df <- combined_obspack$observation_group %in% mask_levels
-# combined_obspack <- filter(combined_obspack, !mask_df)
+# combined_obspack <- filter(combined_obspack, mask_df)
+
+# #combined_obspack$co2 <- combined_obspack$co2 * 2
+# combined_obspack$co2 <- combined_obspack$co2 + seq(0, 170, 10)
 
 # save the observations
 fst::write_fst(combined_obspack, sprintf("%s/observations.fst", inte_out_dir))
