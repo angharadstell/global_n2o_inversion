@@ -46,9 +46,9 @@ plot_perturbation_dt <- function(region, year, month) {
   # Each line is an observation location
   # Too many sites to plot a line for all, just plot ones with no missing data
   no_months <- dim(diff)[1]
-  mask <- apply(!is.na(diff), 2, sum) > (no_months - 1)
+  #mask <- apply(!is.na(diff), 2, sum) > (no_months - 1)
   # Make into nice data frame
-  masked_diff <- data.frame(time = 1:no_months, obs = diff[, mask])
+  masked_diff <- data.frame(time = 1:no_months, obs = diff)#[, mask])
   melted_diff <- reshape2::melt(masked_diff, id.vars = "time")
 
   # Plot
@@ -106,7 +106,7 @@ plots <- lapply(0:config$inversion_constants$no_regions,
                 function(x) plot_perturbation_dt(x, year, month))
 
 
-grid_plot <- gridExtra::arrangeGrob(grobs = plots, 
+grid_plot <- gridExtra::arrangeGrob(grobs = plots,
                                     left = "(perturbed - base) / ppb",
                                     bottom = "Months since perturbation")
                       
