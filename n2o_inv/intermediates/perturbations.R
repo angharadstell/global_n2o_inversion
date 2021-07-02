@@ -1,5 +1,6 @@
 library(dplyr)
 library(fst)
+library(ini)
 library(lubridate)
 library(ncdf4)
 library(tidyr)
@@ -25,6 +26,8 @@ inte_out_dir <- config$paths$geos_inte
 perturb_start <- as.Date(config$dates$perturb_start)
 perturb_end <- as.Date(config$dates$perturb_end)
 
+len_perturb <- as.numeric(config$inversion_constants$len_perturb)
+
 ###############################################################################
 # FUNCTIONS
 ###############################################################################
@@ -34,12 +37,12 @@ sum_ch4_tracers <- function(v_base, v_pert,
                             perturbed_region,
                             month_start, month_end) {
   # sum up the tracers for each perturbed run
-  total_ch4 <- array(rep(0, length(v_pert("EMIS_CH4_R00"))), dim(v_pert("EMIS_CH4_R00")))
+  total_ch4 <- array(rep(0, length(v_base("EMIS_CH4_R00"))), dim(v_base("EMIS_CH4_R00")))
   for (region in region_start:region_end) {
     if (region == perturbed_region) {
-      total_ch4 <- total_ch4 + v_pert(sprintf("EMIS_CH4_R%02d", region))
+      total_ch4[, , month_start:month_end] <- total_ch4[, , month_start:month_end] + v_pert(sprintf("EMIS_CH4_R%02d", region))
     } else {
-      total_ch4 <- total_ch4 + v_base(sprintf("EMIS_CH4_R%02d", region))[, , month_start:month_end]
+      total_ch4[, , month_start:month_end] <- total_ch4[, , month_start:month_end] + v_base(sprintf("EMIS_CH4_R%02d", region))[, , month_start:month_end]
     }
   }
   total_ch4
@@ -56,7 +59,7 @@ process_perturbation_part <- function(month, year, region) {
   locations <- expand.grid(
     longitude = v("longitude"),
     latitude = v("latitude"),
-    month_start = as.Date(ncvar_get_time(perturbed, "time"))
+    month_start = as.Date(ncvar_get_time(fn, "time"))
   )
 
   # bit of a hacky way to stop hitting index error - improve!
@@ -64,7 +67,7 @@ process_perturbation_part <- function(month, year, region) {
   last_year <- as.numeric(format(perturb_end, format = "%Y")) - 1
   no_years <- last_year - first_year + 1
   month_start <- (as.numeric(year) - first_year) * 12 + month
-  month_end <- 12 * no_years
+  month_end <- min(month_start + len_perturb - 1, no_years * 12)
 
   as_tibble(cbind(locations, data.frame(
     region = region,

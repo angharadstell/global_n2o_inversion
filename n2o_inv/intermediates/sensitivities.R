@@ -3,6 +3,7 @@ library(fst)
 library(ini)
 library(lubridate)
 library(ncdf4)
+library(stringr)
 library(tibble)
 
 ###############################################################################
@@ -61,13 +62,28 @@ process_sensitivity_part <- function(year, month) {
                                   observation_id = as.vector(v("obspack_id")),
                                   observation_type = "obspack",
                                   resolution = "obspack",
-                                  co2 = sum_ch4_tracers_perturbed(v_base, v, region_iter)
+                                  co2 = sum_ch4_tracers_perturbed(v_base, v, region_iter),
+                                  observation_group = stringr::str_split(observation_id, "~", simplify = TRUE)[, 3]
                                 ) %>%
-                          filter(if_any(co2, ~ !is.na(.))) %>%
+                          mutate(site = gsub("[[:digit:]]", "", observation_group),
+                                 obs_date = lubridate::ym(gsub("[^[:digit:]]", "", observation_group))) %>%
                           inner_join(control_tibble,
                                      by = c("observation_id", "observation_type", "resolution")) %>%
-                          mutate(co2_sensitivity = co2 - control_co2) %>%
-                          select(region, from_month_start, model_id, resolution, co2_sensitivity)
+                          mutate(co2_sensitivity = co2 - control_co2)
+
+    #take final month of data
+    final_date <- lubridate::ymd(sprintf("%s-%02d-01", year, month)) + months(23)
+    final_month <- perturbed_tibble %>%
+                   filter((obs_date == final_date))
+    # should this be a mean? They are not gaussianly distributed
+    final_perturb <- mean(final_month$co2_sensitivity)
+
+    perturbed_tibble %>% mutate(co2_sensitivity = replace(co2_sensitivity,
+                                obs_date > final_date,
+                                final_perturb)) %>%
+                         filter(if_any(co2_sensitivity, ~ !is.na(.))) %>%
+                         filter(if_any(control_co2, ~ !is.na(.))) %>%
+                         select(region, from_month_start, model_id, resolution, co2_sensitivity)
     })
   # stick all the regions back together
   dplyr::bind_rows(sensitivity_regions)
@@ -76,7 +92,9 @@ process_sensitivity_part <- function(year, month) {
 ###############################################################################
 # EXECUTION
 ###############################################################################
-if (sys.nframe() == 0){
+if (interactive()) {
+  print("Running main code of sensitivities script...")
+
   # read in the base run tracers
   v_base <- base_ch4_tracers()
 
