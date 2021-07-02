@@ -99,7 +99,7 @@ if __name__ == "__main__":
     RAW_OBSPACK_DIR = Path(config["paths"]["raw_obspack_dir"])
     OBSPACK_DIR = Path(config["paths"]["obspack_dir"])
     SPINUP_START = config["dates"]["spinup_start"]
-    PERTURB_END = config["dates"]["perturb_end"]
+    FINAL_END = config["dates"]["final_end"]
 
     """ 
     Read in desired obspacks
@@ -155,7 +155,7 @@ if __name__ == "__main__":
 
 
     # Desired times
-    daily_dates = pd.date_range(SPINUP_START, PERTURB_END)[:-1]
+    daily_dates = pd.date_range(SPINUP_START, FINAL_END)[:-1]
 
     # geoschem wants a series of daily files
     for date in daily_dates:
@@ -169,4 +169,5 @@ if __name__ == "__main__":
             obspack_date["obspack_id"][i] = obspack_date["obspack_id"][i] + b' ' * (200 - len(obspack_date["obspack_id"].values[i]))
 
         # save file
-        obspack_date.to_netcdf(OBSPACK_DIR /f"obspack_n2o.{date.strftime('%Y%m%d')}.nc")
+        if len(obspack_date["obs"]) > 0: 
+            obspack_date.to_netcdf(OBSPACK_DIR /f"obspack_n2o.{date.strftime('%Y%m%d')}.nc")
