@@ -56,23 +56,18 @@ def create_obspack_id(site, year, month, day, identifier):
     whole_string = f"obspack_multi-species_1_AGAGEInSitu_v1.0_{date}~n2o_{site.lower()}_surface-insitu_1_agage_Event~{identifier}"
     return whole_string.encode()
 
-def create_noaa_style_flag(status_flag, integration_flag):
+def create_noaa_style_flag(status_flag):
     """
     Make a NOAA style flag (a 3-character string).
-    Note that the AGAGE status and integration flags don't match to the definition of NOAA flags.
-    The AGAGE NOAA style flag is currently the first character is the status, the second is the integration.
+    Note that the AGAGE status flag won't match to the definition of NOAA flags.
+    The AGAGE NOAA style flag is currently the first character is the status.
     """
     if status_flag == 0:
         first_char = "."
     else:
         first_char = "a"
 
-    if integration_flag == 0:
-        second_char = "."
-    else:
-        second_char= "a"
-
-    return f"{first_char}{second_char}.".encode()
+    return f"{first_char}..".encode()
     
 def datetime_to_unix(array):
     return array.astype('datetime64[s]').astype("int") 
@@ -85,16 +80,16 @@ if __name__ == "__main__":
     # read in variables from the config file
     config = configparser.ConfigParser()
     config.read(Path(__file__).parent.parent.parent / 'config.ini')
+    AGAGE_SITES = config["inversion_constants"]["agage_sites"].split(",")
     OBSPACK_DIR = Path(config["paths"]["obspack_dir"])
     SPINUP_START = config["dates"]["spinup_start"]
-    PERTURB_END = config["dates"]["perturb_end"]
+    FINAL_END = config["dates"]["final_end"]
 
     """ 
     Read in the AGAGE site observations for the inversion period
     """
     # Are there any other sites?
-    sites = ["CGO", "SMO", "RPB", "THD", "MHD"]
-    agage_obs = read.get_obs(sites=sites, start_date=SPINUP_START, end_date=PERTURB_END, species="N2O")
+    agage_obs = read.get_obs(sites=AGAGE_SITES, start_date=SPINUP_START, end_date=FINAL_END, species="N2O")
 
     """ 
     Format AGAGE data so it looks more like NOAA obspack
@@ -105,7 +100,7 @@ if __name__ == "__main__":
 
     # iterate through each site, format, and save
     # use j so can extend runs without ruining obspack numbers
-    for j, site in enumerate(sites):
+    for j, site in enumerate(AGAGE_SITES):
         print(site)
 
         # rename to match NOAA
@@ -122,8 +117,9 @@ if __name__ == "__main__":
 
         # combine flags like noaa format
         # not really the same though, so be careful
-        qcflag = [create_noaa_style_flag(agage_obs[site][0]["status_flag"][i].values, 
-                                        agage_obs[site][0]["integration_flag"][i].values) for i in range(no_obs)]
+        # integration flag doesn't indicate data quality
+        # all status flags are 0?
+        qcflag = [create_noaa_style_flag(agage_obs[site][0]["status_flag"][i].values) for i in range(no_obs)]
         agage_obs[site][0]["qcflag"] = (("obs"), np.array(qcflag))
         agage_obs[site][0] = agage_obs[site][0].drop_vars(["status_flag", "integration_flag"])
 
@@ -147,7 +143,7 @@ if __name__ == "__main__":
                                         agage_obs[site][0]["time_components"][i][0].values,
                                         agage_obs[site][0]["time_components"][i][1].values,
                                         agage_obs[site][0]["time_components"][i][2].values,
-                                        (111111111 * (j + 1)) + i + total_obs) for i in range(no_obs)]  # hacky way to create unique identifier
+                                        (111111111 * (j + 1)) + i) for i in range(no_obs)]  # hacky way to create unique identifier
         agage_obs[site][0]["obspack_id"] = (("obs"), np.array(obspack_id))
 
         # keep track of number of observations so that each obs gets a unique identifier
