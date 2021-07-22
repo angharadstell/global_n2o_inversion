@@ -9,6 +9,8 @@
 ### Make observations
 1. Format the AGAGE observations to look like obspack (run n2o_inv/obs/agage_obs.py)
 2. Format all the obspack observations to be fed into GEOSChem (run n2o_inv/obs/format_obspack_geoschem.py)
+3. Plot all the obs, checking for dodgy things (run n2o_inv/obs/plot_obs.py)
+4. Remove dodgy things (run n2o_inv/plots/obs_baseline.py)
 
 ### Make initial conditions
 1. Set up GEOSChem spinup for the base run (run n2o_inv/spinup/configure_base_run_spinup.sh)
