@@ -30,8 +30,8 @@ flux_samples <- bind_rows(
     )
 )
 
-flux_samples$flux_mean <- flux_samples$flux_mean * ((14*2)/12) * 1000
-flux_samples$flux_samples <- flux_samples$flux_samples * ((14*2)/12) * 1000
+#flux_samples$flux_mean <- flux_samples$flux_mean * ((14*2)/12) * 1000
+#flux_samples$flux_samples <- flux_samples$flux_samples * ((14*2)/12) * 1000
 
 legend_n_columns <- 2
 show_prior_uncertainty <- args$show_prior_uncertainty

@@ -30,7 +30,7 @@ source(Sys.getenv('RESULTS_DISPLAY_PARTIAL'))
 # args$output <- paste0(config$paths$inversion_result, "/obs_time_series.pdf")
 
 # source(paste0(config$paths$wombat_paper, "/4_results/src/partials/base.R"))
-# source(paste0(config$paths$wombat_paper, "/4_results/src/partials/tables.R"))
+# source(paste0(config$paths$location_of_this_file, "../results/partials/tables.R"))
 # source(paste0(config$paths$wombat_paper, "/4_results/src/partials/display.R"))
 
 ###############################################################################
