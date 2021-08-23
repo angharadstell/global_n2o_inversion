@@ -31,7 +31,7 @@ process_model <- flux_process_model(
   perturbations,
   sensitivities,
   lag = Inf,
-  w_prior = gamma_quantile_prior(1 / 5 ^ 2, 1 / 1 ^ 2),
+  w_prior = list(shape=4, rate=0.7),#gamma_quantile_prior(1 / 2.5 ^ 2, 1 / 1 ^ 2),
   Psi = matrix(0, nrow = nrow(control_mole_fraction), ncol = 0),
   eta_prior_variance = 5 ^ 2
 )
