@@ -95,11 +95,15 @@ if __name__ == "__main__":
 
     # read in variables from the config file
     config = configparser.ConfigParser()
-    config.read(Path(__file__).parent.parent.parent / 'config.ini')
+    #config.read(Path(__file__).parent.parent.parent / 'config.ini')
+    config.read("/home/as16992/global_n2o_inversion/config.ini")
     RAW_OBSPACK_DIR = Path(config["paths"]["raw_obspack_dir"])
     OBSPACK_DIR = Path(config["paths"]["obspack_dir"])
     SPINUP_START = config["dates"]["spinup_start"]
     FINAL_END = config["dates"]["final_end"]
+    CONSTANT_START = config["dates"]["constant_start"]
+    CONSTANT_END = config["dates"]["constant_end"]
+    CONSTANT_CASE = config["inversion_constants"]["constant_case"]
 
     """ 
     Read in desired obspacks
@@ -156,6 +160,7 @@ if __name__ == "__main__":
 
     # Desired times
     daily_dates = pd.date_range(SPINUP_START, FINAL_END)[:-1]
+    constant_met_dates = pd.date_range(CONSTANT_END, FINAL_END)[:-1]
 
     # geoschem wants a series of daily files
     for date in daily_dates:
@@ -170,4 +175,40 @@ if __name__ == "__main__":
 
         # save file
         if len(obspack_date["obs"]) > 0: 
-            obspack_date.to_netcdf(OBSPACK_DIR /f"obspack_n2o.{date.strftime('%Y%m%d')}.nc")
+            #obspack_date.to_netcdf(OBSPACK_DIR /f"obspack_n2o.{date.strftime('%Y%m%d')}.nc")
+
+            if date in constant_met_dates:
+                constant_met_year = pd.to_datetime(CONSTANT_START).year
+                no_years_constant = date.year - constant_met_year
+
+                obspack_date_copy = obspack_date.copy(deep=True)
+
+                # edit time components and time
+                # try to move 29th feb to 28th
+                for i in range(len(obspack_date_copy["time_components"])):
+                    obspack_date_copy["time_components"][i][0] = np.float64(constant_met_year)
+                    if obspack_date_copy["time_components"][i][1] == 2 and obspack_date_copy["time_components"][i][2] == 29:
+                        leap_year = True
+                        obspack_date_copy["time_components"][i][2] = 28
+                    else:
+                        leap_year = False
+                time_minus_year = pd.to_datetime(obspack_date_copy["time"].values, unit="s")  - pd.offsets.DateOffset(years=no_years_constant)
+                # put back into seconds since 1970
+                obspack_date_copy["time"].values = (time_minus_year - pd.to_datetime("1970-01-01")).total_seconds()
+
+                # save 28th feb for leap year combinations
+                if obspack_date["time_components"][i][1] == 2 and obspack_date["time_components"][i][2] == 28:
+                    obspack_date_0228 = obspack_date_copy.copy(deep=True)
+
+                if leap_year:
+                    obspack_date_copy = obspack_date_copy.merge(obspack_date_0228)
+
+                # create directory if doesnt exist
+                constant_met_path = OBSPACK_DIR / f"{CONSTANT_CASE}/su_{no_years_constant:02d}"
+                constant_met_path.mkdir(parents=True, exist_ok=True)
+
+                # save final
+                if leap_year:
+                    obspack_date_copy.to_netcdf(constant_met_path / f"obspack_n2o.{constant_met_year}{date.strftime('%m')}28.nc")
+                else:
+                    obspack_date_copy.to_netcdf(constant_met_path / f"obspack_n2o.{constant_met_year}{date.strftime('%m%d')}.nc")

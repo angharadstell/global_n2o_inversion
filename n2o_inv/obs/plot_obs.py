@@ -26,12 +26,21 @@ if __name__ == "__main__":
     
     # read in observations
     print("Reading in obs...")
-    obspack_obs = process_geos_output.read_obs(OBSPACK_DIR, SPINUP_START, 
-                                               FINAL_END, FINAL_END)
+    obs_file = OBSPACK_DIR / "raw_obs.nc"
+    if obs_file.is_file():
+        with xr.open_dataset(obs_file) as load:
+            obspack_obs = load.load()
+        _, unique_sites = process_geos_output.find_unique_sites(obspack_obs)
+    else:
+        obspack_obs = process_geos_output.read_obs(OBSPACK_DIR, SPINUP_START, 
+                                                   FINAL_END, FINAL_END)
 
-    print("Finding unique sites...")
-    list_of_sites, unique_sites = process_geos_output.find_unique_sites(obspack_obs)
-    obspack_obs["site"] = (("obs"), np.array(list_of_sites))
+        print("Finding unique sites...")
+        list_of_sites, unique_sites = process_geos_output.find_unique_sites(obspack_obs)
+        obspack_obs["site"] = (("obs"), np.array(list_of_sites))
+
+        # save for looking at baselines
+        obspack_obs.to_netcdf(obs_file)
 
     print("Reading in geos...")
     obspack_geos = process_geos_output.read_geos(GEOSOUT_DIR / CASE, SPINUP_START, obspack_obs, NO_REGIONS)
@@ -51,6 +60,8 @@ if __name__ == "__main__":
     for i in range(0, NO_REGIONS+1):
         combined["CH4_sum"] += combined[f"CH4_R{i:02d}"]
 
+    combined = combined.swap_dims({"obs":"obs_time"})
+
     #%config InlineBackend.figure_format = 'png'
     pp = PdfPages(OBSPACK_DIR / 'obs_plots.pdf')
     print("Plotting desired sites...")
@@ -64,15 +75,23 @@ if __name__ == "__main__":
             any_flag = (onesite["qcflag"] == b'...')
             dodgy_low = (onesite["obs_value"] < 320)
 
+            #onesite_mean = onesite.resample(obs_time="M").mean()
+            #onesite_median = onesite.resample(obs_time="M").median()
+
             # also want to plot model base run
             fig = plt.figure()
             onesite.where(any_flag, drop=True).plot.scatter("obs_time", "obs_value")
             onesite.where(~any_flag, drop=True).plot.scatter("obs_time", "obs_value", c="r")
             onesite.where(dodgy_low, drop=True).plot.scatter("obs_time", "obs_value", c="g")
+
             if all(xr.ufuncs.isnan(onesite["CH4_sum"])):
                 pass
             else:
                 onesite.plot.scatter("obs_time", "CH4_sum", c="k")
+
+            #onesite_mean.plot.scatter("obs_time", "obs_value", c="m", marker="x")
+            #onesite_median.plot.scatter("obs_time", "obs_value", c="y", marker="x")
+
             plt.title(site)
             #plt.show()
             pp.savefig()
