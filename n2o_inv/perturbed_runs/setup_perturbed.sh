@@ -46,6 +46,11 @@ do
         sed -i "s#/$case/#/$perturb_case/#" HISTORY.rc
         sed -i "s#/$case/#/$perturb_case/#" HEMCO_Config.rc
 
+        # If its a leap year and Mar-Dec and an integer no. of years being run, comment out collections that get stored at "End" (geoschem bug makes it think the date is out of range)
+        sed -i "s/'Metrics',/#'Metrics',/" HISTORY.rc
+
+        # Remove default ic file
+        rm $geo_rundirs/$perturb_case/GEOSChem.Restart.20190101_0000z.nc4
         # Get ic file
         if [ "$perturb_case" = "${dates[perturb_start]:0:4}01" ]
         then
