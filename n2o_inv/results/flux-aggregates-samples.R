@@ -1,5 +1,7 @@
 source(Sys.getenv('INVERSION_BASE_PARTIAL'))
 
+#source('/home/as16992/wombat-paper/3_inversion/src/partials/base.R')
+
 options(dplyr.summarise.inform = FALSE)
 
 args <- arg_parser('', hide.opts = TRUE) %>%
@@ -9,6 +11,14 @@ args <- arg_parser('', hide.opts = TRUE) %>%
   add_argument('--samples', '') %>%
   add_argument('--output', '') %>%
   parse_args()
+
+# args <- vector(mode = "list", length = 5)
+# names(args) <- c('flux_aggregators', 'model_case', 'process_model', 'samples', 'output')
+# args$flux_aggregators <- '/work/as16992/geoschem/N2O/results/flux-aggregators.rds'
+# args$model_case <- '/work/as16992/geoschem/N2O/intermediates/real-model-IS-RHO0-FIXEDAO-FIXEDWO5-NOBIAS.rds'
+# args$process_model <- '/work/as16992/geoschem/N2O/intermediates/process-model.rds'
+# args$samples <- '/work/as16992/geoschem/N2O/intermediates/real-mcmc-samples-IS-RHO0-FIXEDAO-FIXEDWO5-NOBIAS.rds'
+# args$output <- '/work/as16992/geoschem/N2O/results/real-flux-aggregates-samples-IS-RHO0-FIXEDAO-FIXEDWO5-NOBIAS.rds'
 
 log_info('Loading model case')
 model_case <- readRDS(args$model_case)
@@ -34,9 +44,13 @@ emissions_summary <- lapply(flux_aggregators, function(emission_group) {
       # HACK(mgnb): assume this means the ocean is fixed
       alpha_subset <- alpha
       alpha <- matrix(0, nrow = nrow(alpha), ncol = ncol(emission_group$aggregator$Phi))
-      regions <- rep(1 : 23, 31)
-      alpha[, regions <= 12] <- alpha_subset
+      regions <- rep(0 : 22, 11 * 12) # edited this for 11 years, but my code doesnt (currently!) go through it anyway
+      alpha[, regions <= 11] <- alpha_subset
     }
+
+    # aggregate_flux(aggregator = flux_aggregators[[1]]$aggregator,
+    #             parameters = list(alpha = samples$alpha))
+
     aggregate_flux(
       aggregator = emission_group$aggregator,
       parameters = list(alpha = alpha)
