@@ -1,39 +1,13 @@
 ESTIMATE_COLOURS <- c(
   'Truth' = 'black',
-  'MIP Prior (min/mean/max)' = '#7570b3',
-  'MIP IS (min/mean/max)' = '#d95f02',
-  'MIP LN (min/mean/max)' = '#1b9e77',
   'WOMBAT Prior (mean)' = get_colour('wombat_prior'),
-  'WOMBAT IS (mean, 95% cred. int.)' = get_colour('wombat_lg'),
-  'WOMBAT LN (mean, 95% cred. int.)' = get_colour('wombat_ln'),
-  'Prior (mean)' = get_colour('wombat_prior'),
-  'IS, correlated errors (mean, 95% cred. int.)' = get_colour('wombat_lg'),
-  'IS, uncorrelated errors (mean, 95% cred. int.)' = 'orange',
-  'LN, correlated errors (mean, 95% cred. int.)' = get_colour('wombat_ln'),
-  'LN, uncorrelated errors (mean, 95% cred. int.)' = '#4a716d',
-  'IS, offline-corr. (mean, 95% cred. int.)' = get_colour('wombat_lg'),
-  'IS, online-corr. (mean, 95% cred. int.)' = 'orange',
-  'LN, offline-corr. (mean, 95% cred. int.)' = get_colour('wombat_ln'),
-  'LN, online-corr. (mean, 95% cred. int.)' = '#4a716d'
+  'WOMBAT IS (mean, 95% cred. int.)' = get_colour('wombat_lg')
 )
 
 ESTIMATE_LINETYPES = c(
   'Truth' = 'solid',
-  'MIP Prior (min/mean/max)' = 'longdash',
-  'MIP IS (min/mean/max)' = 'longdash',
-  'MIP LN (min/mean/max)' = 'longdash',
   'WOMBAT Prior (mean)' = 'solid',
-  'WOMBAT IS (mean, 95% cred. int.)' = 'solid',
-  'WOMBAT LN (mean, 95% cred. int.)' = 'solid',
-  'Prior (mean)' = 'solid',
-  'IS, correlated errors (mean, 95% cred. int.)' = 'solid',
-  'IS, uncorrelated errors (mean, 95% cred. int.)' = 'longdash',
-  'LN, correlated errors (mean, 95% cred. int.)' = 'solid',
-  'LN, uncorrelated errors (mean, 95% cred. int.)' = 'longdash',
-  'IS, offline-corr. (mean, 95% cred. int.)' = 'solid',
-  'IS, online-corr. (mean, 95% cred. int.)' = 'longdash',
-  'LN, offline-corr. (mean, 95% cred. int.)' = 'solid',
-  'LN, online-corr. (mean, 95% cred. int.)' = 'longdash'
+  'WOMBAT IS (mean, 95% cred. int.)' = 'solid'
 )
 
 log_info('Loading flux samples')
@@ -49,46 +23,6 @@ flux_samples <- flux_samples %>%
   select(-observation_group)
 
 print(flux_samples)
-
-if (show_mip_fluxes) {
-  log_info('Loading MIP fluxes')
-  mip_fluxes <- fst::read_fst(args$mip_fluxes)
-
-  mip_fluxes_modified <- mip_fluxes %>%
-    mutate(
-      name = MIP_REGION_TO_REGION[region_name]
-    ) %>%
-    filter(
-      month_start >= start_date,
-      month_start < end_date,
-      type != 'fossil',
-      case %in% c('Prior', 'IS')
-    ) %>%
-    select(name, which = case, everything())
-
-  mip_fluxes_modified <- bind_rows(c(list(mip_fluxes_modified), lapply(
-    REGION_AGGREGATES,
-    function(region_aggregate) {
-      mip_fluxes_modified %>%
-        filter(
-          name %in% region_aggregate$parts,
-          type %in% region_aggregate$types
-        ) %>%
-        group_by(group, which, type, month_start) %>%
-        summarise(
-          flux = sum(flux)
-        ) %>%
-        ungroup() %>%
-        mutate(name = region_aggregate$name)
-    }
-  ))) %>%
-    mutate(
-      year = year(month_start),
-      is_prior = FALSE,
-      estimate = factor(sprintf('MIP %s (min/mean/max)', which), levels = names(ESTIMATE_COLOURS))
-    ) %>%
-    select(-which)
-}
 
 log_info('Calculating')
 annual_fluxes <- flux_samples %>%
@@ -112,33 +46,11 @@ annual_fluxes <- flux_samples %>%
     )
   ) %>%
   filter(
-    #name %in% MIP_REGION_TO_REGION,
     year %in% head(substr(start_date, 1, 4):substr(end_date, 1, 4), -1)
   )
 
-if (show_mip_fluxes) {
-  annual_mip_fluxes <- mip_fluxes_modified %>%
-    group_by(group, estimate, name, year) %>%
-    summarise(
-      flux_mean = sum(flux)
-    ) %>%
-    ungroup() %>%
-    group_by(estimate, name, year) %>%
-    summarise(
-      flux_lower = min(flux_mean, na.rm = TRUE),
-      flux_upper = max(flux_mean, na.rm = TRUE),
-      flux_mean = mean(flux_mean, na.rm = TRUE)
-    ) %>%
-    filter(
-      year %in% head(substr(start_date, 1, 4):substr(end_date, 1, 4), -1)
-    )
-} else {
-  annual_mip_fluxes <- NULL
-}
-
 monthly_fluxes <- flux_samples %>%
   filter(
-    #name %in% MIP_REGION_TO_REGION,
     month_start >= start_date,
     month_start < end_date
   ) %>%
@@ -157,23 +69,6 @@ monthly_fluxes <- flux_samples %>%
   ) %>%
   select(estimate, name, month_start, flux_mean, flux_lower, flux_upper)
 
-if (show_mip_fluxes) {
-  monthly_mip_fluxes <- mip_fluxes_modified %>%
-    group_by(group, estimate, name, month_start) %>%
-    summarise(
-      flux_mean = sum(flux)
-    ) %>%
-    ungroup() %>%
-    group_by(estimate, name, month_start) %>%
-    summarise(
-      flux_lower = min(flux_mean, na.rm = TRUE),
-      flux_upper = max(flux_mean, na.rm = TRUE),
-      flux_mean = mean(flux_mean, na.rm = TRUE)
-    )
-} else {
-  monthly_mip_fluxes <- NULL
-}
-
 scale_colour_estimate <- scale_colour_manual(values = ESTIMATE_COLOURS)
 scale_linetype_estimate <- scale_linetype_manual(values = ESTIMATE_LINETYPES)
 scale_fill_estimate <- scale_fill_manual(values = ESTIMATE_COLOURS)
@@ -191,10 +86,7 @@ region_plots <- lapply(args$region, function(region_i) {
       fill = '#bbbbbb'
     ) +
     geom_crossbar(
-      data = bind_rows(
-        annual_mip_fluxes,
-        annual_fluxes
-      ) %>%
+      data = annual_fluxes %>%
         filter(name == region_i),
       mapping = aes(
         x = factor(year),
@@ -218,10 +110,7 @@ region_plots <- lapply(args$region, function(region_i) {
     ) +
     labs(x = 'Year', y = expression('Flux [TgN '*yr^-1*']'), colour = NULL, fill = NULL, linetype = NULL)
 
-  monthly_data <- bind_rows(
-    monthly_fluxes,
-    monthly_mip_fluxes
-  ) %>%
+  monthly_data <- monthly_fluxes %>%
     filter(name == region_i)
 
   monthly_plot <- ggplot() +
@@ -262,7 +151,7 @@ region_plots <- lapply(args$region, function(region_i) {
     scale_linetype_estimate +
     scale_fill_estimate +
     labs(x = 'Month', y = expression('Flux [TgN '*mo^-1*']'), colour = NULL, fill = NULL, linetype = NULL) +
-    guides(fill = FALSE, colour = FALSE, linetype = FALSE)
+    guides(fill = "none", colour = "none", linetype = "none")
 
   region_name <- region_i
   if (region_i %in% names(REGION_TITLE)) {
