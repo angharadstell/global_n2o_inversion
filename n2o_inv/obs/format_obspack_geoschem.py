@@ -54,7 +54,7 @@ def read_noaa_obspack(obspack_folder):
     Create a list of the N2O files, preprocess, and combine into a single xarray object.
     """
     # Make a list of the N2O files
-    obspack_dir = RAW_OBSPACK_DIR / obspack_folder / "data/nc" 
+    obspack_dir = obspack_folder / "data/nc" 
     n2o_files = list(obspack_dir.glob("n2o_*"))
     n2o_files.sort()
 
@@ -110,8 +110,13 @@ if __name__ == "__main__":
     """
 
     # Read in NOAA obs
-    noaa_surface_obspack_data = read_noaa_obspack("obspack_multi-species_1_CCGGSurfaceFlask_v2.0_2021-02-09")
-    noaa_aircraft_obspack_data = read_noaa_obspack("obspack_multi-species_1_CCGGAircraftFlask_v2.0_2021-02-09")
+    noaa_surface_obspack_data = read_noaa_obspack(RAW_OBSPACK_DIR / "obspack_multi-species_1_CCGGSurfaceFlask_v2.0_2021-02-09")
+    noaa_aircraft_obspack_data = read_noaa_obspack(RAW_OBSPACK_DIR / "obspack_multi-species_1_CCGGAircraftFlask_v2.0_2021-02-09")
+
+    # add in 2020 NOAA data
+    with xr.open_dataset(OBSPACK_DIR / f"noaa_2020_obs.nc") as load:
+        noaa_2020_data = load.load() 
+    noaa_surface_obspack_data = xr.merge([noaa_surface_obspack_data, noaa_2020_data])
 
     # Read in AGAGE obs
     agage_obs_dir = OBSPACK_DIR / "AGAGE_raw"
@@ -175,7 +180,7 @@ if __name__ == "__main__":
 
         # save file
         if len(obspack_date["obs"]) > 0: 
-            #obspack_date.to_netcdf(OBSPACK_DIR /f"obspack_n2o.{date.strftime('%Y%m%d')}.nc")
+            obspack_date.to_netcdf(OBSPACK_DIR /f"obspack_n2o.{date.strftime('%Y%m%d')}.nc")
 
             if date in constant_met_dates:
                 constant_met_year = pd.to_datetime(CONSTANT_START).year

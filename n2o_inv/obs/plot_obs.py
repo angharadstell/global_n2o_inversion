@@ -9,6 +9,12 @@ import xarray as xr
 
 from n2o_inv.intermediates import process_geos_output
 
+def add_ch4(combined, no_regions):
+    combined["CH4_sum"] = xr.zeros_like(combined["CH4_R00"])
+    for i in range(0, no_regions):
+        combined["CH4_sum"] += combined[f"CH4_R{i:02d}"]
+    return combined
+
 
 if __name__ == "__main__":
     # read in variables from the config file
@@ -56,9 +62,7 @@ if __name__ == "__main__":
                                 "value":"obs_value", "value_unc":"obs_value_unc"})
 
     # sum up different regions
-    combined["CH4_sum"] = xr.zeros_like(combined["CH4_R00"])
-    for i in range(0, NO_REGIONS+1):
-        combined["CH4_sum"] += combined[f"CH4_R{i:02d}"]
+    combined = add_ch4(combined, NO_REGIONS+1)
 
     combined = combined.swap_dims({"obs":"obs_time"})
 
