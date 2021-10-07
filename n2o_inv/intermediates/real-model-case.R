@@ -44,17 +44,41 @@ measurement_model <- measurement_model %>%
 
 n_groups <- nlevels(measurement_model$attenuation_factor)
 
+n_regions <- 23
+n_land_regions <- 12
+
 if ('RHO0' %in% case_parts) {
   measurement_model[['rho']] <- rep(0, n_groups)
   measurement_model[['ell']] <- rep(1, n_groups)
 }
 
+# if ('FIXEDGAMMA' %in% case_parts) {
+#  measurement_model[['gammma']] <- rep(1, n_groups)
+#  measurement_model[['gamma_prior']] <-  gamma_quantile_prior(0.999, 1.001)
+# }
+
+if ('FIXEDA' %in% case_parts) {
+  process_model[['a']] <- rep(0, n_regions)
+}
+
 if ('FIXEDAO' %in% case_parts) {
-  process_model[['a']] <- c(rep(NA, 12), rep(0, 11))
+  process_model[['a']] <- c(rep(NA, n_land_regions), rep(0, 11))
+}
+
+if ('VARYA' %in% case_parts) {
+  process_model[['a']] <- rep(NA, n_regions)
+}
+
+if ('FIXEDW' %in% case_parts) {
+  process_model[['w']] <- rep(4, n_regions)
 }
 
 if ('FIXEDWO5' %in% case_parts) {
-  process_model[['w']] <- c(rep(NA, 12), rep(4, 11))
+  process_model[['w']] <- c(rep(NA, n_land_regions), rep(4, 11))
+}
+
+if ('VARYW' %in% case_parts) {
+  process_model[['w']] <- rep(NA, n_regions)
 }
 
 process_model$eta_prior_mean <- rep(0, ncol(process_model$Psi))

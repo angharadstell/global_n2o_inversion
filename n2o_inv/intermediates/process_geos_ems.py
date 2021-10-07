@@ -7,6 +7,7 @@ Created on Tue May  4 16:36:26 2021
 """
 import configparser
 from pathlib import Path
+import sys
 
 import numpy as np
 import xarray as xr
@@ -33,30 +34,42 @@ def geoschem_cell_size(xr_df):
 if __name__ == "__main__":
     # read in variables from the config file
     config = configparser.ConfigParser()
-    config.read(Path(__file__).parent.parent.parent / 'config.ini')
+    #config.read(Path(__file__).parent.parent.parent / 'config.ini')
+    config.read("/home/as16992/global_n2o_inversion/config.ini")
     GEOSOUT_DIR = Path(config["paths"]["geos_out"])
     CASE = config["inversion_constants"]["case"]
+
+    # variables from commandline
+    input_files = sys.argv[1]
+    output_file = sys.argv[2]
+
+    print(f"Loading data from {input_files}")
+    print(f"Saving data to {output_file}")
 
     # Read in model ems
     for output_dir in GEOSOUT_DIR.iterdir():
         print(output_dir)
         
-        hemco_files = list(output_dir.glob("HEMCO_diagnostics.??????010000.nc"))
-        hemco_files.sort()
-        
-        with xr.open_mfdataset(hemco_files) as load:
-            hemco_ems = load.load() 
+        try:
+            hemco_files = list(output_dir.glob(input_files))
+            hemco_files.sort()
+            print(hemco_files)
             
-        hemco_ems = hemco_ems.drop(["hyam", "hybm", "P0", "lev"])
-        
-        if str(output_dir)[-4:] == CASE:
-            # work out geoschem grid widths and heights
-            lat_widths, lon_widths = geoschem_cell_size(hemco_ems)
+            with xr.open_mfdataset(hemco_files) as load:
+                hemco_ems = load.load() 
+                
+            hemco_ems = hemco_ems.drop(["hyam", "hybm", "P0", "lev"])
+            
+            if str(output_dir)[-4:] == CASE:
+                # work out geoschem grid widths and heights
+                lat_widths, lon_widths = geoschem_cell_size(hemco_ems)
 
-        hemco_ems = hemco_ems.rename({"lon": "longitude",
-                                      "lat": "latitude"})
+            hemco_ems = hemco_ems.rename({"lon": "longitude",
+                                        "lat": "latitude"})
 
-        hemco_ems['longitude_width'] = lon_widths
-        hemco_ems['latitude_height'] = lat_widths
-        
-        hemco_ems.to_netcdf(output_dir / "monthly_fluxes.nc")
+            hemco_ems['longitude_width'] = lon_widths
+            hemco_ems['latitude_height'] = lat_widths
+            
+            hemco_ems.to_netcdf(output_dir / output_file)
+        except OSError:
+            print("no files to open")

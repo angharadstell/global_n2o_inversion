@@ -1,3 +1,4 @@
+library(argparser)
 library(dplyr)
 library(fst)
 library(ini)
@@ -6,6 +7,11 @@ library(stringr)
 library(tibble)
 library(wombat)
 
+args <- arg_parser('', hide.opts = TRUE) %>%
+  add_argument('--mf-file', '') %>%
+  add_argument('--output', '') %>%
+  parse_args()
+
 ###############################################################################
 # GLOBAL CONSTANTS
 ###############################################################################
@@ -13,7 +19,8 @@ fileloc <- (function() {
   attr(body(sys.function()), "srcfile")
 })()$filename
 
-config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc), "config.ini"))
+#config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc), "config.ini"))
+config <- read.ini("/home/as16992/global_n2o_inversion/config.ini")
 
 # locations of files
 case <- config$inversion_constants$case
@@ -45,41 +52,34 @@ process_obspack <- function(filename) {
     tccon_station_id = NA,
     altitude = as.vector(v("obs_alt")),
     overall_observation_mode = "IS",
-    observation_group = stringr::str_split(observation_id, "~", simplify = TRUE)[, 2],
-    observation_group_parts = stringr::str_split(observation_group, "-", simplify = TRUE),
-    obspack_site_full = observation_group_parts[, 1],
-    obspack_site_full_parts = stringr::str_split(obspack_site_full, "_", simplify = TRUE),
-    obspack_site = obspack_site_full_parts[, 2],
-    obspack_site_type = obspack_site_full_parts[, 3],
-    obspack_measurement_type = stringr::str_split(observation_group_parts[, 2], "_", simplify = TRUE)[, 1],
-    obspack_measurement_subtype = NA #observation_group_parts[, 3] in original, but I don"t have this
+    observation_group = stringr::str_split(observation_id, "~", simplify = TRUE)[, 2], #"IS", #
+    observation_group_parts = stringr::str_split(observation_group, "-", simplify = TRUE), #"obspack", #
+    obspack_site_full = observation_group_parts[, 1], #"obspack", #
+    obspack_site_full_parts = stringr::str_split(obspack_site_full, "_", simplify = TRUE), #"obspack", #
+    obspack_site = obspack_site_full_parts[, 2], #"obspack", #
+    obspack_site_type = obspack_site_full_parts[, 3], #"obspack", #
+    obspack_measurement_type = stringr::str_split(observation_group_parts[, 2], "_", simplify = TRUE)[, 1] #"obspack", #
   )  %>%
-    select(-obspack_site_full, -obspack_site_full_parts, -observation_group_parts)
+    select(-obspack_site_full, -obspack_site_full_parts, -observation_group_parts) %>% 
+    filter(if_any(co2, ~ !is.na(.)))
 }
 
+###############################################################################
+# CODE
+###############################################################################
 
-combined_obspack <- process_obspack(paste0(geos_out_dir, "/", case, "/combined_mf.nc"))
+main <- function() {
+  # read in data
+  combined_obspack <- process_obspack(paste0(geos_out_dir, "/", case, "/", args$mf_file))
 
-# remove nan
-combined_obspack <- combined_obspack %>% filter(if_any(co2, ~ !is.na(.)))
+  # add model error
+  #model_err <- readRDS(sprintf("%s/model-rep-err.rds", inte_out_dir))
+  #combined_obspack$co2_error <- sqrt(combined_obspack$co2_error^2 + model_err^2)
 
-# # remove aircraft data
-# air_mask <- str_detect(combined_obspack$observation_group, "NOAAair")
-# combined_obspack <- filter(combined_obspack, !air_mask)
+  # save the observations
+  fst::write_fst(combined_obspack, sprintf("%s/%s", inte_out_dir, args$output))
+}
 
-# can't cope with sites with one observation if correlated
-attenuation_factor <- as.factor(combined_obspack$observation_group)
-no_obs_each_site <- sapply(1:nlevels(attenuation_factor),
-                           function(i) sum(combined_obspack$observation_group == levels(attenuation_factor)[i]))
-# 57 sites for 3 years
-print(no_obs_each_site)
-# mask <- no_obs_each_site == 18
-# mask_levels <- levels(attenuation_factor)[mask]
-# mask_df <- combined_obspack$observation_group %in% mask_levels
-# combined_obspack <- filter(combined_obspack, mask_df)
-
-# #combined_obspack$co2 <- combined_obspack$co2 * 2
-# combined_obspack$co2 <- combined_obspack$co2 + seq(0, 170, 10)
-
-# save the observations
-fst::write_fst(combined_obspack, sprintf("%s/observations.fst", inte_out_dir))
+if (getOption('run.main', default=TRUE)) {
+   main()
+}

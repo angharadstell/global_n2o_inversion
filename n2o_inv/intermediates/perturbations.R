@@ -1,3 +1,4 @@
+library(argparser)
 library(dplyr)
 library(fst)
 library(ini)
@@ -6,6 +7,11 @@ library(ncdf4)
 library(tidyr)
 library(wombat)
 
+args <- arg_parser('', hide.opts = TRUE) %>%
+  add_argument('--flux-file', '') %>%
+  add_argument('--control-ems', '') %>%
+  add_argument('--output', '') %>%
+  parse_args()
 
 ###############################################################################
 # GLOBAL CONSTANTS
@@ -14,8 +20,9 @@ fileloc <- (function() {
   attr(body(sys.function()), "srcfile")
 })()$filename
 
-config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc),
-                   "config.ini"))
+# config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc),
+#                    "config.ini"))
+config <- read.ini("/home/as16992/global_n2o_inversion/config.ini")
 
 no_regions <- as.numeric(config$inversion_constants$no_regions)
 case <- config$inversion_constants$case
@@ -50,7 +57,7 @@ sum_ch4_tracers <- function(v_base, v_pert,
 
 process_perturbation_part <- function(month, year, region) {
   # Read in flux file
-  flux_file <- sprintf("%s/%s%02d/monthly_fluxes.nc", geos_out_dir, year, month)
+  flux_file <- sprintf("%s/%s%02d/%s", geos_out_dir, year, month, args$flux_file)
   print(flux_file)
   perturbed <- ncdf4::nc_open(flux_file)
   v <- function(...) ncdf4::ncvar_get(perturbed, ...)
@@ -64,10 +71,11 @@ process_perturbation_part <- function(month, year, region) {
 
   # bit of a hacky way to stop hitting index error - improve!
   first_year <- as.numeric(format(perturb_start, format = "%Y"))
-  last_year <- as.numeric(format(perturb_end, format = "%Y")) - 1
-  no_years <- last_year - first_year + 1
   month_start <- (as.numeric(year) - first_year) * 12 + month
-  month_end <- min(month_start + len_perturb - 1, no_years * 12)
+  month_end <- min(month_start + len_perturb - 1, length(unique(control$month_start)))
+
+  print(month_start)
+  print(month_end)
 
   as_tibble(cbind(locations, data.frame(
     region = region,
@@ -117,22 +125,30 @@ process_perturbation_part <- function(month, year, region) {
 # EXECUTION
 ###############################################################################
 
-control <- fst::read_fst(sprintf("%s/control-emissions.fst", inte_out_dir))
+control <- fst::read_fst(sprintf("%s/%s", inte_out_dir, args$control_ems))
 
-fn <- nc_open(sprintf("%s/%s/monthly_fluxes.nc", geos_out_dir, case))
+fn <- nc_open(sprintf("%s/%s/%s", geos_out_dir, case, args$flux_file))
 v_base <- function(...) ncdf4::ncvar_get(fn, ...)
 
-
-first_year <- as.numeric(format(perturb_start, format = "%Y"))
-last_year <- as.numeric(format(perturb_end, format = "%Y")) - 1
+unique_dates <- unique(control$month_start)
+first_year <- as.numeric(format(min(unique_dates), format = "%Y"))
+last_year <- as.numeric(format(max(unique_dates), format = "%Y"))
 no_years <- last_year - first_year + 1
 
+if (no_years > 0) {
+  months <- rep(rep(1:12, each = (no_regions + 1)), no_years)
+  years <- rep(first_year:last_year, each = (12 * (no_regions + 1)))
+} else {
+  months <- rep(1:length(unique_dates), each = (no_regions + 1))
+  years <- rep(first_year:last_year, each = (length(unique_dates) * (no_regions + 1)))
+}
+
 perturbations <- mapply(function(m, y, r) process_perturbation_part(m, y, r),
-                        rep(rep(1:12, each = (no_regions + 1)), no_years),
-                        rep(first_year:last_year, each = (12 * (no_regions + 1))),
-                        rep(0:no_regions, 12 * no_years),
+                        months,
+                        years,
+                        rep(0:no_regions, length(unique_dates)),
                         SIMPLIFY = FALSE)
 
 perturbations_combined <- bind_rows(perturbations)
 
-fst::write_fst(perturbations_combined, sprintf("%s/perturbations.fst", inte_out_dir))
+fst::write_fst(perturbations_combined, sprintf("%s/%s", inte_out_dir, args$output))

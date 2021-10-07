@@ -13,8 +13,9 @@ fileloc <- (function() {
   attr(body(sys.function()), "srcfile")
 })()$filename
 
-config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc),
-                   "config.ini"))
+# config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc),
+#                    "config.ini"))
+config <- read.ini("/home/as16992/global_n2o_inversion/config.ini")
 
 case <- config$inversion_constants$case
 # locations of files
@@ -25,9 +26,9 @@ inte_out_dir <- config$paths$geos_inte
 # FUNCTIONS
 ###############################################################################
 
-process_control <- function(case, filename) {
+process_control <- function(case, input_file, output_file) {
   # get variables from base run netcdf
-  geos_obspack <- nc_open(paste0(geos_out_dir, "/", case, "/combined_mf.nc"))
+  geos_obspack <- nc_open(paste0(geos_out_dir, "/", case, "/", input_file, ".nc"))
   v <- function(...) ncvar_get(geos_obspack, ...)
 
   # put into nice table
@@ -47,7 +48,7 @@ process_control <- function(case, filename) {
   control_full <- control_full %>% filter(if_any(co2, ~ !is.na(.)))
 
   # save for later
-  write_fst(control_full, paste0(inte_out_dir, "/", filename, ".fst"))
+  write_fst(control_full, paste0(inte_out_dir, "/", output_file, ".fst"))
 }
 
 
@@ -56,7 +57,10 @@ process_control <- function(case, filename) {
 ###############################################################################
 
 # base case
-process_control(config$inversion_constants$case, "control-mole-fraction")
+process_control(config$inversion_constants$case, "combined_mf", "control-mole-fraction")
 
 # constant case
-process_control(config$inversion_constants$constant_case, "control-mole-fraction-constant-met")
+process_control(config$inversion_constants$constant_case, "combined_mf", "control-mole-fraction-constant-met")
+
+# pseudo data case
+process_control(config$inversion_constants$case, "combined_mf_pseudo", "control-mole-fraction-pseudo")

@@ -1,3 +1,4 @@
+library(argparser)
 library(dplyr)
 library(fst)
 library(ini)
@@ -6,6 +7,12 @@ library(ncdf4)
 library(stringr)
 library(tibble)
 
+args <- arg_parser('', hide.opts = TRUE) %>%
+  add_argument('--mf-file', '') %>%
+  add_argument('--control-mf', '') %>%
+  add_argument('--output', '') %>%
+  parse_args()
+
 ###############################################################################
 # GLOBAL CONSTANTS
 ###############################################################################
@@ -13,7 +20,8 @@ fileloc <- (function() {
   attr(body(sys.function()), "srcfile")
 })()$filename
 
-config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc), "config.ini"))
+#config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc), "config.ini"))
+config <- read.ini("/home/as16992/global_n2o_inversion/config.ini")
 
 # locations of files
 case <- config$inversion_constants$case
@@ -29,7 +37,7 @@ perturb_end <- as.Date(config$dates$perturb_end)
 
 base_ch4_tracers <- function() {
   # return the variables in the base run netcdf
-  base_nc <- ncdf4::nc_open(sprintf("%s/%s/combined_mf.nc", geos_out_dir, case))
+  base_nc <- ncdf4::nc_open(sprintf("%s/%s/%s", geos_out_dir, case, args$mf_file))
   v_base <- function(...) ncdf4::ncvar_get(base_nc, ...)
   v_base
 }
@@ -47,9 +55,9 @@ sum_ch4_tracers_perturbed <- function(v_base, v_pert, perturbed_region) {
   total_ch4
 }
 
-process_sensitivity_part <- function(year, month) {
+process_sensitivity_part <- function(year, month, v_base, control_tibble) {
   # Read in combined file
-  combined_file <- sprintf("%s/%s%02d/combined_mf.nc", geos_out_dir, year, month)
+  combined_file <- sprintf("%s/%s%02d/%s", geos_out_dir, year, month, args$mf_file)
   print(combined_file)
   perturbed <- ncdf4::nc_open(combined_file)
   v <- function(...) ncdf4::ncvar_get(perturbed, ...)
@@ -92,14 +100,14 @@ process_sensitivity_part <- function(year, month) {
 ###############################################################################
 # EXECUTION
 ###############################################################################
-if (interactive()) {
+main <- function() {
   print("Running main code of sensitivities script...")
 
   # read in the base run tracers
   v_base <- base_ch4_tracers()
 
   # read in the processed base run
-  control <- fst::read_fst(sprintf("%s/control-mole-fraction.fst", inte_out_dir))
+  control <- fst::read_fst(sprintf("%s/%s", inte_out_dir, args$control_mf))
   control_tibble <- select(control,
                           model_id,
                           observation_id,
@@ -108,14 +116,24 @@ if (interactive()) {
                           control_co2 = co2)
 
   # process each perturbed sensitivity run
+  no_months <- length(v_base("obs_time"))
   first_year <- as.numeric(format(perturb_start, format = "%Y"))
-  last_year <- as.numeric(format(perturb_end, format = "%Y")) - 1
-  no_years <- last_year - first_year + 1
+  last_year <- as.numeric(format(perturb_start + months(no_months), format = "%Y"))
+  no_years <- last_year - first_year
+
+if (no_years > 0) {
+  months <- rep(1:12, no_years)
+  years <- rep(first_year:(last_year - 1), each = 12)
+} else {
+  months <- 1:no_months
+  years <- rep(first_year, each = no_months)
+}
 
   sensitivities_parts <- mapply(process_sensitivity_part,
-                                year = rep(first_year:last_year, each = 12),
-                                month = rep(1:12, no_years),
-                                SIMPLIFY = FALSE)
+                                year = years,
+                                month = months,
+                                SIMPLIFY = FALSE,
+                                MoreArgs = list(v_base=v_base, control_tibble=control_tibble))
 
   # stick all the perturbed sensitivities together
   sensitivities <- bind_rows(sensitivities_parts) %>%
@@ -129,5 +147,9 @@ if (interactive()) {
   )
 
   # save the sensitivities
-  fst::write_fst(sensitivities, sprintf("%s/sensitivities.fst", inte_out_dir))
+  fst::write_fst(sensitivities, sprintf("%s/%s", inte_out_dir, args$output))
+}
+
+if (getOption('run.main', default = TRUE)) {
+   main()
 }

@@ -1,9 +1,16 @@
+library(argparser)
 library(dplyr)
 library(fst)
 library(ini)
 library(ncdf4)
 library(tidyr)
 library(wombat)
+
+
+args <- arg_parser('', hide.opts = TRUE) %>%
+  add_argument('--flux-file', '') %>%
+  add_argument('--output', '') %>%
+  parse_args()
 
 ###############################################################################
 # GLOBAL CONSTANTS
@@ -12,8 +19,9 @@ fileloc <- (function() {
   attr(body(sys.function()), "srcfile")
 })()$filename
 
-config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc),
-                   "config.ini"))
+# config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc),
+#                    "config.ini"))
+config <- read.ini("/home/as16992/global_n2o_inversion/config.ini")
 
 case <- config$inversion_constants$case
 # locations of files
@@ -37,7 +45,7 @@ sum_ch4_tracers <- function(v, region_start, region_end) {
 # EXECUTION
 ###############################################################################
 
-fn <- nc_open(sprintf("%s/%s/monthly_fluxes.nc", geos_out_dir, case))
+fn <- nc_open(sprintf("%s/%s/%s", geos_out_dir, case, args$flux_file))
 v <- function(...) ncdf4::ncvar_get(fn, ...)
 
 n_longitudes <- length(v("longitude"))
@@ -83,4 +91,4 @@ left_join(
 ) %>%
 select(-longitude_index, -latitude_index)
 
-fst::write_fst(emissions, sprintf("%s/control-emissions.fst", inte_out_dir))
+fst::write_fst(emissions, sprintf("%s/%s", inte_out_dir, args$output))
