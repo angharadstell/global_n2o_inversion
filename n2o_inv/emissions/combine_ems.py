@@ -14,9 +14,9 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from acrg_grid import areagrid
-from acrg_grid import regrid
-from acrg_mozart import acrg_MOZART_angharad as mzt
+from acrg.grid.areagrid import areagrid
+from acrg.grid.regrid import regrid2d
+#from acrg_mozart import acrg_MOZART_angharad as mzt
 
 from n2o_inv.plots import map_plot
 
@@ -38,14 +38,14 @@ def ems_regrid(ems):
     geos_grid = xr_read(Path(__file__).parent / "geos_grid_info.nc")
 
     ems_regridded = np.zeros((len(ems["time"]), len(geos_grid.lat), len(geos_grid.lon)))
-    with mzt.suppress_stdout():
-        for month in range(len(ems["time"])):
-            ems_regridded[month, :, :] = regrid.regrid2d(ems["emi_n2o"].values[month, :, :], 
-                                                         ems["lat"].values,
-                                                         ems["lon"].values, 
-                                                         geos_grid.lat.values,
-                                                         geos_grid.lon.values, 
-                                                         global_grid=True)[0]
+    # with mzt.suppress_stdout():
+    for month in range(len(ems["time"])):
+        ems_regridded[month, :, :] = regrid2d(ems["emi_n2o"].values[month, :, :], 
+                                              ems["lat"].values,
+                                              ems["lon"].values, 
+                                              geos_grid.lat.values,
+                                              geos_grid.lon.values, 
+                                              global_grid=True)[0]
     
     ems = xr.Dataset({"emi_n2o":(("time", "lat", "lon"), ems_regridded)},
                              coords={"time":ems["time"],
