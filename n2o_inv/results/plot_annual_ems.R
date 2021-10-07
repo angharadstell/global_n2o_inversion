@@ -1,15 +1,17 @@
+library(argparser)
 library(dplyr)
 library(ggplot2)
 library(gridExtra)
 library(ini)
 library(lubridate)
 
+args <- arg_parser('', hide.opts = TRUE) %>%
+  add_argument('--casename', '') %>%
+  parse_args()
+
 ###############################################################################
 # GLOBAL CONSTANTS AND FUNCTIONS
 ###############################################################################
-fileloc <- (function() {
-  attr(body(sys.function()), "srcfile")
-})()$filename
 
 # Do a nice plot of the annual emissions
 plot_annual_ems <- function(flux_samples) {
@@ -18,7 +20,7 @@ plot_annual_ems <- function(flux_samples) {
        geom_line() +
        geom_ribbon(aes(ymin = flux_lower, ymax = flux_upper), alpha = 0.1) +
        xlab("Year") + ylab(expression(N[2] * "O Flux / TgN " * yr^-1)) +
-       #scale_x_continuous(breaks = seq(first_year, last_year, 2)) +
+       scale_x_continuous(breaks = seq(first_year, last_year, 2)) +
        theme(legend.title = element_blank())
 
   p
@@ -66,7 +68,8 @@ print_ems <- function(region) {
 ###############################################################################
 
 # read in config file
-config <- read.ini(paste0(gsub("n2o_inv/results.*", "", fileloc), "config.ini"))
+#config <- read.ini(paste0(gsub("n2o_inv/results.*", "", fileloc), "config.ini"))
+config <- read.ini("~/global_n2o_inversion/config.ini")
 
 ###############################################################################
 # EXECUTED CODE
@@ -74,9 +77,9 @@ config <- read.ini(paste0(gsub("n2o_inv/results.*", "", fileloc), "config.ini"))
 
 # read in flux samples
 flux_samples <- bind_rows(
-  readRDS(paste0(config$paths$inversion_results, 
+  readRDS(paste0(config$paths$inversion_results,
                  "/real-flux-aggregates-samples-",
-                 config$inversion_constants$model_case, ".rds")))
+                 args$casename, ".rds")))
 
 
 # create annual mean with 95% confidence intervals
@@ -88,17 +91,14 @@ annual_flux_samples <- flux_samples %>% mutate(year = year(month_start)) %>%
     flux_upper = quantile(colSums(flux_samples), probs = 0.975, na.rm = TRUE)
   )
 
-# remove dodgy spinup year and not enough info last year
 # first year to plot, dont plot first year due to spinup effects
 first_year <- year(config$dates$perturb_start) + 1
-# last year to plot, dont plot last year due to lack of observational data
-last_year <- year(config$dates$perturb_end) - 2
-annual_flux_samples <- annual_flux_samples %>% filter(year >= first_year,
-                                                      year <= last_year)
+annual_flux_samples <- annual_flux_samples %>% filter(year >= first_year)
+last_year <- year(config$dates$perturb_end) - 1
 
 # plot global annual ems
 p_global <- regional_ems_plot("Global")
-ggsave(paste0(config$paths$inversion_results, "/global_annual_ems_wombat.pdf"))
+ggsave(sprintf("%s/global_annual_ems_wombat-%s.pdf", config$paths$inversion_results, args$casename))
 
 # print out mean and confidence interval for period
 print_ems("Global")
@@ -106,9 +106,16 @@ print_ems("Global land")
 print_ems("Global oceans")
 
 # plot all land area annual ems
-max_land_region <- config$inversion_constants$no_land_regions - 1
+max_land_region <- as.numeric(config$inversion_constants$no_land_regions) - 1
 regional_plots <- lapply(sprintf("T%02d", seq(0, max_land_region)),
                          function(x) {regional_ems_plot(x) + ggtitle(x)})
 p_regional <- do.call("arrangeGrob", c(regional_plots, nrow = 3))
-ggsave(paste0(config$paths$inversion_results, "/regional_annual_ems_wombat.pdf"),
+ggsave(sprintf("%s/regional_land_annual_ems_wombat-%s.pdf", config$paths$inversion_results, args$casename),
+       p_regional, height = 20, width = 20)
+
+# plot all ocean areas
+regional_plots <- lapply(sprintf("T%02d", seq(max_land_region + 1, config$inversion_constants$no_regions)),
+                         function(x) {regional_ems_plot(x) + ggtitle(x)})
+p_regional <- do.call("arrangeGrob", c(regional_plots, nrow = 3))
+ggsave(sprintf("%s/regional_ocean_annual_ems_wombat-%s.pdf", config$paths$inversion_results, args$casename),
        p_regional, height = 20, width = 20)
