@@ -20,12 +20,7 @@ source(Sys.getenv('RESULTS_BASE_PARTIAL'))
 source(Sys.getenv('RESULTS_TABLES_PARTIAL'))
 source(Sys.getenv('RESULTS_DISPLAY_PARTIAL'))
 
-# interactive
-# fileloc <- (function() {
-#   attr(body(sys.function()), "srcfile")
-# })()$filename
-
-# config <- read.ini(paste0(gsub("n2o_inv/results.*", "", fileloc), "config.ini"))
+# config <- read.ini(paste0(here(), "/config.ini"))
 
 # casename <- config$inversion_constants$model_case
 
@@ -63,17 +58,12 @@ log_info('Loading samples')
 samples <- readRDS(args$samples)
 
 log_info('Computing obs samples')
-obs_matching <- match(
-  observations$observation_id,
-  model_case$process_model$control_mole_fraction$observation_id
-)
+H <- model_case$process_model$H
+Psi <- model_case$process_model$Psi
 
-H_obs <- model_case$process_model$H[obs_matching, ]
-Psi_obs <- model_case$process_model$Psi[obs_matching, ]
-
-Y2_prior <- model_case$process_model$control_mole_fraction$co2[obs_matching]
+Y2_prior <- model_case$process_model$control_mole_fraction$co2
 Y2_tilde_samples <- as.matrix(
-  H_obs %*% t(as.matrix(window(coda::mcmc(samples$alpha), thin = 1)))
+  H %*% t(as.matrix(window(coda::mcmc(samples$alpha), thin = 1)))
   + if (ncol(samples$eta) > 0) Psi_obs %*% t(as.matrix(window(coda::mcmc(samples$eta), thin = 1))) else 0
 )
 
