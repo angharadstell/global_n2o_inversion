@@ -34,7 +34,7 @@ if PERTURB_START[8:] == '01':
     ems = ems.isel(time=slice(0, -1))
 
 # get GEOSCHEM area
-with xr.open_dataset(Path(__file__).parent / "geos_grid_info.nc") as load:
+with xr.open_dataset(Path(config["em_n_loss"]["geos_ems"]) / "geos_grid_info.nc") as load:
     area = load.load()
 
 

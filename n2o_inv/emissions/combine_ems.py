@@ -20,6 +20,9 @@ from acrg.grid.regrid import regrid2d
 
 from n2o_inv.plots import map_plot
 
+config = configparser.ConfigParser()
+config.read(Path(__file__).parent.parent.parent / 'config.ini')
+
 def xr_read(file):
     """ Read in netcdf to xarray. """
     with xr.open_dataset(file) as load:
@@ -35,7 +38,7 @@ def mid_month_date(start_year, end_year):
 def ems_regrid(ems):
     """ Regrid emissions to GEOS-Chem grid and format to nice xarray object. """
     # geos grid constants
-    geos_grid = xr_read(Path(__file__).parent / "geos_grid_info.nc")
+    geos_grid = xr_read(Path(config["em_n_loss"]["geos_ems"]) / "geos_grid_info.nc")
 
     ems_regridded = np.zeros((len(ems["time"]), len(geos_grid.lat), len(geos_grid.lon)))
     # with mzt.suppress_stdout():
@@ -64,7 +67,7 @@ def to_tgyr(ems, var="emi_n2o"):
     # take GEOS-Chem area if GEOS-Chem grid
     if np.logical_and(len(ems["lat"].values) == 46, len(ems["lon"].values) == 72):
         # geos grid constants
-        area = xr_read(Path(__file__).parent / "geos_grid_info.nc")
+        area = xr_read(Path(config["em_n_loss"]["geos_ems"]) / "geos_grid_info.nc")
     # Otherwise work out area    
     else:
         area = xr.Dataset({"area":(("lat", "lon"), areagrid(ems["lat"].values, ems["lon"].values))},
@@ -98,8 +101,6 @@ def basic_plot(ems):
 
 if __name__ == "__main__":
     # read in variables from the config file
-    config = configparser.ConfigParser()
-    config.read(Path(__file__).parent.parent.parent / 'config.ini')
     N2O_MW = float(config["gas_info"]["molecular_weight"])
     SHARED_N2O = Path(config["em_n_loss"]["raw_ems"]) # still relies on a file structure match BP1
     GEOS_OUT = Path(config["paths"]["geos_out"])

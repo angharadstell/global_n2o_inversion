@@ -3,6 +3,7 @@ Tests agage_obs.py
 
 @author: Angharad Stell
 """
+import configparser
 from pathlib import Path
 
 import numpy as np
@@ -14,7 +15,9 @@ from n2o_inv.emissions import combine_ems
 
 @pytest.fixture
 def geos_grid():
-    return combine_ems.xr_read(Path(__file__).parent.parent.parent / "n2o_inv/emissions/geos_grid_info.nc")
+    config = configparser.ConfigParser()
+    config.read(Path(__file__).parent.parent.parent / 'config.ini')
+    return combine_ems.xr_read(Path(config["em_n_loss"]["geos_ems"]) / "geos_grid_info.nc")
 
 def test_mid_month_date():
     desired_dates = pd.DatetimeIndex(['2012-01-15', '2012-02-15', '2012-03-15', '2012-04-15',
