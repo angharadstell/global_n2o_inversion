@@ -1,0 +1,61 @@
+#!/bin/bash
+
+#PBS -l select=1:ncpus=1:mem=5gb
+#PBS -l walltime=72:00:00
+#PBS -j oe
+
+source ~/.bashrc
+conda activate wombat
+
+cd "${PBS_O_WORKDIR}"
+
+# read in variables
+source ../spinup/bash_var.sh
+
+#./make_intermediates.sh
+
+nwindow=${moving_window[n_window]}
+analytical=FALSE
+
+for window in $(eval echo "{1..$nwindow}")
+do
+    echo "starting window $window"
+    window02d=`printf %02d $window`
+
+    sed -i -e "s/window02d=.*/window02d=$window02d/" make_models.sh
+    ./make_models.sh
+
+    echo "Doing inversion..."
+    if [ $analytical = TRUE ]
+    then
+        Rscript analytical_inversion.R --window $window
+
+    else
+        sed -i -e "s/window02d=.*/window02d=$window02d/" make_real_mcmc_samples_vary_submit.sh
+        qsub make_real_mcmc_samples_vary_submit.sh
+
+        # wait for job to finish
+        njob=1
+        while [ $njob -gt 0 ]
+        do
+            sleep 5m
+            njob=$(qstat -tf | grep "Job_Name\s=\smake_real_mcmc_samples_vary_submit.sh" | wc -l)
+
+            echo "There are $njob jobs to go"
+        done
+        echo "Exiting loop..."
+    fi
+
+    # bring in spinup fluxes
+    if [ $window -lt $nwindow ]
+    then
+        echo "changing ic..."
+        if [ $analytical = TRUE ]
+        then
+            Rscript change_control_mf.R --window $window --method "analytical"
+        else
+            Rscript change_control_mf.R --window $window --method "mcmc"
+        fi
+    fi
+
+done
