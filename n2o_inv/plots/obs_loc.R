@@ -1,4 +1,5 @@
 library(ggplot2)
+library(here)
 library(ini)
 library(ncdf4)
 library(rnaturalearth)
@@ -8,11 +9,7 @@ library(sf)
 ###############################################################################
 # GLOBAL CONSTANTS
 ###############################################################################
-fileloc <- (function() {
-  attr(body(sys.function()), "srcfile")
-})()$filename
-
-config <- read.ini(paste0(gsub("n2o_inv/plots.*", "", fileloc), "config.ini"))
+config <- read.ini(paste0(here(), "/config.ini"))
 
 
 # set ggplot theme for maps

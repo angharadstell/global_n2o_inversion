@@ -2,16 +2,13 @@ library(dplyr)
 library(fst)
 library(ggplot2)
 library(gridExtra)
+library(here)
 library(ini)
 
 ###############################################################################
 # GLOBAL CONSTANTS
 ###############################################################################
-fileloc <- (function() {
-  attr(body(sys.function()), "srcfile")
-})()$filename
-
-config <- read.ini(paste0(gsub("n2o_inv/plots.*", "", fileloc), "config.ini"))
+config <- read.ini(paste0(here(), "/config.ini"))
 
 ###############################################################################
 # FUNCTIONS
@@ -70,9 +67,9 @@ plot_growth_rate <- function(obs, title) {
     p
 }
 
-
-
-
+###############################################################################
+# EXECUTION
+###############################################################################
 
 # read in observations
 obs <- fst::read_fst(sprintf("%s/observations.fst", config$paths$geos_inte))
@@ -91,13 +88,8 @@ control_mf_constant <- bind_rows(control_mf_constant_pre, control_mf_constant)
 
 
 # sort out posterior
-post_mf <- readRDS(paste0(config$paths$inversion_result, "/obs_matched_samples.rds"))
-obs_matching <- match(
-  obs$observation_id,
-  post_mf$observation_id
-)
-post_mf <- post_mf %>% mutate(latitude = obs$latitude[obs_matching]) %>% rename("co2" = "Y2", "obs" = "co2")
-
+post_mf <- readRDS(sprintf("%s/obs_matched_samples-%s.rds", config$paths$inversion_result, config$inversion_constants$land_ocean_equal_model_case))
+post_mf <- post_mf %>% mutate(latitude = obs$latitude) %>% rename("co2" = "Y2", "obs" = "co2")
 
 
 # save just obs plot for intro

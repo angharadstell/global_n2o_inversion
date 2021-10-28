@@ -1,6 +1,7 @@
 library(fst)
 library(ggplot2)
 library(gridExtra)
+library(here)
 library(ini)
 library(reshape2)
 library(stringr)
@@ -8,11 +9,7 @@ library(stringr)
 ###############################################################################
 # GLOBAL CONSTANTS
 ###############################################################################
-fileloc <- (function() {
-  attr(body(sys.function()), "srcfile")
-})()$filename
-
-config <- read.ini(paste0(gsub("n2o_inv/plots.*", "", fileloc), "config.ini"))
+config <- read.ini(paste0(here(), "/config.ini"))
 
 # locations of files
 case <- config$inversion_constants$case
@@ -21,7 +18,8 @@ inte_out_dir <- config$paths$geos_inte
 geos_out_dir <- config$paths$geos_out
 
 # contains functions: base_ch4_tracers and sum_ch4_tracers_perturbed
-source(paste0(gsub("plots.*", "", fileloc), "intermediates/sensitivities.R"))
+options(run.main = FALSE)
+source(paste0(here(), "/n2o_inv/intermediates/sensitivities.R"))
 
 ###############################################################################
 # FUNCTIONS
@@ -29,7 +27,7 @@ source(paste0(gsub("plots.*", "", fileloc), "intermediates/sensitivities.R"))
 
 plot_perturbation_dt <- function(region, year, month) {
   # read in the base run tracers
-  v_base <- base_ch4_tracers()
+  v_base <- base_ch4_tracers("combined_mf.nc")
 
   # read in the perturbed run tracers
   combined_file <- sprintf("%s/%s%s/combined_mf.nc", geos_out_dir, year, month)
@@ -56,6 +54,7 @@ plot_perturbation_dt <- function(region, year, month) {
   p2 <- ggplot(melted_diff, aes(time, value, color = variable)) +
           geom_line() + theme(legend.position = "none") +
           ylim(c(0, 0.1)) +
+          xlim(c(0, 30)) +
           ggtitle(sprintf("Region %s", region)) +
           theme(plot.title = element_text(hjust = 0.5),
                 axis.title.x = element_blank(),

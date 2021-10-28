@@ -90,7 +90,7 @@ def global_total_ems(ems, varname):
     Calculate the global total ems in kgs-1.
     """ 
     # get geoschem area
-    with xr.open_dataset(Path(__file__).parent.parent / "emissions/geos_grid_info.nc") as load:
+    with xr.open_dataset(Path(config["em_n_loss"]["geos_ems"]) / "geos_grid_info.nc") as load:
         geos_grid = load.load()
     # convert ems from kgm-2s-1 to kgs-1
     ems_areaweighted = ems[varname] * geos_grid["area"]
