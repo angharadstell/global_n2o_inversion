@@ -1,5 +1,6 @@
 library(car)
 library(ggplot2)
+library(here)
 library(ini)
 
 
@@ -7,12 +8,7 @@ library(ini)
 ###############################################################################
 # GLOBAL CONSTANTS
 ###############################################################################
-fileloc <- (function() {
-  attr(body(sys.function()), "srcfile")
-})()$filename
-
-config <- read.ini(paste0(gsub("n2o_inv/pseudodata.*", "", fileloc),
-                   "config.ini"))
+config <- read.ini(paste0(here(), "/config.ini"))
 
 
 n_samples <- as.numeric(config$pseudodata$n_samples)
@@ -20,10 +16,12 @@ n_regions <- as.numeric(config$inversion_constants$no_regions) + 1
 n_months <- as.numeric(config$pseudodata$n_months)
 n_alpha <- n_regions * n_months
 
+start_sample <- as.numeric(config$inversion_constants$burn_in) + 1
+
 mcmc_alpha <- function(file) {
     tryCatch({
       mcmc_samples <- readRDS(file)
-      mcmc_samples$alpha[1001:dim(mcmc_samples$alpha)[1], ]},
+      mcmc_samples$alpha[start_sample:dim(mcmc_samples$alpha)[1], ]},
       error = function(cond) {
       message(cond)
       na_matrix <- rep(NA, 10000 * n_regions * n_months)

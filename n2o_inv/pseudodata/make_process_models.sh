@@ -8,6 +8,8 @@ source bash_var.sh
 export INVERSION_BASE_PARTIAL=${paths[wombat_paper]}/3_inversion/src/partials/base.R
 
 
+#their_dir=/work/as16992/wombat/3_inversion/intermediates
+#${paths[geos_inte]}
 #####################################################################################
 
 # Make process model
