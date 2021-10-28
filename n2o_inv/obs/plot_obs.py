@@ -26,6 +26,7 @@ if __name__ == "__main__":
     OBSPACK_DIR = Path(config["paths"]["obspack_dir"])
     GEOSOUT_DIR = Path(config["paths"]["geos_out"])
     SPINUP_START = pd.to_datetime(config["dates"]["spinup_start"])
+    PERTURB_START = pd.to_datetime(config["dates"]["perturb_start"])
     PERTURB_END = pd.to_datetime(config["dates"]["perturb_end"])
     FINAL_END = pd.to_datetime(config["dates"]["final_end"])
     
@@ -49,7 +50,7 @@ if __name__ == "__main__":
         obspack_obs.to_netcdf(obs_file)
 
     print("Reading in geos...")
-    obspack_geos = process_geos_output.read_geos(GEOSOUT_DIR / CASE, SPINUP_START, obspack_obs, NO_REGIONS)
+    obspack_geos = process_geos_output.read_geos(GEOSOUT_DIR / CASE, obspack_obs, NO_REGIONS, PERTURB_START.year, (PERTURB_END.year-1))
 
 
     combined = xr.merge([obspack_obs[["latitude", "longitude", "altitude",
