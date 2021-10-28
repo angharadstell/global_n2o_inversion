@@ -11,10 +11,6 @@ library(tibble)
 ###############################################################################
 # GLOBAL CONSTANTS
 ###############################################################################
-fileloc <- (function() {
-  attr(body(sys.function()), "srcfile")
-})()$filename
-
 config <- read.ini(paste0(here(), "/config.ini"))
 
 # locations of files
