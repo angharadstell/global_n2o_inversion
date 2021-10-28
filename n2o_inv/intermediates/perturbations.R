@@ -20,6 +20,7 @@ args <- arg_parser('', hide.opts = TRUE) %>%
 config <- read.ini(paste0(here(), "/config.ini"))
 
 no_regions <- as.numeric(config$inversion_constants$no_regions)
+no_land_regions <- as.numeric(config$inversion_constants$no_land_regions)
 case <- config$inversion_constants$case
 # locations of files
 geos_out_dir <- config$paths$geos_out
@@ -74,8 +75,8 @@ process_perturbation_part <- function(month, year, region) {
   as_tibble(cbind(locations, data.frame(
     region = region,
     from_month_start = lubridate::ymd(sprintf("%s-%02d-01", year, month)),
-    land = as.vector(sum_ch4_tracers(v_base, v, 0, 11, region, month_start, month_end)),
-    ocean = as.vector(sum_ch4_tracers(v_base, v, 12, 22, region, month_start, month_end))
+    land = as.vector(sum_ch4_tracers(v_base, v, 0, (no_land_regions - 1), region, month_start, month_end)),
+    ocean = as.vector(sum_ch4_tracers(v_base, v, no_land_regions, no_land_regions, region, month_start, month_end))
     )
   )) %>%
     select(region, from_month_start, month_start, everything()) %>%

@@ -44,7 +44,8 @@ emissions_summary <- lapply(flux_aggregators, function(emission_group) {
       # HACK(mgnb): assume this means the ocean is fixed
       alpha_subset <- alpha
       alpha <- matrix(0, nrow = nrow(alpha), ncol = ncol(emission_group$aggregator$Phi))
-      regions <- rep(0 : 22, 11 * 12) # edited this for 11 years, but my code doesnt (currently!) go through it anyway
+      no_regions <- as.numeric(config$inversion_constants$no_regions)
+      regions <- rep(0 : no_regions, 11 * 12) # edited this for 11 years, but my code doesnt (currently!) go through it anyway
       alpha[, regions <= 11] <- alpha_subset
     }
 

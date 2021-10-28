@@ -59,10 +59,13 @@ locations <- expand.grid(
   select(month_start, model_id, everything())
 
 
+no_regions <- as.numeric(config$inversion_constants$no_regions)
+no_land_regions <- as.numeric(config$inversion_constants$no_land_regions)
+
 emissions <- cbind(locations, data.frame(
   # Comes in kg/m^2/s
-  land = as.vector(sum_ch4_tracers(v, 0, 11)),
-  ocean = as.vector(sum_ch4_tracers(v, 12, 22))
+  land = as.vector(sum_ch4_tracers(v, 0, (no_land_regions - 1))),
+  ocean = as.vector(sum_ch4_tracers(v, no_land_regions, no_regions))
 ))
   
 emissions <- pivot_longer(emissions, c(land, ocean),

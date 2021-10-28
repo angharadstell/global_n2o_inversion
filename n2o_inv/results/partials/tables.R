@@ -1,3 +1,8 @@
+library(here)
+
+config <- read.ini(paste0(here(), "/config.ini"))
+no_regions <- as.numeric(config$inversion_constants$no_regions)
+
 COLOUR_TABLE <- c(
   'wombat_prior' = 'blue',
   'wombat_lg' = 'orange',
@@ -249,17 +254,17 @@ REGION_TITLE <- c(
 REGION_AGGREGATES <- list(
   list(
     name = 'Global',
-    parts = sprintf('T%02d', 0 : 22),
+    parts = sprintf('T%02d', 0 : no_regions),
     types = c('land', 'ocean')
   ),
   list(
     name = 'Global land',
-    parts = sprintf('T%02d', 0 : 22),
+    parts = sprintf('T%02d', 0 : no_regions),
     types = 'land'
   ),
   list(
     name = 'Global oceans',
-    parts = sprintf('T%02d', 0 : 22),
+    parts = sprintf('T%02d', 0 : no_regions),
     types = 'ocean'
   ),
   list(

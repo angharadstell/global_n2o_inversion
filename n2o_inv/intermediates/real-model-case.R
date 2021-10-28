@@ -44,8 +44,9 @@ measurement_model <- measurement_model %>%
 
 n_groups <- nlevels(measurement_model$attenuation_factor)
 
-n_regions <- 23
-n_land_regions <- 12
+n_regions <- as.numeric(config$inversion_constants$no_land_regions) + 1
+n_land_regions <- as.numeric(config$inversion_constants$no_land_regions)
+n_ocean_regions <- n_regions - n_land_regions
 
 if ('RHO0' %in% case_parts) {
   measurement_model[['rho']] <- rep(0, n_groups)
@@ -62,7 +63,7 @@ if ('FIXEDA' %in% case_parts) {
 }
 
 if ('FIXEDAO' %in% case_parts) {
-  process_model[['a']] <- c(rep(NA, n_land_regions), rep(0, 11))
+  process_model[['a']] <- c(rep(NA, n_land_regions), rep(0, n_ocean_regions))
 }
 
 if ('VARYA' %in% case_parts) {
@@ -74,7 +75,7 @@ if ('FIXEDW' %in% case_parts) {
 }
 
 if ('FIXEDWO5' %in% case_parts) {
-  process_model[['w']] <- c(rep(NA, n_land_regions), rep(4, 11))
+  process_model[['w']] <- c(rep(NA, n_land_regions), rep(4, n_ocean_regions))
 }
 
 if ('VARYW' %in% case_parts) {

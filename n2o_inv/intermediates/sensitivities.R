@@ -70,7 +70,7 @@ process_sensitivity_part <- function(year, month, v_base, control_tibble, mf_fil
                           mutate(co2_sensitivity = co2 - control_co2)
 
     #take final month of data
-    final_date <- lubridate::ymd(sprintf("%s-%02d-01", year, month)) + months(23)
+    final_date <- lubridate::ymd(sprintf("%s-%02d-01", year, month)) + months(as.numeric(config$inversion_constants$len_perturb) - 1)
     final_month <- perturbed_tibble %>%
                    filter((obs_date == final_date))
     # should this be a mean? They are not gaussianly distributed
