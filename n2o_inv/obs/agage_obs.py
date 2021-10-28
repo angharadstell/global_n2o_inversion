@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 
-from acrg_obs import read
+from acrg.obs import read
 
 """ 
 Define useful functions
