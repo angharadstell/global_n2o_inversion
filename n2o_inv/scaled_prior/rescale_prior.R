@@ -1,4 +1,5 @@
 library(dplyr)
+library(here)
 library(ini)
 library(Matrix)
 
@@ -7,12 +8,7 @@ library(Matrix)
 ###############################################################################
 # GLOBAL CONSTANTS
 ###############################################################################
-fileloc <- (function() {
-  attr(body(sys.function()), "srcfile")
-})()$filename
-
-config <- read.ini(paste0(gsub("n2o_inv/scaled_prior.*", "", fileloc),
-                   "config.ini"))
+config <- read.ini(paste0(here(), "/config.ini"))
 
 # locations of files
 inte_out_dir <- config$paths$geos_inte
@@ -50,7 +46,7 @@ rescale_inputs <- function(scaling, alpha, scaling_word, directory) {
 
 # double the prior
 rescale_inputs(2, 1, "double", config$paths$geos_inte)
-rescale_inputs(2, 1, "double", config$paths$pseudodata_dir)
+#rescale_inputs(2, 1, "double", config$paths$pseudodata_dir)
 # half the prior
 rescale_inputs(0.5, -0.5, "half", config$paths$geos_inte)
-rescale_inputs(0.5, -0.5, "half", config$paths$pseudodata_dir)
+#rescale_inputs(0.5, -0.5, "half", config$paths$pseudodata_dir)
