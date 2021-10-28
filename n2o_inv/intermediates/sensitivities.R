@@ -1,17 +1,12 @@
 library(argparser)
 library(dplyr)
 library(fst)
+library(here)
 library(ini)
 library(lubridate)
 library(ncdf4)
 library(stringr)
 library(tibble)
-
-args <- arg_parser('', hide.opts = TRUE) %>%
-  add_argument('--mf-file', '') %>%
-  add_argument('--control-mf', '') %>%
-  add_argument('--output', '') %>%
-  parse_args()
 
 ###############################################################################
 # GLOBAL CONSTANTS
@@ -20,8 +15,7 @@ fileloc <- (function() {
   attr(body(sys.function()), "srcfile")
 })()$filename
 
-#config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc), "config.ini"))
-config <- read.ini("/home/as16992/global_n2o_inversion/config.ini")
+config <- read.ini(paste0(here(), "/config.ini"))
 
 # locations of files
 case <- config$inversion_constants$case
@@ -35,9 +29,9 @@ perturb_end <- as.Date(config$dates$perturb_end)
 # FUNCTIONS
 ###############################################################################
 
-base_ch4_tracers <- function() {
+base_ch4_tracers <- function(mf_file) {
   # return the variables in the base run netcdf
-  base_nc <- ncdf4::nc_open(sprintf("%s/%s/%s", geos_out_dir, case, args$mf_file))
+  base_nc <- ncdf4::nc_open(sprintf("%s/%s/%s", geos_out_dir, case, mf_file))
   v_base <- function(...) ncdf4::ncvar_get(base_nc, ...)
   v_base
 }
@@ -55,9 +49,9 @@ sum_ch4_tracers_perturbed <- function(v_base, v_pert, perturbed_region) {
   total_ch4
 }
 
-process_sensitivity_part <- function(year, month, v_base, control_tibble) {
+process_sensitivity_part <- function(year, month, v_base, control_tibble, mf_file) {
   # Read in combined file
-  combined_file <- sprintf("%s/%s%02d/%s", geos_out_dir, year, month, args$mf_file)
+  combined_file <- sprintf("%s/%s%02d/%s", geos_out_dir, year, month, mf_file)
   print(combined_file)
   perturbed <- ncdf4::nc_open(combined_file)
   v <- function(...) ncdf4::ncvar_get(perturbed, ...)
@@ -103,8 +97,14 @@ process_sensitivity_part <- function(year, month, v_base, control_tibble) {
 main <- function() {
   print("Running main code of sensitivities script...")
 
+  args <- arg_parser('', hide.opts = TRUE) %>%
+  add_argument('--mf-file', '') %>%
+  add_argument('--control-mf', '') %>%
+  add_argument('--output', '') %>%
+  parse_args()
+
   # read in the base run tracers
-  v_base <- base_ch4_tracers()
+  v_base <- base_ch4_tracers(args$mf_file)
 
   # read in the processed base run
   control <- fst::read_fst(sprintf("%s/%s", inte_out_dir, args$control_mf))
@@ -116,24 +116,28 @@ main <- function() {
                           control_co2 = co2)
 
   # process each perturbed sensitivity run
-  no_months <- length(v_base("obs_time"))
-  first_year <- as.numeric(format(perturb_start, format = "%Y"))
-  last_year <- as.numeric(format(perturb_start + months(no_months), format = "%Y"))
-  no_years <- last_year - first_year
+  unique_dates <- unique(control$time)
+  first_year <- as.numeric(format(min(unique_dates), format = "%Y"))
+  last_year <- as.numeric(format(max(unique_dates), format = "%Y"))
+  no_years <- last_year - first_year + 1
 
-if (no_years > 0) {
-  months <- rep(1:12, no_years)
-  years <- rep(first_year:(last_year - 1), each = 12)
-} else {
-  months <- 1:no_months
-  years <- rep(first_year, each = no_months)
-}
+  print(first_year)
+  print(last_year)
+
+  if (no_years > 0) {
+    months <- rep(1:12, no_years)
+    years <- rep(first_year:last_year, each = 12)
+  } else {
+    no_months <- length(v_base("obs_time"))
+    months <- 1:no_months
+    years <- rep(first_year, each = no_months)
+  }
 
   sensitivities_parts <- mapply(process_sensitivity_part,
                                 year = years,
                                 month = months,
                                 SIMPLIFY = FALSE,
-                                MoreArgs = list(v_base=v_base, control_tibble=control_tibble))
+                                MoreArgs = list(v_base=v_base, control_tibble=control_tibble, mf_file=args$mf_file))
 
   # stick all the perturbed sensitivities together
   sensitivities <- bind_rows(sensitivities_parts) %>%

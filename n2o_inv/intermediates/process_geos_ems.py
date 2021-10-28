@@ -40,10 +40,11 @@ if __name__ == "__main__":
     CASE = config["inversion_constants"]["case"]
 
     # variables from commandline
-    input_files = sys.argv[1]
-    output_file = sys.argv[2]
+    first_year = int(sys.argv[1])
+    last_year = int(sys.argv[2])
+    output_file = sys.argv[3]
 
-    print(f"Loading data from {input_files}")
+    print(f"Loading data from {first_year} - {last_year}")
     print(f"Saving data to {output_file}")
 
     # Read in model ems
@@ -51,7 +52,9 @@ if __name__ == "__main__":
         print(output_dir)
         
         try:
-            hemco_files = list(output_dir.glob(input_files))
+            hemco_files = []
+            for y in range(first_year, last_year+1):
+                hemco_files.extend(list(output_dir.glob(f"HEMCO_diagnostics.{y}??010000.nc")))
             hemco_files.sort()
             print(hemco_files)
             
@@ -65,7 +68,7 @@ if __name__ == "__main__":
                 lat_widths, lon_widths = geoschem_cell_size(hemco_ems)
 
             hemco_ems = hemco_ems.rename({"lon": "longitude",
-                                        "lat": "latitude"})
+                                          "lat": "latitude"})
 
             hemco_ems['longitude_width'] = lon_widths
             hemco_ems['latitude_height'] = lat_widths

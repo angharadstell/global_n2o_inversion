@@ -1,6 +1,7 @@
 library(argparser)
 library(dplyr)
 library(fst)
+library(here)
 library(ini)
 library(ncdf4)
 library(tidyr)
@@ -19,9 +20,7 @@ fileloc <- (function() {
   attr(body(sys.function()), "srcfile")
 })()$filename
 
-# config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc),
-#                    "config.ini"))
-config <- read.ini("/home/as16992/global_n2o_inversion/config.ini")
+config <- read.ini(paste0(here(), "/config.ini"))
 
 case <- config$inversion_constants$case
 # locations of files

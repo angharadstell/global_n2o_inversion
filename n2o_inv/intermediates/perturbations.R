@@ -1,6 +1,7 @@
 library(argparser)
 library(dplyr)
 library(fst)
+library(here)
 library(ini)
 library(lubridate)
 library(ncdf4)
@@ -20,9 +21,7 @@ fileloc <- (function() {
   attr(body(sys.function()), "srcfile")
 })()$filename
 
-# config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc),
-#                    "config.ini"))
-config <- read.ini("/home/as16992/global_n2o_inversion/config.ini")
+config <- read.ini(paste0(here(), "/config.ini"))
 
 no_regions <- as.numeric(config$inversion_constants$no_regions)
 case <- config$inversion_constants$case
@@ -70,7 +69,6 @@ process_perturbation_part <- function(month, year, region) {
   )
 
   # bit of a hacky way to stop hitting index error - improve!
-  first_year <- as.numeric(format(perturb_start, format = "%Y"))
   month_start <- (as.numeric(year) - first_year) * 12 + month
   month_end <- min(month_start + len_perturb - 1, length(unique(control$month_start)))
 

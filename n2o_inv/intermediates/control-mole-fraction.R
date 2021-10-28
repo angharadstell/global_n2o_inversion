@@ -1,10 +1,18 @@
+library(argparser)
 library(dplyr)
 library(fst)
+library(here)
 library(ini)
 library(ncdf4)
 library(tibble)
 
 library(wombat)
+
+args <- arg_parser('', hide.opts = TRUE) %>%
+  add_argument('--case', '') %>%
+  add_argument('--mf-file', '') %>%
+  add_argument('--output', '') %>%
+  parse_args()
 
 ###############################################################################
 # GLOBAL CONSTANTS
@@ -13,11 +21,8 @@ fileloc <- (function() {
   attr(body(sys.function()), "srcfile")
 })()$filename
 
-# config <- read.ini(paste0(gsub("n2o_inv/intermediates.*", "", fileloc),
-#                    "config.ini"))
-config <- read.ini("/home/as16992/global_n2o_inversion/config.ini")
+config <- read.ini(paste0(here(), "/config.ini"))
 
-case <- config$inversion_constants$case
 # locations of files
 geos_out_dir <- config$paths$geos_out
 inte_out_dir <- config$paths$geos_inte
@@ -42,10 +47,8 @@ process_control <- function(case, input_file, output_file) {
     co2 = as.vector(v("CH4_sum")),
     model_id = seq_len(length(v("CH4_sum"))),
   ) %>%
-  arrange(time)
-
-  # remove nan
-  control_full <- control_full %>% filter(if_any(co2, ~ !is.na(.)))
+  arrange(model_id) %>%
+  filter(if_any(co2, ~ !is.na(.)))
 
   # save for later
   write_fst(control_full, paste0(inte_out_dir, "/", output_file, ".fst"))
@@ -56,11 +59,7 @@ process_control <- function(case, input_file, output_file) {
 # CODE
 ###############################################################################
 
-# base case
-process_control(config$inversion_constants$case, "combined_mf", "control-mole-fraction")
+process_control(args$case, args$mf_file, args$output)
 
 # constant case
 process_control(config$inversion_constants$constant_case, "combined_mf", "control-mole-fraction-constant-met")
-
-# pseudo data case
-process_control(config$inversion_constants$case, "combined_mf_pseudo", "control-mole-fraction-pseudo")

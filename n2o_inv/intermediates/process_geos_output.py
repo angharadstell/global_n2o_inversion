@@ -54,14 +54,13 @@ def read_obs(obspack_dir, spinup_start, perturb_end, final_end):
         obspack_obs = load.load()
     return obspack_obs
 
-def read_geos(output_dir, spinup_start, obspack_obs, no_regions, geos_file_str=None):
+def read_geos(output_dir, obspack_obs, no_regions, first_year, last_year):
     """
     Read in obspack geoschem files as xarray dataset.
     """
-    if geos_file_str is None:
-        geos_files = list(set(output_dir.glob("GEOSChem.ObsPack.*_0000z.nc4")) - set(output_dir.glob(f"GEOSChem.ObsPack.{spinup_start.year}*_0000z.nc4")))
-    else:
-        geos_files = list(set(output_dir.glob(geos_file_str)))
+    geos_files = []
+    for y in range(first_year, last_year+1):
+        geos_files.extend(list(output_dir.glob(f"GEOSChem.ObsPack.{y}*_0000z.nc4")))
     geos_files.sort()
 
     # if first day of month present, remove
@@ -76,7 +75,7 @@ def read_geos(output_dir, spinup_start, obspack_obs, no_regions, geos_file_str=N
         obspack_geos = load.load()
     return obspack_geos
 
-def read_geos_constant(output_dir, spinup_start, obspack_obs, no_regions):
+def read_geos_constant(output_dir, obspack_obs, no_regions, first_year, last_year):
     """
     Read in obspack geoschem files as xarray dataset for constant met run.
     """
@@ -85,7 +84,7 @@ def read_geos_constant(output_dir, spinup_start, obspack_obs, no_regions):
         output_dir = GEOSOUT_DIR / CONSTANT_CASE / f"su_{i:02d}"
         print(output_dir)
 
-        obspack_geos = read_geos(output_dir, spinup_start, obspack_obs, no_regions)
+        obspack_geos = read_geos(output_dir, obspack_obs, no_regions, first_year, last_year)
         obspack_geos_list.append(obspack_geos)
 
     complete_obspack_geos = xr.merge(obspack_geos_list)
@@ -123,24 +122,6 @@ if __name__ == "__main__":
     FINAL_END = pd.to_datetime(config["dates"]["final_end"])
     CONSTANT_END = pd.to_datetime(config["dates"]["constant_end"])
 
-    # read in observations
-    print("Reading in obs...")
-
-    obs_file = OBSPACK_DIR / "baseline_obs.nc"
-    if obs_file.is_file():
-        with xr.open_dataset(obs_file) as load:
-            obspack_obs = load.load()
-    else:
-        raise IOError("Need to create a baseline obsfile!")
-
-    if sys.argv[5] == "None":
-        perturb_end = pd.to_datetime(config["dates"]["perturb_end"])
-    else:
-        perturb_end = pd.to_datetime(sys.argv[5])
-
-    if FINAL_END > perturb_end:
-        obspack_obs = obspack_obs.where(obspack_obs["time"] < perturb_end, drop=True)
-
     # read in geoschem output in each directory
     geoschem_out_dirs = list(GEOSOUT_DIR.iterdir())
     iterator = int(sys.argv[2])
@@ -148,21 +129,36 @@ if __name__ == "__main__":
     output_dir = geoschem_out_dirs[iterator]
     print(output_dir)
 
-    if sys.argv[3] == "None":
-        geos_file_str = None
-    else:
-        geos_file_str = sys.argv[3]
-    print(geos_file_str)
+    first_year = int(sys.argv[3])
+    last_year = int(sys.argv[4])
 
-    output_file = sys.argv[4]
+    output_file = sys.argv[5]
+
+    if sys.argv[6] == "None":
+        perturb_end = pd.to_datetime(config["dates"]["perturb_end"])
+    else:
+        perturb_end = pd.to_datetime(sys.argv[6])
+
+    # read in observations
+    print("Reading in obs...")
+    obs_file = OBSPACK_DIR / "baseline_obs.nc"
+    if obs_file.is_file():
+        with xr.open_dataset(obs_file) as load:
+            obspack_obs = load.load()
+    else:
+        raise IOError("Need to create a baseline obsfile!")
+
+    # cut unwanted years
+    obspack_obs = obspack_obs.where(obspack_obs["time"] >= pd.to_datetime(f"{first_year - 1}-12-31 23:55"), drop=True)
+    obspack_obs = obspack_obs.where(obspack_obs["time"] < pd.to_datetime(f"{last_year}-12-31 23:55"), drop=True)
 
     print("Reading in geos...")
     # no point including obs before constant met period
     if str(output_dir)[-12:] == CONSTANT_CASE:
         obspack_obs = obspack_obs.where(obspack_obs["time"] > CONSTANT_END, drop=True)
-        obspack_geos = read_geos_constant(output_dir, SPINUP_START, obspack_obs, NO_REGIONS)
+        obspack_geos = read_geos_constant(output_dir, obspack_obs, NO_REGIONS, first_year, last_year)
     else:
-        obspack_geos = read_geos(output_dir, SPINUP_START, obspack_obs, NO_REGIONS, geos_file_str=geos_file_str)
+        obspack_geos = read_geos(output_dir, obspack_obs, NO_REGIONS, first_year, last_year)
 
     # combine the two datasets
     print("Combining datasets...")
@@ -173,6 +169,9 @@ if __name__ == "__main__":
     combined = combined.rename({"latitude":"obs_lat", "longitude":"obs_lon",
                                 "altitude":"obs_alt", "time":"obs_time", 
                                 "value":"obs_value", "value_unc":"obs_value_unc"})
+
+    # dont want 23:55-23:59 from previous year
+    combined = combined.where(combined["obs_time"] >= pd.to_datetime(f"{first_year}-01-01"), drop=True)
 
     # make dimensions site and time
     print("Sorting out dims...")
