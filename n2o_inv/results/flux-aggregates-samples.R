@@ -32,7 +32,7 @@ log_info('Loading flux aggregators')
 flux_aggregators <- readRDS(args$flux_aggregators)
 
 log_info('Loading samples')
-samples <- window(readRDS(args$samples), start = 1001)#1001
+samples <- window(readRDS(args$samples), start = (as.numeric(config$inversion_constants$burn_in) + 1))
 
 log_debug('Taking prior samples')
 prior_alpha_samples <- generate(model_case$process_model, nrow(samples$alpha))$alpha

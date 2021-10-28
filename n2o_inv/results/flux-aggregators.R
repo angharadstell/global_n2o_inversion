@@ -4,27 +4,7 @@ library(logger)
 library(raster)
 library(ncdf4)
 
-source(Sys.getenv('INVERSION_BASE_PARTIAL'))
-
-#source('/home/as16992/wombat-paper/3_inversion/src/partials/base.R')
-
 options(dplyr.summarise.inform = FALSE)
-
-###############################################################################
-# GLOBAL CONSTANTS
-###############################################################################
-
-args <- arg_parser('', hide.opts = TRUE) %>%
-  add_argument('--process-model', '') %>%
-  add_argument('--transcom-mask', '') %>%
-  add_argument('--output', '') %>%
-  parse_args()
-
-# args <- vector(mode = "list", length = 3)
-# names(args) <- c('process_model', 'transcom_mask', 'output')
-# args$process_model <- '/work/as16992/geoschem/N2O/intermediates/process-model.rds'
-# args$transcom_mask <- '/work/chxmr/shared/TRANSCOM/TRANSCOM3_basis_functions/TRANSCOM_Map_GEOSCHEM.nc'
-# args$output <- '/work/as16992/geoschem/N2O/results/flux-aggregators.rds'
 
 ###############################################################################
 # FUNCTIONS
@@ -32,17 +12,25 @@ args <- arg_parser('', hide.opts = TRUE) %>%
 
 process_transcom_regions <- function(transcome_mask_file) {
   log_info('Loading Transcom mask')
-  # NOT CONVINCED THIS IS 100% RIGHT - NEEDS A TEST
-  transcom_mask <- raster(args$transcom_mask, stopIfNotEqualSpaced = FALSE)
+  transcom_mask <- raster(transcome_mask_file, stopIfNotEqualSpaced = FALSE)
 
 }
-
 
 ###############################################################################
 # EXECUTION
 ###############################################################################
 
 main <- function() {
+  source(Sys.getenv('INVERSION_BASE_PARTIAL'))
+
+  args <- arg_parser('', hide.opts = TRUE) %>%
+    add_argument('--process-model', '') %>%
+    add_argument('--transcom-mask', '') %>%
+    add_argument('--output', '') %>%
+    parse_args()
+
+  #############################################################################
+
   log_info('Loading process model')
   process_model <- readRDS(args$process_model)
 

@@ -15,12 +15,8 @@ source(Sys.getenv('RESULTS_BASE_PARTIAL'))
 source(Sys.getenv('RESULTS_TABLES_PARTIAL'))
 source(Sys.getenv('RESULTS_DISPLAY_PARTIAL'))
 
-# interactive
-# fileloc <- (function() {
-#   attr(body(sys.function()), "srcfile")
-# })()$filename
 
-# config <- read.ini(paste0(gsub("n2o_inv/results.*", "", fileloc), "config.ini"))
+# config <- read.ini(paste0(here(), "/config.ini"))
 
 # casename <- config$inversion_constants$model_case
 

@@ -2,6 +2,7 @@ library(argparser)
 library(dplyr)
 library(ggplot2)
 library(gridExtra)
+library(here)
 library(ini)
 library(lubridate)
 
@@ -68,8 +69,7 @@ print_ems <- function(region) {
 ###############################################################################
 
 # read in config file
-#config <- read.ini(paste0(gsub("n2o_inv/results.*", "", fileloc), "config.ini"))
-config <- read.ini("~/global_n2o_inversion/config.ini")
+config <- read.ini(paste0(here(), "/config.ini"))
 
 ###############################################################################
 # EXECUTED CODE
