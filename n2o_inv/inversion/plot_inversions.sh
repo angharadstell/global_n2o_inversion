@@ -22,7 +22,7 @@ echo ${PROCESS_ARRAY[$PBS_ARRAY_INDEX]}
 
 # traceplots
 cd ../inversion
-Rscript ${paths[location_of_this_file]}/../inversion/traceplots.R --casename ${CASE_ARRAY[$PBS_ARRAY_INDEX]}
+Rscript ${paths[location_of_this_file]}/../inversion/traceplots.R --casename ${CASE_ARRAY[$PBS_ARRAY_INDEX]} --sampledir ${paths[geos_inte]}
 
 # flux aggregate
 cd ../results

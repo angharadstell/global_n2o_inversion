@@ -8,6 +8,7 @@ library(gridExtra, warn.conflicts = FALSE)
 
 args <- arg_parser('', hide.opts = TRUE) %>%
   add_argument('--casename', '') %>%
+  add_argument('--sampledir', '') %>%
   parse_args()
 # args <- list()
 # args$casename <- "IS-RHO0-VARYA-VARYW-NOBIAS"
@@ -27,8 +28,8 @@ source(paste0(config$paths$wombat_paper, "/3_inversion/src/partials/display.R"))
 ###############################################################################
 
 log_info('Loading MCMC samples')
-samples <- readRDS(sprintf("%s/real-mcmc-samples-%s.rds", config$paths$geos_inte, args$casename)) %>%
-  window(start = as.numeric(config$inversion_constants$burn_in) + 1))
+samples <- readRDS(sprintf("%s/real-mcmc-samples-%s.rds", args$sampledir, args$casename)) %>%
+  window(start = as.numeric(config$inversion_constants$burn_in) + 1)
 
 log_info('Plotting')
 output <- plot_traces(samples)
