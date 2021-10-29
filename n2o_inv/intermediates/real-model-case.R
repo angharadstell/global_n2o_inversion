@@ -1,4 +1,6 @@
 source(Sys.getenv('INVERSION_BASE_PARTIAL'))
+library(here)
+library(ini)
 library(Matrix)
 library(WoodburyMatrix)
 
@@ -44,7 +46,8 @@ measurement_model <- measurement_model %>%
 
 n_groups <- nlevels(measurement_model$attenuation_factor)
 
-n_regions <- as.numeric(config$inversion_constants$no_land_regions) + 1
+config <- read.ini(paste0(here(), "/config.ini"))
+n_regions <- as.numeric(config$inversion_constants$no_regions) + 1
 n_land_regions <- as.numeric(config$inversion_constants$no_land_regions)
 n_ocean_regions <- n_regions - n_land_regions
 
