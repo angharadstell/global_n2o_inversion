@@ -29,7 +29,7 @@ if (window == 1) {
   control_mf <- fst::read_fst(sprintf("%s/control-mole-fraction-window%02d.fst", config$paths$geos_inte, window))
 } else {
   print("using rescaled control mf...")
-  control_mf <- fst::read_fst(sprintf("%s/control-mole-fraction-window%02d-rescaled.fst", config$paths$geos_inte, window))
+  control_mf <- fst::read_fst(sprintf("%s/control-mole-fraction-window%02d-analytical-rescaled.fst", config$paths$geos_inte, window))
 }
 sensitivities <- fst::read_fst(sprintf("%s/sensitivities_window%02d.fst", config$paths$geos_inte, window))
 

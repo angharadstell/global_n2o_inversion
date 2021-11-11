@@ -56,4 +56,4 @@ new_control_mf_df <- data.frame(observation_id = observations$observation_id,
 
 new_next_control_mf <- next_control_mf %>% mutate(co2 = new_control_mf_df$co2)
 print("Saving...")
-fst::write_fst(new_next_control_mf, sprintf("%s/control-mole-fraction-window%02d-rescaled.fst", config$path$geos_inte, window+1))
+fst::write_fst(new_next_control_mf, sprintf("%s/control-mole-fraction-window%02d-%s-rescaled.fst", config$path$geos_inte, window+1, args$method))

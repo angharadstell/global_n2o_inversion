@@ -9,7 +9,7 @@ export INVERSION_BASE_PARTIAL=${paths[wombat_paper]}/3_inversion/src/partials/ba
 
 
 
-window02d=02
+window02d=03
 echo "window02d in make_models: $window02d"
 
 #####################################################################################
@@ -25,11 +25,11 @@ then
     --sensitivities ${paths[geos_inte]}/sensitivities_window$window02d.fst \
     --output ${paths[moving_window_dir]}/process-model_window$window02d.rds
 else
-    echo ${paths[geos_inte]}/control-mole-fraction-window$window02d-rescaled.fst
+    echo ${paths[geos_inte]}/control-mole-fraction-window$window02d-mcmc-rescaled.fst
     Rscript ${paths[location_of_this_file]}/../intermediates/process-model.R \
     --control-emissions ${paths[geos_inte]}/control-emissions-window$window02d.fst \
     --perturbations ${paths[geos_inte]}/perturbations_window$window02d.fst \
-    --control-mole-fraction ${paths[geos_inte]}/control-mole-fraction-window$window02d-rescaled.fst \
+    --control-mole-fraction ${paths[geos_inte]}/control-mole-fraction-window$window02d-mcmc-rescaled.fst \
     --sensitivities ${paths[geos_inte]}/sensitivities_window$window02d.fst \
     --output ${paths[moving_window_dir]}/process-model_window$window02d.rds
 fi 
