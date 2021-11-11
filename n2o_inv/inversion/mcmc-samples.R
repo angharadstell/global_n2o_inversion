@@ -40,10 +40,10 @@ no_obs_each_site <- sapply(1:nlevels(model_case$measurement_model$attenuation_fa
 
 log_info("Running MCMC")
 output <- inversion_mcmc(
-  2000,
+  11000,
   model_case$measurement_model,
   model_case$process_model,
-  show_progress = TRUE,
+  show_progress = FALSE,
   use_tensorflow = tensorflow_switch
 )
 
