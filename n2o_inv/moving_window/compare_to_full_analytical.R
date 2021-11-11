@@ -19,7 +19,11 @@ nwindow <- as.numeric(config$moving_window$n_window)
 window_alphas <- lapply(1:nwindow, function(i) {inversion_alphas(i, method)})
 
 # create ic alphas
-spinup_alphas <- updated_alphas(nwindow, window_alphas, nregions, ntime)
+spinup_alphas <- rep(0, nregions * ntime)
+dim(spinup_alphas) <- c(1, nregions * ntime)  
+for (i in 0:(nwindow-1)) {
+      spinup_alphas[(nregions*12*i+1):(nregions*12*(i+1))] <- window_alphas[[i+1]][1:(nregions*12)]
+    }
 
 inv_alphas <- rep(0, nregions * ntime)
 dim(inv_alphas) <- c(1, nregions * ntime)
@@ -40,6 +44,13 @@ sensitivities <- fst::read_fst(sprintf("%s/sensitivities.fst", config$paths$geos
 # do analytical inversion
 print("Doing full series inversion...")
 full_alphas <- do_analytical_inversion(observations, control_mf, perturbations, sensitivities)
+# take some samples to make it look like mcmc
+post_alpha_samples <- rep(full_alphas$mean, 2000)
+dim(post_alpha_samples) <- c(length(full_alphas$mean), 2000)
+saveRDS(list(alpha = t(post_alpha_samples)),
+        sprintf("%s/real-mcmc-samples-analytical-full.rds",
+                config$paths$geos_inte))
+
 
 # samples <- readRDS(paste0(config$paths$geos_inte, "/real-mcmc-samples-IS-RHO0-VARYA-VARYW-NOBIAS.rds")) 
 # full_alphas_wombat <- colMeans(samples$alpha)
@@ -59,4 +70,7 @@ plot(p)
 #                           as.numeric(config$moving_window$n_years)))
 
 rsq <- cor(full_alphas$mean[(nregions*12+1):length(inv_alphas)], inv_alphas[(nregions*12+1):length(inv_alphas)]) ^ 2
+print(rsq)
+
+rsq <- cor(full_alphas$mean[(nregions*12+1):length(inv_alphas)], spinup_alphas[(nregions*12+1):length(inv_alphas)]) ^ 2
 print(rsq)
