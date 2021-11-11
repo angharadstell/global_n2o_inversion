@@ -4,7 +4,6 @@ library(here)
 library(ini)
 
 
-
 ###############################################################################
 # GLOBAL CONSTANTS
 ###############################################################################
@@ -63,6 +62,10 @@ rmse <- function(actual, predicted) {
   sqrt(mean((actual - predicted)^2))
 }
 
+mae <- function(actual, predicted) {
+  mean(abs(actual - predicted))
+}
+
 ###############################################################################
 # EXECUTED CODE
 ###############################################################################
@@ -70,7 +73,7 @@ rmse <- function(actual, predicted) {
 r <- 2 + 1
 r_seq <- 1:n_alpha#seq(r, n_alpha, n_regions)[n_months]
 
-case <- 'm1_ac1_ar1'
+case <- 'm1_ac0_ar1'
 
 # read in true alphas
 alpha_true <- readRDS(sprintf("%s/alpha_samples_%s.rds",
@@ -136,15 +139,20 @@ alpha_wombat_varyw_mean <- sapply(varyw$alpha_samples, colMeans)
 print("vary:")
 #print(cor(as.vector(t(alpha_true)), as.vector(alpha_wombat_vary_mean), use = "complete.obs"))
 print(rmse(as.vector(t(alpha_true)), as.vector(alpha_wombat_vary_mean)))
+print(mae(as.vector(t(alpha_true)), as.vector(alpha_wombat_vary_mean)))
 print("varya:")
 #print(cor(as.vector(t(alpha_true)), as.vector(alpha_wombat_varya_mean), use = "complete.obs"))
 print(rmse(as.vector(t(alpha_true)), as.vector(alpha_wombat_varya_mean)))
+print(mae(as.vector(t(alpha_true)), as.vector(alpha_wombat_varya_mean)))
 print("bog:")
 #print(cor(as.vector(t(alpha_true)), as.vector(alpha_wombat_bog_mean), use = "complete.obs"))
 print(rmse(as.vector(t(alpha_true)), as.vector(alpha_wombat_bog_mean)))
+print(mae(as.vector(t(alpha_true)), as.vector(alpha_wombat_bog_mean)))
 print("varygamma:")
 #print(cor(as.vector(t(alpha_true)), as.vector(alpha_wombat_varygamma_mean), use = "complete.obs"))
 print(rmse(as.vector(t(alpha_true)), as.vector(alpha_wombat_varygamma_mean)))
+print(mae(as.vector(t(alpha_true)), as.vector(alpha_wombat_varygamma_mean)))
 print("varyw:")
 #print(cor(as.vector(t(alpha_true)), as.vector(alpha_wombat_varyw_mean), use = "complete.obs"))
 print(rmse(as.vector(t(alpha_true)), as.vector(alpha_wombat_varyw_mean)))
+print(mae(as.vector(t(alpha_true)), as.vector(alpha_wombat_varyw_mean)))
