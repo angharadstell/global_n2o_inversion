@@ -1,8 +1,12 @@
 #!/bin/bash
 
-#PBS -l select=1:ncpus=1:mem=5gb
-#PBS -l walltime=72:00:00
-#PBS -j oe
+#SBATCH --job-name=window_sub
+#SBATCH --partition=acrg,serial
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=1
+#SBATCH --time=14-00:00:00
+#SBATCH --mem=5G
 
 source ~/.bashrc
 conda activate wombat
@@ -32,18 +36,19 @@ do
 
     else
         sed -i -e "s/window02d=.*/window02d=$window02d/" make_real_mcmc_samples_vary_submit.sh
-        qsub make_real_mcmc_samples_vary_submit.sh
+        ./make_real_mcmc_samples_vary_submit.sh
+        # sbatch make_real_mcmc_samples_vary_submit.sh
 
-        # wait for job to finish
-        njob=1
-        while [ $njob -gt 0 ]
-        do
-            sleep 5m
-            njob=$(qstat -tf | grep "Job_Name\s=\smake_real_mcmc_samples_vary_submit.sh" | wc -l)
+        # # wait for job to finish
+        # njob=1
+        # while [ $njob -gt 0 ]
+        # do
+        #     sleep 5m
+        #     njob=$(squeue -u as16992 | grep "window_i" | wc -l)
 
-            echo "There are $njob jobs to go"
-        done
-        echo "Exiting loop..."
+        #     echo "There are $njob jobs to go"
+        # done
+        # echo "Exiting loop..."
     fi
 
     # bring in spinup fluxes
