@@ -61,8 +61,7 @@ def toYearFraction(date):
 if __name__ == "__main__":
     # read in variables from the config file
     config = configparser.ConfigParser()
-    config.read(Path(__file__).parent.parent.parent / 'config.ini')
-    #config.read("/home/as16992/global_n2o_inversion/config.ini")
+    config.read("../../config.ini")
     OBSPACK_DIR = Path(config["paths"]["obspack_dir"])
     
     # read in raw observations

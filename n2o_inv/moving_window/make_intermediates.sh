@@ -1,13 +1,13 @@
 #!/bin/bash
 
-#PBS -l select=1:ncpus=1:mem=5gb
-#PBS -l walltime=5:00:00
-#PBS -j oe
+#SBATCH --job-name=int_window
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=1
+#SBATCH --time=5:00:00
+#SBATCH --mem=5G
 
 source ~/.bashrc
 conda activate wombat
-
-cd "${PBS_O_WORKDIR}"
 
 # read in variables
 source ../spinup/bash_var.sh
@@ -42,8 +42,8 @@ do
     Rscript perturbations.R --flux-file "monthly_fluxes_window$window02d.nc" --control-ems "control-emissions-window$window02d.fst" --output "perturbations_window$window02d.fst"
 
     # make mole fraction intermediates
-    start_month=$(( 1 + 12 * (window - 1) ))
-    end_month=$(( 12 * (last_year - ${dates[perturb_start]:0:4} + 1) ))
+    start_month=$(( 12 * (window - 1) ))
+    end_month=$(( 1 + (12 * (last_year - ${dates[perturb_start]:0:4} + 1)) ))
     end_year=$(( last_year + 1 ))
     echo "covers months  $start_month - $end_month"
     sed -e "s/%range%/$start_month-$end_month/" -e "s/%first_year%/$first_year/" -e "s/%last_year%/$last_year/" -e "s/%end_year%/$end_year/" -e "s/%window02d%/$window02d/" process_geos_output_window_template_submit.sh > process_geos_output_window_submit.sh

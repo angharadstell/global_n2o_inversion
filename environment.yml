@@ -72,5 +72,7 @@ dependencies:
   - iris
   - numexpr
   - scikit-learn
-prefix: /home/as16992/.conda/envs/wombat
+  - notebook
+  - rpy2
+prefix: /user/home/as16992/.conda/envs/wombat
 

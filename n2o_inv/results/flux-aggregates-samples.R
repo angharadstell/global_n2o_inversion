@@ -1,6 +1,7 @@
-source(Sys.getenv('INVERSION_BASE_PARTIAL'))
+library(here)
+library(ini)
 
-#source('/home/as16992/wombat-paper/3_inversion/src/partials/base.R')
+source(Sys.getenv('INVERSION_BASE_PARTIAL'))
 
 options(dplyr.summarise.inform = FALSE)
 
@@ -12,13 +13,7 @@ args <- arg_parser('', hide.opts = TRUE) %>%
   add_argument('--output', '') %>%
   parse_args()
 
-# args <- vector(mode = "list", length = 5)
-# names(args) <- c('flux_aggregators', 'model_case', 'process_model', 'samples', 'output')
-# args$flux_aggregators <- '/work/as16992/geoschem/N2O/results/flux-aggregators.rds'
-# args$model_case <- '/work/as16992/geoschem/N2O/intermediates/real-model-IS-RHO0-FIXEDAO-FIXEDWO5-NOBIAS.rds'
-# args$process_model <- '/work/as16992/geoschem/N2O/intermediates/process-model.rds'
-# args$samples <- '/work/as16992/geoschem/N2O/intermediates/real-mcmc-samples-IS-RHO0-FIXEDAO-FIXEDWO5-NOBIAS.rds'
-# args$output <- '/work/as16992/geoschem/N2O/results/real-flux-aggregates-samples-IS-RHO0-FIXEDAO-FIXEDWO5-NOBIAS.rds'
+config <- read.ini(paste0(here(), "/config.ini"))
 
 log_info('Loading model case')
 model_case <- readRDS(args$model_case)

@@ -1,8 +1,10 @@
 #!/bin/bash
 
-#PBS -l select=1:ncpus=12:mem=5gb
-#PBS -l walltime=72:00:00
-#PBS -j oe
+#SBATCH --job-name=geoschem_run
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=12
+#SBATCH --time=72:00:00
+#SBATCH --mem=5G
 
 ###############################################################################
 ### Sample GEOS-Chem run script for SLURM

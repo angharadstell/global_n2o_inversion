@@ -1,7 +1,6 @@
 #!/bin/bash
 
 #SBATCH --job-name=window_sub
-#SBATCH --partition=acrg,serial
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
@@ -10,8 +9,6 @@
 
 source ~/.bashrc
 conda activate wombat
-
-cd "${PBS_O_WORKDIR}"
 
 # read in variables
 source ../spinup/bash_var.sh

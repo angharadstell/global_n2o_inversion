@@ -136,3 +136,5 @@ dmypy.json
 *_submit.sh
 *.sh.o*
 
+# slurm scripts
+slurm-*

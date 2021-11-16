@@ -1,9 +1,6 @@
 source(Sys.getenv('RESULTS_BASE_PARTIAL'))
 source(Sys.getenv('RESULTS_TABLES_PARTIAL'))
 
-# source('/home/as16992/wombat-paper/4_results/src/partials/base.R')
-# source('/home/as16992/global_n2o_inversion/n2o_inv/results/partials/tables.R')
-
 library(argparse)
 library(lubridate, warn.conflicts = FALSE)
 library(tidyr)
@@ -15,12 +12,6 @@ parser$add_argument('--end-date')
 parser$add_argument('--output')
 args <- parser$parse_args()
 
-# args <- vector(mode = "list", length = 4)
-# names(args) <- c('flux_samples', 'start_date', 'end_date', 'output')
-# args$flux_samples <- '/work/as16992/geoschem/N2O/results/real-flux-aggregates-samples-IS-RHO0-FIXEDAO-FIXEDWO5-NOBIAS.rds'
-# args$start_date <- '2010-01-01'
-# args$end_date <- '2021-01-01'
-# args$output <- '/work/as16992/geoschem/N2O/results/flux-aggregates-table.txt'
 
 log_info('Loading flux samples')
 flux_samples <- (readRDS(args$flux_samples) %>%

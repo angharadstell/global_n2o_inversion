@@ -34,8 +34,7 @@ def geoschem_cell_size(xr_df):
 if __name__ == "__main__":
     # read in variables from the config file
     config = configparser.ConfigParser()
-    #config.read(Path(__file__).parent.parent.parent / 'config.ini')
-    config.read("/home/as16992/global_n2o_inversion/config.ini")
+    config.read("../../config.ini")
     GEOSOUT_DIR = Path(config["paths"]["geos_out"])
     CASE = config["inversion_constants"]["case"]
 
@@ -48,7 +47,7 @@ if __name__ == "__main__":
     print(f"Saving data to {output_file}")
 
     # Read in model ems
-    for output_dir in GEOSOUT_DIR.iterdir():
+    for output_dir in sorted(GEOSOUT_DIR.iterdir()):
         print(output_dir)
         
         try:
@@ -63,9 +62,8 @@ if __name__ == "__main__":
                 
             hemco_ems = hemco_ems.drop(["hyam", "hybm", "P0", "lev"])
             
-            if str(output_dir)[-4:] == CASE:
-                # work out geoschem grid widths and heights
-                lat_widths, lon_widths = geoschem_cell_size(hemco_ems)
+            # work out geoschem grid widths and heights
+            lat_widths, lon_widths = geoschem_cell_size(hemco_ems)
 
             hemco_ems = hemco_ems.rename({"lon": "longitude",
                                           "lat": "latitude"})

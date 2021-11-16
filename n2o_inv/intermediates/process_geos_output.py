@@ -108,8 +108,7 @@ def find_unique_sites(combined):
 if __name__ == "__main__":
     # read in variables from the config file
     config = configparser.ConfigParser()
-    #config.read(Path(__file__).parent.parent.parent / 'config.ini')
-    config.read(sys.argv[1] + '/../../config.ini')
+    config.read('../../config.ini')
     NO_REGIONS = int(config["inversion_constants"]["no_regions"])
     CASE = config["inversion_constants"]["case"]
     CONSTANT_CASE = config["inversion_constants"]["constant_case"]
@@ -123,21 +122,18 @@ if __name__ == "__main__":
     CONSTANT_END = pd.to_datetime(config["dates"]["constant_end"])
 
     # read in geoschem output in each directory
-    geoschem_out_dirs = list(GEOSOUT_DIR.iterdir())
-    iterator = int(sys.argv[2])
+    geoschem_out_dirs = list(sorted(GEOSOUT_DIR.iterdir()))
+    iterator = int(sys.argv[1])
     print(iterator)
     output_dir = geoschem_out_dirs[iterator]
     print(output_dir)
 
-    first_year = int(sys.argv[3])
-    last_year = int(sys.argv[4])
+    first_year = int(sys.argv[2])
+    last_year = int(sys.argv[3])
 
-    output_file = sys.argv[5]
+    output_file = sys.argv[4]
 
-    if sys.argv[6] == "None":
-        perturb_end = pd.to_datetime(config["dates"]["perturb_end"])
-    else:
-        perturb_end = pd.to_datetime(sys.argv[6])
+    perturb_end = pd.to_datetime(f"{last_year+1}-01-01")
 
     # read in observations
     print("Reading in obs...")

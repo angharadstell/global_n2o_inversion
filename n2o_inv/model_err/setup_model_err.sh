@@ -2,7 +2,7 @@
 
 
 # Read in variables
-source /home/as16992/global_n2o_inversion/n2o_inv/spinup/bash_var.sh
+source ../spinup/bash_var.sh
 
 
 # Create base run spinup folder

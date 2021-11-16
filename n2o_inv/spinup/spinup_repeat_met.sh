@@ -1,5 +1,5 @@
 # read in variables
-source /home/as16992/global_n2o_inversion/n2o_inv/spinup/bash_var.sh
+source ../spinup/bash_var.sh
 
 module load apps/nco-toolkit/4.9.2-gcc
 
