@@ -5,7 +5,6 @@ cd ../spinup
 source bash_var.sh
 
 export INVERSION_BASE_PARTIAL=${paths[wombat_paper]}/3_inversion/src/partials/base.R
-export INVERSION_TRANSCOM_UTILS_PARTIAL=${paths[wombat_paper]}/3_inversion/src/partials/transcom-utils.R
 
 echo "first bash arg (model case):"
 echo $1
