@@ -3,6 +3,7 @@ library(coda)
 library(ini)
 library(Matrix)
 library(tidyr, warn.conflicts = FALSE)
+library(wombat)
 
 ###############################################################################
 # GLOBAL CONSTANTS
@@ -17,24 +18,18 @@ args <- arg_parser('', hide.opts = TRUE) %>%
   parse_args()
 
 source(Sys.getenv('RESULTS_BASE_PARTIAL'))
-source(Sys.getenv('RESULTS_TABLES_PARTIAL'))
-source(Sys.getenv('RESULTS_DISPLAY_PARTIAL'))
 
 # config <- read.ini(paste0(here(), "/config.ini"))
 
-# casename <- config$inversion_constants$model_case
-
 # args <- vector(mode = "list", length = 5)
 
-# args$model_case <- paste0(config$paths$geos_inte, "/real-model-", config$inversion_constants$model_case, ".rds")
+# args$model_case <- paste0(config$paths$geos_inte, "/real-model-", config$inversion_constants$land_ocean_equal_model_case, ".rds")
 # args$process_model <- paste0(config$paths$geos_inte, "/process-model.rds")
-# args$samples <- paste0(config$paths$geos_inte, "/real-mcmc-samples-", config$inversion_constants$model_case, ".rds")
+# args$samples <- paste0(config$paths$geos_inte, "/real-mcmc-samples-", config$inversion_constants$land_ocean_equal_model_case, ".rds")
 # args$observations <- paste0(config$paths$geos_inte, "/observations.fst")
 # args$output <- paste0(config$paths$inversion_result, "/obs_matched_samples.rds")
 
 # source(paste0(config$paths$wombat_paper, "/4_results/src/partials/base.R"))
-# source(paste0(config$paths$location_of_this_file, "../results/partials/tables.R"))
-# source(paste0(config$paths$wombat_paper, "/4_results/src/partials/display.R"))
 
 ###############################################################################
 # EXECUTION
@@ -58,33 +53,34 @@ log_info('Loading samples')
 samples <- readRDS(args$samples)
 
 log_info('Computing obs samples')
-H <- model_case$process_model$H
-Psi <- model_case$process_model$Psi
-
 Y2_prior <- model_case$process_model$control_mole_fraction$co2
-Y2_tilde_samples <- as.matrix(
-  H %*% t(as.matrix(window(coda::mcmc(samples$alpha), thin = 1)))
-  + if (ncol(samples$eta) > 0) Psi_obs %*% t(as.matrix(window(coda::mcmc(samples$eta), thin = 1))) else 0
+
+observation_pp_samples <- generate_posterior_predictive(
+  model_case$measurement_model,
+  'Z2_hat',
+  model_case$process_model,
+  samples
 )
+
+pp_bounds <- matrixStats::colQuantiles(observation_pp_samples, probs = c(0.025, 0.975))
 
 output <- as_tibble(observations) %>%
   mutate(
     Y2_prior = Y2_prior,
-    Y2_tilde_samples = Y2_tilde_samples,
-    Y2 = Y2_prior + rowMeans(Y2_tilde_samples),
-    observation_group = 'IS',
-    variant = 'Correlated')  %>%
+    Z2_hat = colMeans(observation_pp_samples),
+    Z2_hat_lower = pp_bounds[,1],
+    Z2_hat_upper = pp_bounds[,2])  %>%
   select(
     observation_group,
-    variant,
     observation_id,
     time,
     co2,
     co2_error,
     obspack_site,
     Y2_prior,
-    Y2,
-    Y2_tilde_samples
+    Z2_hat,
+    Z2_hat_lower,
+    Z2_hat_upper
   )
 
 saveRDS(output, args$output)
