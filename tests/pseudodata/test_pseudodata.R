@@ -9,7 +9,12 @@ source(paste0(here(), "/n2o_inv/pseudodata/pseudodata.R"), chdir = TRUE)
 config <- read.ini(paste0(here(), "/config.ini"))
 
 
-
+# read in inversion intermediates
+# not a very good test if you have to read this in...
+observations <- fst::read_fst(sprintf("%s/observations.fst", config$path$geos_inte))
+perturbations <- fst::read_fst(sprintf("%s/perturbations.fst", config$path$geos_inte))
+control_mf <- fst::read_fst(sprintf("%s/control-mole-fraction.fst", config$path$geos_inte))
+sensitivities <- fst::read_fst(sprintf("%s/sensitivities.fst", config$path$geos_inte))
 
 
 # check that alpha is zero returns control_mf
