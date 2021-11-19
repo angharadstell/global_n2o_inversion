@@ -229,5 +229,9 @@ if __name__ == "__main__":
         month = int(str(output_dir)[-2:])
         site_combined = site_combined.where(site_combined["obs_time"] >= np.datetime64(f"{year}-{month:02d}-01"))
 
+
+    # drop baseline, no longer means anything
+    site_combined = site_combined.drop_vars("baseline")
+
     # save combined file
     site_combined.to_netcdf(output_dir / output_file)
