@@ -74,6 +74,7 @@ process_perturbation_part <- function(month, year, region) {
   print(month_start)
   print(month_end)
 
+  no_regions <- as.numeric(config$inversion_constants$no_regions)
   no_land_regions <- as.numeric(config$inversion_constants$no_land_regions)
 
   # Work out perturbed run emissions, add to locations data frame
@@ -81,7 +82,7 @@ process_perturbation_part <- function(month, year, region) {
     region = region,
     from_month_start = lubridate::ymd(sprintf("%s-%02d-01", year, month)),
     land = as.vector(sum_ch4_tracers(v_base, v, 0, (no_land_regions - 1), region, month_start, month_end)),
-    ocean = as.vector(sum_ch4_tracers(v_base, v, no_land_regions, no_land_regions, region, month_start, month_end))
+    ocean = as.vector(sum_ch4_tracers(v_base, v, no_land_regions, no_regions, region, month_start, month_end))
     )
   )) %>%
     select(region, from_month_start, month_start, everything()) %>%
