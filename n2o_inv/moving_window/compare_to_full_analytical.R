@@ -16,7 +16,16 @@ ntime <- interval(as.Date(config$dates$perturb_start), as.Date(config$dates$pert
 nwindow <- as.numeric(config$moving_window$n_window)
 
 # get inversion alphas
-window_alphas <- lapply(1:nwindow, function(i) {inversion_alphas(i, method)})
+# try to read in files
+window_alphas <- lapply(1:nwindow, 
+                        function(i) {try(inversion_alphas(i, method))})
+# if file doesnt exist, just have nans
+for (i in 1:length(window_alphas)) {
+  if (class(window_alphas[[i]]) == "try-error") {
+    window_alphas[[i]] <- rep(NA, length(window_alphas[[1]]))
+  }
+}
+
 
 # create ic alphas
 spinup_alphas <- rep(0, nregions * ntime)
@@ -31,36 +40,56 @@ for (i in 1:nwindow) {
   inv_alphas[(nregions*12*i+1):(nregions*12*(i+1))] <- window_alphas[[i]][(nregions*12+1):(nregions*12*2)]
 }
 
-#plot(spinup_alphas, inv_alphas)
-
-
-# do whole series analytical inversion
-# read in intermediates
-observations <- fst::read_fst(sprintf("%s/observations.fst", config$paths$geos_inte))
-perturbations <- fst::read_fst(sprintf("%s/perturbations.fst", config$paths$geos_inte))
-control_mf <- fst::read_fst(sprintf("%s/control-mole-fraction.fst", config$paths$geos_inte))
-sensitivities <- fst::read_fst(sprintf("%s/sensitivities.fst", config$paths$geos_inte))
-
 # do analytical inversion
 print("Doing full series inversion...")
-full_alphas <- do_analytical_inversion(observations, control_mf, perturbations, sensitivities)
-# take some samples to make it look like mcmc
-post_alpha_samples <- rep(full_alphas$mean, 2000)
-dim(post_alpha_samples) <- c(length(full_alphas$mean), 2000)
-saveRDS(list(alpha = t(post_alpha_samples)),
-        sprintf("%s/real-mcmc-samples-analytical-full.rds",
-                config$paths$geos_inte))
+if (method == "analytical") {
+  full_analytical_file <- paste0(config$paths$geos_inte, "/real-mcmc-samples-analytical.rds")
+  # make analytical plottable
+  file.copy(from=sprintf("%s/real-model-%s.rds", config$paths$geos_inte, config$inversion_constants$land_ocean_equal_model_case), 
+            to=sprintf("%s/real-model-analytical.rds", config$paths$geos_inte))
 
+  if (file.exists(full_analytical_file)) {
+    print("full analytical file already exists...")
+    samples <- readRDS(full_analytical_file) 
+    full_alphas <- colMeans(samples$alpha) 
+  } else {
+    # read in intermediates
+    observations <- fst::read_fst(sprintf("%s/observations.fst", config$paths$geos_inte))
+    perturbations <- fst::read_fst(sprintf("%s/perturbations.fst", config$paths$geos_inte))
+    control_mf <- fst::read_fst(sprintf("%s/control-mole-fraction.fst", config$paths$geos_inte))
+    sensitivities <- fst::read_fst(sprintf("%s/sensitivities.fst", config$paths$geos_inte))
 
-# samples <- readRDS(paste0(config$paths$geos_inte, "/real-mcmc-samples-IS-RHO0-VARYA-VARYW-NOBIAS.rds")) 
-# full_alphas_wombat <- colMeans(samples$alpha)
+    full_alphas <- do_analytical_inversion(observations, control_mf, perturbations, sensitivities)
+    # take some samples to make it look like mcmc
+    n_samples <- as.numeric(config$inversion_constants$no_samples)
+    post_alpha_samples <- mvrnorm(n_samples, full_alphas$mean, full_alphas$cov)
+    n_regions <- as.numeric(config$inversion_constants$no_regions) + 1
+    n_sites <- length(unique(observations$obspack_site))
+    # save like mcmc samples for comparison
+    saveRDS(structure(list(kappa = coda::mcmc(matrix(0, n_samples, n_regions)),
+                      alpha = coda::mcmc(post_alpha_samples),
+                      eta = coda::mcmc(matrix(NA, n_samples, 0)),
+                      a = coda::mcmc(matrix(0, n_samples, n_regions)),
+                      w = coda::mcmc(matrix(4, n_samples, n_regions)),
+                      beta = coda::mcmc(matrix(NA, n_samples, 0)),
+                      gamma = coda::mcmc(matrix(1, n_samples, n_sites)),
+                      rho = coda::mcmc(matrix(0, n_samples, n_sites)),
+                      ell = coda::mcmc(matrix(1, n_samples, n_sites))),
+                      class = 'flux_inversion_mcmc'),
+                      full_analytical_file)
+    full_alphas <- colMeans(post_alpha_samples) 
+  }
+} else {
+ samples <- readRDS(paste0(config$paths$geos_inte, "/real-mcmc-samples-IS-RHO0-VARYA-VARYW-NOBIAS.rds")) 
+ full_alphas <- colMeans(samples$alpha) 
+}
 
 # cut out 2010 and compare to fullinv
 region <- rep(0:(nregions-1), (ntime - 12))
 month <- rep(1:(ntime - 12), each=nregions)
 compare_df <- data.frame(region = region,
                          month = month,
-                         full = full_alphas$mean[(nregions*12+1):length(inv_alphas)],
+                         full = full_alphas[(nregions*12+1):length(inv_alphas)],
                          window = inv_alphas[(nregions*12+1):length(inv_alphas)])
 p <- ggplot(data = compare_df, aes(full, window, color = month)) + geom_point()
 plot(p)
@@ -69,8 +98,8 @@ plot(p)
 #                           method,
 #                           as.numeric(config$moving_window$n_years)))
 
-rsq <- cor(full_alphas$mean[(nregions*12+1):length(inv_alphas)], inv_alphas[(nregions*12+1):length(inv_alphas)]) ^ 2
+rsq <- cor(full_alphas[(nregions*12+1):length(inv_alphas)], inv_alphas[(nregions*12+1):length(inv_alphas)]) ^ 2
 print(rsq)
 
-rsq <- cor(full_alphas$mean[(nregions*12+1):length(inv_alphas)], spinup_alphas[(nregions*12+1):length(inv_alphas)]) ^ 2
+rsq <- cor(full_alphas[(nregions*12+1):length(inv_alphas)], spinup_alphas[(nregions*12+1):length(inv_alphas)]) ^ 2
 print(rsq)
