@@ -19,8 +19,6 @@ export RESULTS_FLUX_AGGREGATES_PARTIAL=${paths[location_of_this_file]}/../result
 
 echo "first bash arg (model case):"
 echo $1
-echo "second bash arg (process model):"
-echo $2
 
 echo "flux-aggregates-table.R"
 Rscript ${paths[location_of_this_file]}/../results/flux-aggregates-table.R \
@@ -134,14 +132,6 @@ Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
 
 
 # plot observation time series
-echo "obs_matched_samples.R"
-Rscript ${paths[location_of_this_file]}/../results/obs_matched_samples.R \
-    --model-case ${paths[geos_inte]}/real-model-$1.rds \
-    --process-model ${paths[geos_inte]}/$2.rds \
-    --samples ${paths[geos_inte]}/real-mcmc-samples-$1.rds \
-    --observations ${paths[geos_inte]}/observations.fst \
-    --output ${paths[inversion_results]}/obs_matched_samples-$1.rds
-
 echo "plot_mf.R"
 Rscript ${paths[location_of_this_file]}/../results/plot_mf.R \
     --obs-samples ${paths[inversion_results]}/obs_matched_samples-$1.rds \
