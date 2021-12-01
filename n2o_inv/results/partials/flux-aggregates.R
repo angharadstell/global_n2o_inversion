@@ -1,11 +1,9 @@
 ESTIMATE_COLOURS <- c(
-  'Truth' = 'black',
   'WOMBAT Prior (mean)' = get_colour('wombat_prior'),
   'WOMBAT IS (mean, 95% cred. int.)' = get_colour('wombat_lg')
 )
 
 ESTIMATE_LINETYPES = c(
-  'Truth' = 'solid',
   'WOMBAT Prior (mean)' = 'solid',
   'WOMBAT IS (mean, 95% cred. int.)' = 'solid'
 )
@@ -21,8 +19,6 @@ flux_samples <- flux_samples %>%
     ), levels = names(ESTIMATE_COLOURS))
   ) %>%
   select(-observation_group)
-
-print(flux_samples)
 
 log_info('Calculating')
 annual_fluxes <- flux_samples %>%
@@ -108,6 +104,7 @@ region_plots <- lapply(args$region, function(region_i) {
       fill = guide_legend(ncol = legend_n_columns),
       linetype = guide_legend(ncol = legend_n_columns)
     ) +
+    scale_x_discrete(breaks = seq(substr(start_date, 1, 4), substr(end_date, 1, 4), 3)) +
     labs(x = 'Year', y = expression('Flux [TgN '*yr^-1*']'), colour = NULL, fill = NULL, linetype = NULL)
 
   monthly_data <- monthly_fluxes %>%
