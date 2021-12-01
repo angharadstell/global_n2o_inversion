@@ -3,7 +3,7 @@
 #SBATCH --job-name=int_window
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=5:00:00
+#SBATCH --time=12:00:00
 #SBATCH --mem=5G
 
 source ~/.bashrc
@@ -43,13 +43,12 @@ do
 
     # make mole fraction intermediates
     start_month=$(( 12 * (window - 1) ))
-    end_month=$(( 1 + (12 * (last_year - ${dates[perturb_start]:0:4} + 1)) ))
-    end_year=$(( last_year + 1 ))
+    end_month=$(( 12 * (last_year - ${dates[perturb_start]:0:4} + 1) - 1))
     echo "covers months  $start_month - $end_month"
-    sed -e "s/%range%/$start_month-$end_month/" -e "s/%first_year%/$first_year/" -e "s/%last_year%/$last_year/" -e "s/%end_year%/$end_year/" -e "s/%window02d%/$window02d/" process_geos_output_window_template_submit.sh > process_geos_output_window_submit.sh
-    sed -e "s/%first_year%/$first_year/" -e "s/%last_year%/$last_year/" -e "s/%end_year%/$end_year/" -e "s/%window02d%/$window02d/" process_geos_output_window0_template_submit.sh > process_geos_output_window0_submit.sh
-    qsub process_geos_output_window_submit.sh
-    qsub process_geos_output_window0_submit.sh
+    sed -e "s/%range%/$start_month-$end_month/" -e "s/%first_year%/$first_year/" -e "s/%last_year%/$last_year/" -e "s/%window02d%/$window02d/" process_geos_output_window_template_submit.sh > process_geos_output_window_submit.sh
+    sed -e "s/%first_year%/$first_year/" -e "s/%last_year%/$last_year/" -e "s/%window02d%/$window02d/" process_geos_output_window0_template_submit.sh > process_geos_output_window0_submit.sh
+    sbatch process_geos_output_window_submit.sh
+    sbatch process_geos_output_window0_submit.sh
 done
 
 # wait for job to finish
@@ -57,9 +56,8 @@ njob=38
 while [ $njob -gt 0 ]
 do
     sleep 1m
-    desired_fields="Job\sId\|Job_Name\|job_state"                                                                 # name of fields to extract from qstat
     # calculate the number of jobs running
-    njob=$(qstat -tf | grep $desired_fields | grep "Job_Name\s=\sprocess_geos_output_window.*" | wc -l)
+    njob=$(sacct --format="JobID,State,JobName%30" | grep "RUNNING \| PENDING" | grep "geo_out.*" | wc -l)
 
     echo "There are $njob jobs to go"
 done

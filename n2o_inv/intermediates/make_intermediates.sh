@@ -24,13 +24,13 @@ Rscript control-emissions.R --flux-file "monthly_fluxes.nc" --output "control-em
 Rscript perturbations.R --flux-file "monthly_fluxes.nc" --control-ems "control-emissions.fst" --output "perturbations.fst"
 
 # make mole fraction intermediates
-qsub process_geos_output_submit.sh
+sbatch process_geos_output_submit.sh
 # wait for job to finish
 njob=1
 while [ $njob -gt 0 ]
 do
     sleep 1m
-    njob=$(qstat -tf | grep "Job_Name\s=\sprocess_geos_output_submit.sh" | wc -l)
+    njob=$(sacct --format="JobID,State,JobName%30" | grep "RUNNING \| PENDING" | grep "geo_out.*" | wc -l)
 
     echo "There are $njob jobs to go"
 done
