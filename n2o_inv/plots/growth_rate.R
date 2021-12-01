@@ -77,9 +77,6 @@ obs <- fst::read_fst(sprintf("%s/observations.fst", config$paths$geos_inte))
 
 # read in control mf
 control_mf <- fst::read_fst(sprintf("%s/control-mole-fraction.fst", config$paths$geos_inte))
-# this contains all the globe not just the sites, so have to select only places with obs
-control_mf <- obs %>% select(c("observation_id", "observation_type")) %>%
-              inner_join(control_mf, by = c("observation_id", "observation_type"))
 
 # read in constant met control mf
 control_mf_constant <- fst::read_fst(sprintf("%s/control-mole-fraction-constant-met.fst", config$paths$geos_inte))
@@ -88,8 +85,8 @@ control_mf_constant <- bind_rows(control_mf_constant_pre, control_mf_constant)
 
 
 # sort out posterior
-post_mf <- readRDS(sprintf("%s/obs_matched_samples-%s.rds", config$paths$inversion_result, config$inversion_constants$land_ocean_equal_model_case))
-post_mf <- post_mf %>% mutate(latitude = obs$latitude) %>% rename("co2" = "Y2", "obs" = "co2")
+post_mf <- readRDS(sprintf("%s/obs_matched_samples-%s_windowall.rds", config$paths$inversion_result, config$inversion_constants$land_ocean_equal_model_case))
+post_mf <- post_mf %>% mutate(latitude = obs$latitude) %>% rename("co2" = "Z2_hat", "obs" = "co2")
 
 
 # save just obs plot for intro
