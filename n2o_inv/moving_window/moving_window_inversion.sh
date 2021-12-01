@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=14-00:00:00
+#SBATCH --time=11-00:00:00
 #SBATCH --mem=5G
 
 source ~/.bashrc
@@ -13,7 +13,7 @@ conda activate wombat
 # read in variables
 source ../spinup/bash_var.sh
 
-#./make_intermediates.sh
+./make_intermediates.sh
 
 nwindow=${moving_window[n_window]}
 analytical=FALSE
@@ -34,18 +34,6 @@ do
     else
         sed -i -e "s/window02d=.*/window02d=$window02d/" make_real_mcmc_samples_vary_submit.sh
         ./make_real_mcmc_samples_vary_submit.sh
-        # sbatch make_real_mcmc_samples_vary_submit.sh
-
-        # # wait for job to finish
-        # njob=1
-        # while [ $njob -gt 0 ]
-        # do
-        #     sleep 5m
-        #     njob=$(squeue -u as16992 | grep "window_i" | wc -l)
-
-        #     echo "There are $njob jobs to go"
-        # done
-        # echo "Exiting loop..."
     fi
 
     # bring in spinup fluxes
