@@ -1,5 +1,6 @@
 library(argparser)
 library(coda)
+library(here)
 library(ini)
 library(Matrix)
 library(tidyr, warn.conflicts = FALSE)
@@ -17,9 +18,7 @@ args <- arg_parser('', hide.opts = TRUE) %>%
   add_argument('--output', '') %>%
   parse_args()
 
-source(Sys.getenv('RESULTS_BASE_PARTIAL'))
-
-# config <- read.ini(paste0(here(), "/config.ini"))
+config <- read.ini(paste0(here(), "/config.ini"))
 
 # args <- vector(mode = "list", length = 5)
 
@@ -29,7 +28,7 @@ source(Sys.getenv('RESULTS_BASE_PARTIAL'))
 # args$observations <- paste0(config$paths$geos_inte, "/observations.fst")
 # args$output <- paste0(config$paths$inversion_result, "/obs_matched_samples.rds")
 
-# source(paste0(config$paths$wombat_paper, "/4_results/src/partials/base.R"))
+source(paste0(config$paths$wombat_paper, "/4_results/src/partials/base.R"))
 
 ###############################################################################
 # EXECUTION

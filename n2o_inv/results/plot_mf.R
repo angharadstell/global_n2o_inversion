@@ -1,4 +1,7 @@
 library(argparser)
+library(dplyr)
+library(ggplot2)
+library(here)
 library(ini)
 library(tidyr, warn.conflicts = FALSE)
 
@@ -11,16 +14,14 @@ args <- arg_parser('', hide.opts = TRUE) %>%
   add_argument('--output', '') %>%
   parse_args()
 
-source(Sys.getenv('RESULTS_TABLES_PARTIAL'))
-
-# config <- read.ini(paste0(here(), "/config.ini"))
+config <- read.ini(paste0(here(), "/config.ini"))
+source(paste0(config$paths$wombat_paper, "/3_inversion/src/partials/display.R"))
+source(paste0(config$paths$location_of_this_file, "/../results/partials/tables.R"))
 
 # args <- vector(mode = "list", length = 5)
 
 # args$obs_samples <- paste0(config$paths$inversion_result, "/obs_matched_samples.rds")
 # args$output <- paste0(config$paths$inversion_result, "/obs_time_series.pdf")
-
-# source(paste0(config$paths$location_of_this_file, "/../results/partials/tables.R"))
 
 ###############################################################################
 # EXECUTION
