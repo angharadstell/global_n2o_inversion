@@ -105,6 +105,23 @@ def find_unique_sites(combined):
 
     return list_of_sites, unique_sites
 
+def monthly_measurement_unc(onesite):
+    """
+    Calculate the monthly mean measurement error.
+    """
+    # get variation in measurements over month and typical measurement error
+    onesite_resampled_unc_std = onesite["obs_value"].resample(obs_time="M").std()
+    onesite_resampled_unc_med = onesite["obs_value_unc"].resample(obs_time="M").median()
+    # if only one point, std is nan...
+    onesite_resampled_unc_comb = onesite_resampled_unc_std.where(~np.isnan(onesite_resampled_unc_std), 
+                                                                 onesite_resampled_unc_med)
+    # or if small number of obs etc, can easily get small std, so use typical value if that uncertainty is greater
+    onesite_resampled_unc_comb = onesite_resampled_unc_comb.where(onesite_resampled_unc_std > onesite_resampled_unc_med, 
+                                                                  onesite_resampled_unc_med)
+
+    return onesite_resampled_unc_comb
+
+
 if __name__ == "__main__":
     # read in variables from the config file
     config = configparser.ConfigParser()
@@ -194,13 +211,8 @@ if __name__ == "__main__":
     for site in unique_sites:
         onesite = combined.where(combined["site"] == site, drop=True)
         onesite_resampled = onesite.resample(obs_time="M").mean()
-        onesite_resampled["obs_value_unc"] = onesite["obs_value"].resample(obs_time="M").std()
-        # if only one point, std is nan...
-        onesite_resampled["obs_value_unc"] = onesite_resampled["obs_value_unc"].where(~xr.ufuncs.isnan(onesite_resampled["obs_value_unc"]), 
-                                                                                      onesite["obs_value_unc"].median())
-        # or if small number of obs etc, can easily get small std, so use typical value if that uncertainty is greater
-        onesite_resampled["obs_value_unc"] = onesite_resampled["obs_value_unc"].where(onesite_resampled["obs_value_unc"] > onesite["obs_value_unc"].median(), 
-                                                                                      onesite["obs_value_unc"].median())
+        # calculate measurement uncertainty
+        onesite_resampled["obs_value_unc"] = monthly_measurement_unc(onesite)
         resampled_sites.append(onesite_resampled)
 
     # recombine sites
