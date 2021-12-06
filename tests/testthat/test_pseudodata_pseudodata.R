@@ -1,4 +1,4 @@
-here::i_am("tests/pseudodata/test_pseudodata.R")
+here::i_am("tests/testthat/test_pseudodata_pseudodata.R")
 
 library(testthat)
 library(here)

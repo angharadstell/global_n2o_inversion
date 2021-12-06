@@ -8,28 +8,13 @@ library(tibble)
 
 library(wombat)
 
-args <- arg_parser('', hide.opts = TRUE) %>%
-  add_argument('--case', '') %>%
-  add_argument('--mf-file', '') %>%
-  add_argument('--output', '') %>%
-  parse_args()
-
-###############################################################################
-# GLOBAL CONSTANTS
-###############################################################################
-config <- read.ini(paste0(here(), "/config.ini"))
-
-# locations of files
-geos_out_dir <- config$paths$geos_out
-inte_out_dir <- config$paths$geos_inte
-
 ###############################################################################
 # FUNCTIONS
 ###############################################################################
 
-process_control <- function(case, input_file, output_file) {
+process_control <- function(combined_mf_file) {
   # get variables from base run netcdf
-  geos_obspack <- nc_open(paste0(geos_out_dir, "/", case, "/", input_file, ".nc"))
+  geos_obspack <- nc_open(combined_mf_file)
   v <- function(...) ncvar_get(geos_obspack, ...)
 
   # put into nice table
@@ -46,16 +31,36 @@ process_control <- function(case, input_file, output_file) {
   arrange(model_id) %>%
   filter(if_any(co2, ~ !is.na(.)))
 
-  # save for later
-  write_fst(control_full, paste0(inte_out_dir, "/", output_file, ".fst"))
-}
+  nc_close(geos_obspack)
 
+  control_full 
+}
 
 ###############################################################################
 # CODE
 ###############################################################################
 
-process_control(args$case, args$mf_file, args$output)
+main <- function() {
+  args <- arg_parser('', hide.opts = TRUE) %>%
+  add_argument('--case', '') %>%
+  add_argument('--mf-file', '') %>%
+  add_argument('--output', '') %>%
+  parse_args()
 
-# constant case
-process_control(config$inversion_constants$constant_case, "combined_mf", "control-mole-fraction-constant-met")
+  # read in config
+  config <- read.ini(paste0(here(), "/config.ini"))
+
+  # for standard inversion
+  combined_mf_base <- paste0(config$paths$geos_out, "/", args$case, "/", args$mf_file, ".nc")
+  control_full_base <- process_control(combined_mf_base)
+  write_fst(control_full_base, paste0(config$paths$geos_inte, "/", args$output, ".fst"))
+
+  # constant case
+  combined_mf_constant <- paste0(config$paths$geos_out, "/", config$inversion_constants$constant_case, "/combined_mf.nc")
+  control_full_constant <- process_control(combined_mf_constant)
+  write_fst(control_full_constant, paste0(config$paths$geos_inte, "/control-mole-fraction-constant-met.fst"))
+}
+
+if (getOption('run.main', default=TRUE)) {
+   main()
+}

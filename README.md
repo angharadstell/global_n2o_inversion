@@ -83,6 +83,17 @@ You have three options to try here:
 
 The location of these directories is specified in the config.ini file of this repo, you'll have to change the paths for your system. 
 
+
+## Checking everything is working
+
+from within the root directory "global_n2o_inversion", run these commands to check the unit tests:
+```
+pytest
+```
+```
+Rscript -e "testthat::test_local()"
+```
+
 ## Running GEOSChem
 ### Make emissions
 1. Make your global emissions for 1970-2020 (run n2o_inv/emissions/combine_ems.py)

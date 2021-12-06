@@ -1,4 +1,4 @@
-here::i_am("tests/results/test_flux_aggregators.R")
+here::i_am("tests/testthat/test_results_flux_aggregators.R")
 
 library(testthat)
 library(here)

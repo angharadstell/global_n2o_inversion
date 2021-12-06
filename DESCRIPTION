@@ -1,0 +1,16 @@
+Package: n2o_inv
+Title: Global N2O inversion
+Version: 0.0.1
+Authors@R:
+    c(person(given = "Angharad",
+             family = "Stell",
+             role = c("aut", "cre"),
+             email = "a.stell@bristol.ac.uk"))
+Description: My wrapper code for wombat.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+RoxygenNote:
+Suggests:
+    testthat
