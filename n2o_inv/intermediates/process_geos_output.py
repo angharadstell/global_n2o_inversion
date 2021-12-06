@@ -133,24 +133,21 @@ if __name__ == "__main__":
     AGAGE_SITES = config["inversion_constants"]["agage_sites"].split(",")
     OBSPACK_DIR = Path(config["paths"]["obspack_dir"])
     GEOSOUT_DIR = Path(config["paths"]["geos_out"])
-    PERTURB_START = pd.to_datetime(config["dates"]["perturb_start"])
     SPINUP_START = pd.to_datetime(config["dates"]["spinup_start"])
     FINAL_END = pd.to_datetime(config["dates"]["final_end"])
     CONSTANT_END = pd.to_datetime(config["dates"]["constant_end"])
 
+    # commandline arguments
+    iterator = int(sys.argv[1])   # index of output folder to process
+    first_year = int(sys.argv[2]) # first year to process geoschem output for
+    last_year = int(sys.argv[3])  # last year to process geoschem output for
+    output_file = sys.argv[4]     # name of output mole fraction file to save
+
     # read in geoschem output in each directory
     geoschem_out_dirs = list(sorted(GEOSOUT_DIR.iterdir()))
-    iterator = int(sys.argv[1])
     print(iterator)
     output_dir = geoschem_out_dirs[iterator]
     print(output_dir)
-
-    first_year = int(sys.argv[2])
-    last_year = int(sys.argv[3])
-
-    output_file = sys.argv[4]
-
-    perturb_end = pd.to_datetime(f"{last_year+1}-01-01")
 
     # read in observations
     print("Reading in obs...")
