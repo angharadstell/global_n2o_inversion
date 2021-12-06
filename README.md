@@ -1,6 +1,89 @@
 # global_n2o_inversion
+This repository contains the code to reproduce the results in [PAPER LINK]. This paper uses the WOMBAT framework (https://arxiv.org/abs/2102.04004, https://github.com/mbertolacci/wombat-paper), which has been adapted to our use case. The primary differences between the inversion problem in the original version of WOMBAT and this work are:
+1. This work solves for N<sub>2</sub>O fluxes rather than CO<sub>2</sub> fluxes
+2. This work solves for 10 years of fluxes rather than 1.5 years
+3. This work solely uses surface observations rather than satellite observations
 
-## How to run this code
+These differences meant some changes to the WOMBAT package were required, namely:
+1. Change molecular masses to N<sub>2</sub>O  from CO<sub>2</sub>
+2. A truncated normal distribution is used for the scaling factor to prevent negative fluxes over the TRANSCOM regions
+The adapted N<sub>2</sub>O  repository can be found at https://github.com/angharadstell/wombat.
+
+## Getting code
+1. Clone this repo
+2. Clone https://github.com/mbertolacci/wombat-paper (needed for fast sparse and a few random scripts I should move into mine)
+3. Clone https://github.com/angharadstell/wombat
+4. Clone [ACRG REPO] (annoying...)
+5. If you want to run GEOSChem, you will have to install it, full instructions are available through the GEOSChem guide (https://geos-chem.seas.harvard.edu/). I used version 13.0.0.
+
+The location of these directories is specified in the config.ini file of this repo, you'll have to change the paths for your system. 
+
+## Setting up an environment
+You have three options to try here:
+
+1. [CONDA PACK]?!
+
+2. I have tried to make an environment yaml file that you can just pass to conda:
+
+    ```
+    conda env create -f environment.yml
+    ```
+
+    This doesn't set the cran mirror (you might need to change the path to where you put the conda environment, and choose your preferred CRAN mirror):
+    ```
+    cat > ~/.conda/envs/wombat/lib/R/etc/Rprofile.site <<- EOF
+    local({
+    r <- getOption('repos')
+    r['CRAN'] <- 'https://www.stats.bris.ac.uk/R/'
+    options(repos = r)
+    })
+    EOF
+    ```
+
+    This also doesn't include the desired R packages from CRAN:
+    ```
+    Rscript -e "install.packages(c(
+    'devtools', 'raster', 'argparser', 'codetools', 'ncdf4', 'fst', 'matrixStats',
+    'readr', 'argparse', 'scoringRules', 'patchwork', 'lifecycle', 'sf',
+    'ggplot2', 'dplyr', 'tidyr', 'RcppEigen', 'rnaturalearth',
+    'rnaturalearthdata', 'rgeos', 'ini', 'here'
+    ))"
+    ```
+
+    Or the local R packages:
+    - cd into the "wombat-paper" directory where you cloned https://github.com/mbertolacci/wombat-paper
+        ```
+        Rscript -e "devtools::install('fastsparse')"
+        ```
+    - cd into the folder above where you cloned https://github.com/angharadstell/wombat
+        ```
+        Rscript -e "devtools::install('wombat')"
+        ```
+
+
+
+
+3. If the above options don't work, follow the instructions in the "Installation/setting up an environment" section of https://github.com/mbertolacci/wombat-paper, with a few exceptions: 
+    - I made my environment in my default conda location, but where you put it is up to you (you'll have to adapt the paths)
+    - When installing the CRAN and local R packages, use the command in the environment.yml section above (includes the R packages I added)
+    - Don't bother with the GEOSChem installation in the wombat-paper repo
+    - I didn't install tensorflow (because I didn't use their correlated case)
+
+    There will also be some missing packages, which you can attempt to figure out from environment.yml or just conda install as they come up.
+
+## Getting data
+- [CONDA PACK]
+- GEOSChem output
+- the rest of the files (e.g. intermediates, results, etc)
+
+- emissions?
+- obspack?
+- other NOAA data?
+- AGAGE data?
+
+The location of these directories is specified in the config.ini file of this repo, you'll have to change the paths for your system. 
+
+## Running GEOSChem
 ### Make emissions
 1. Make your global emissions for 1970-2020 (run n2o_inv/emissions/combine_ems.py)
 2. Split into regional basis functions (run n2o_inv/emissions/ems_tagged.py)
@@ -25,26 +108,17 @@
 1. Create the perturbed run directories (run n2o_inv/perturbed_runs/setup_perturbed.sh)
 2. Run the GEOSChem perturbed runs (run n2o_inv/perturbed_runs/submit_perturbed.sh)
 
+## Running the inversion
+Have to make models for full 10 years before doing window inversion (uses intermediates to change ic)
 ### Make inversion intermediates
-#### Make emissions intermediates
-1. process_geos_ems.py
-2. control-emissions.R
-3. perturbations.R
-
-#### Make mole fraction intermediates
-1. process_geos_output.py
-2. control-mole-fraction.R
-3. sensitivities.R
-4. observations.R
-
-#### Make model intermediates
-1. make_models.sh
+1. make_intermediates.sh
+2. make_models.sh
 
 ### Do the inversion
 1. make_real_mcmc_samples.sh
-2. traceplots.R
 
 ### Plot the results
-1. flux_aggregators.sh
-2. plots.sh
+1. traceplots.R
+2. flux_aggregators.sh
+3. plots.sh
 
