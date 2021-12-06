@@ -45,6 +45,6 @@ flux_aggregates_samples_combined <- do.call(rbind, flux_aggregates_samples)
 saveRDS(flux_aggregates_samples_combined, sprintf("%s/real-flux-aggregates-samples-%s_windowall.rds", config$paths$inversion_results, config$inversion_constants$land_ocean_equal_model_case))
 
 
-obs_matched_samples <- lapply(1:5, process_obs_matched)
+obs_matched_samples <- lapply(1:nwindow, process_obs_matched)
 obs_matched_samples_combined <- do.call(rbind, obs_matched_samples) %>% arrange(observation_id)
 saveRDS(obs_matched_samples_combined, sprintf("%s/obs_matched_samples-%s_windowall.rds", config$paths$inversion_results, config$inversion_constants$land_ocean_equal_model_case))
