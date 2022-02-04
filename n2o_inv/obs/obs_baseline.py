@@ -36,7 +36,9 @@ def raw_obs_to_baseline(obspack_obs, baseline_dict):
                    'tapNOAAsurf', 'utaNOAAsurf', 'wbiNOAAsurf', 'wgcNOAAsurf',
                    'wisNOAAsurf', 'wktNOAAsurf',
                    'grfNOAAsurf', 'mlsNOAAsurf', 'mscNOAAsurf', 'spfNOAAsurf', # look weird
-                   'tnkNOAAsurf', 'wpcNOAAsurf'] 
+                   'tnkNOAAsurf', 'wpcNOAAsurf',
+                   'dsiNOAAsurf', 'wlgNOAAsurf', 'palNOAAsurf', 'bktNOAAsurf', # too sensitive to local emissions
+                   'shmNOAAsurf', 'amtNOAAsurf'] 
 
     for site in unique_sites:
         print(site)
@@ -67,6 +69,19 @@ def plot_baseline(site_obs):
     ax.add_artist(clegend)
     plt.show()
 
+def make_agage_baseline_dict(config):
+    agage_sites = config["inversion_constants"]["agage_sites"].split(",")
+    agage_baseline_dict = {}
+    for site in agage_sites:
+        filepath = Path(config["paths"]["data_dir"]) / "agage_baseline"
+        located_file = next(filepath.glob(f"NAME_baseline_{site}_*.nc"))
+        with xr.open_dataset(located_file) as load:
+            df = load.load()
+        agage_baseline_dict[site] = df
+    
+    return agage_baseline_dict
+
+
 if __name__ == "__main__":
     # read in variables from the config file
     config = configparser.ConfigParser()
@@ -80,13 +95,7 @@ if __name__ == "__main__":
         obspack_raw = load.load()
 
     # read in AGAGE baselines
-    agage_baseline_dict = {}
-    for site in AGAGE_SITES:
-        filepath = Path(config["paths"]["data_dir"]) / "agage_baseline"
-        located_file = next(filepath.glob(f"NAME_baseline_{site}_*.nc"))
-        with xr.open_dataset(located_file) as load:
-            df = load.load()
-        agage_baseline_dict["site"] = df
+    agage_baseline_dict = make_agage_baseline_dict(config)
 
     # filter to only baseline
     obspack_baseline = raw_obs_to_baseline(obspack_raw, agage_baseline_dict)
