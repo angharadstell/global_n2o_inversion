@@ -8,31 +8,19 @@ library(ncdf4)
 library(stringr)
 library(tibble)
 
-###############################################################################
-# GLOBAL CONSTANTS
-###############################################################################
-config <- read.ini(paste0(here(), "/config.ini"))
-
-# locations of files
-case <- config$inversion_constants$case
-no_regions <- as.numeric(config$inversion_constants$no_regions)
-geos_out_dir <- config$paths$geos_out
-inte_out_dir <- config$paths$geos_inte
-perturb_start <- as.Date(config$dates$perturb_start)
-perturb_end <- as.Date(config$dates$perturb_end)
 
 ###############################################################################
 # FUNCTIONS
 ###############################################################################
 
-base_ch4_tracers <- function(mf_file) {
+base_ch4_tracers <- function(config, mf_file) {
   # return the variables in the base run netcdf
-  base_nc <- ncdf4::nc_open(sprintf("%s/%s/%s", geos_out_dir, case, mf_file))
+  base_nc <- ncdf4::nc_open(sprintf("%s/%s/%s", config$paths$geos_out, config$inversion_constants$case, mf_file))
   v_base <- function(...) ncdf4::ncvar_get(base_nc, ...)
   v_base
 }
 
-sum_ch4_tracers_perturbed <- function(v_base, v_pert, perturbed_region) {
+sum_ch4_tracers_perturbed <- function(v_base, v_pert, perturbed_region, no_regions) {
   # sum up the tracers for each perturbed run
   total_ch4 <- rep(0, length(v_pert("CH4_R00")))
   for (region in 0:no_regions) {
@@ -45,14 +33,17 @@ sum_ch4_tracers_perturbed <- function(v_base, v_pert, perturbed_region) {
   total_ch4
 }
 
-process_sensitivity_part <- function(year, month, v_base, control_tibble, mf_file) {
+read_flux_file <- function(month, year, config, flux_file) {
   # Read in combined file
-  combined_file <- sprintf("%s/%s%02d/%s", geos_out_dir, year, month, mf_file)
+  combined_file <- sprintf("%s/%s%02d/%s", config$paths$geos_out, year, month, flux_file)
   print(combined_file)
   perturbed <- ncdf4::nc_open(combined_file)
   v <- function(...) ncdf4::ncvar_get(perturbed, ...)
+}
 
+process_sensitivity_part <- function(year, month, v_base, v, control_tibble, config) {
   # process each region within that file
+  no_regions <- as.numeric(config$inversion_constants$no_regions)
   sensitivity_regions <- lapply(0:no_regions, function(region_iter) {
       perturbed_tibble <- tibble(
                                   region = region_iter,
@@ -60,7 +51,7 @@ process_sensitivity_part <- function(year, month, v_base, control_tibble, mf_fil
                                   observation_id = as.vector(v("obspack_id")),
                                   observation_type = "obspack",
                                   resolution = "obspack",
-                                  co2 = sum_ch4_tracers_perturbed(v_base, v, region_iter),
+                                  co2 = sum_ch4_tracers_perturbed(v_base, v, region_iter, no_regions),
                                   observation_group = stringr::str_split(observation_id, "~", simplify = TRUE)[, 3]
                                 ) %>%
                           mutate(site = gsub("[[:digit:]]", "", observation_group),
@@ -87,11 +78,19 @@ process_sensitivity_part <- function(year, month, v_base, control_tibble, mf_fil
   dplyr::bind_rows(sensitivity_regions)
 }
 
+process_sensitivity_part_wrapper <- function(year, month, v_base, flux_file, control_tibble, config) {
+  # Read in flux file for the perturbed run
+  v <- read_flux_file(month, year, config, flux_file)
+  process_sensitivity_part(year, month, v_base, v, control_tibble, config)
+}
+
 ###############################################################################
 # EXECUTION
 ###############################################################################
 main <- function() {
   print("Running main code of sensitivities script...")
+
+  config <- read.ini(paste0(here(), "/config.ini"))
 
   args <- arg_parser('', hide.opts = TRUE) %>%
   add_argument('--mf-file', '') %>%
@@ -100,10 +99,10 @@ main <- function() {
   parse_args()
 
   # read in the base run tracers
-  v_base <- base_ch4_tracers(args$mf_file)
+  v_base <- base_ch4_tracers(config, args$mf_file)
 
   # read in the processed base run
-  control <- fst::read_fst(sprintf("%s/%s", inte_out_dir, args$control_mf))
+  control <- fst::read_fst(sprintf("%s/%s", config$paths$geos_inte, args$control_mf))
   control_tibble <- select(control,
                           model_id,
                           observation_id,
@@ -129,11 +128,11 @@ main <- function() {
     years <- rep(first_year, each = no_months)
   }
 
-  sensitivities_parts <- mapply(process_sensitivity_part,
+  sensitivities_parts <- mapply(process_sensitivity_part_wrapper,
                                 year = years,
                                 month = months,
                                 SIMPLIFY = FALSE,
-                                MoreArgs = list(v_base=v_base, control_tibble=control_tibble, mf_file=args$mf_file))
+                                MoreArgs = list(v_base=v_base, flux_file=args$mf_file, control_tibble=control_tibble, config=config))
 
   # stick all the perturbed sensitivities together
   sensitivities <- bind_rows(sensitivities_parts) %>%
@@ -147,7 +146,7 @@ main <- function() {
   )
 
   # save the sensitivities
-  fst::write_fst(sensitivities, sprintf("%s/%s", inte_out_dir, args$output))
+  fst::write_fst(sensitivities, sprintf("%s/%s", config$paths$geos_inte, args$output))
 }
 
 if (getOption('run.main', default = TRUE)) {

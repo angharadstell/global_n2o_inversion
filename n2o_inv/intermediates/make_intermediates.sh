@@ -39,4 +39,5 @@ echo "Exiting loop..."
 Rscript control-mole-fraction.R --case $case --mf-file "combined_mf" --output "control-mole-fraction"
 
 Rscript sensitivities.R --mf-file "combined_mf.nc" --control-mf "control-mole-fraction.fst" --output "sensitivities.fst"
-Rscript observations.R --mf-file "combined_mf.nc" --output "observations.fst"
+
+Rscript observations.R --mf-file "combined_mf.nc" --model-err "" --output "observations.fst"

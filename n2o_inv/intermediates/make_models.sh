@@ -40,7 +40,7 @@ Rscript ${paths[location_of_this_file]}/../intermediates/measurement-model.R \
 --observations ${paths[geos_inte]}/observations.fst \
 --process-model ${paths[geos_inte]}/process-model.rds \
 --gamma-prior-min 0.1 \
---gamma-prior-max 1.9 \
+--gamma-prior-max 1.0 \
 --output ${paths[geos_inte]}/measurement-model.rds
 
 # Make measurement model with fixed gamma
@@ -51,12 +51,20 @@ Rscript ${paths[location_of_this_file]}/../intermediates/measurement-model.R \
 --gamma-prior-rate 0.00000001 \
 --output ${paths[geos_inte]}/measurement-model-FIXEDGAMMA.rds
 
+# Make measurement model with added error
+Rscript ${paths[location_of_this_file]}/../intermediates/measurement-model.R \
+--observations ${paths[geos_inte]}/model-err-observations.fst \
+--process-model ${paths[geos_inte]}/process-model.rds \
+--gamma-prior-min 0.1 \
+--gamma-prior-max 1.0 \
+--output ${paths[geos_inte]}/measurement-model-model-err.rds
+
 # Make measurement model double rescaling
 Rscript ${paths[location_of_this_file]}/../intermediates/measurement-model.R \
 --observations ${paths[geos_inte]}/observations.fst \
 --process-model ${paths[geos_inte]}/process-model-rescaled-double.rds \
 --gamma-prior-min 0.1 \
---gamma-prior-max 1.9 \
+--gamma-prior-max 1.0 \
 --output ${paths[geos_inte]}/measurement-model-rescaled-double.rds
 
 # Make measurement model half rescaling
@@ -64,7 +72,7 @@ Rscript ${paths[location_of_this_file]}/../intermediates/measurement-model.R \
 --observations ${paths[geos_inte]}/observations.fst \
 --process-model ${paths[geos_inte]}/process-model-rescaled-half.rds \
 --gamma-prior-min 0.1 \
---gamma-prior-max 1.9 \
+--gamma-prior-max 1.0 \
 --output ${paths[geos_inte]}/measurement-model-rescaled-half.rds
 
 #####################################################################################
@@ -131,3 +139,10 @@ Rscript ${paths[location_of_this_file]}/../intermediates/real-model-case.R \
 --measurement-model ${paths[geos_inte]}/measurement-model-rescaled-half.rds \
 --process-model ${paths[geos_inte]}/process-model-rescaled-half.rds \
 --output ${paths[geos_inte]}/real-model-${inversion_constants[land_ocean_equal_model_case]}-rescaled-half.rds
+
+# Make real model case - model err
+Rscript ${paths[location_of_this_file]}/../intermediates/real-model-case.R \
+--case ${inversion_constants[land_ocean_equal_model_case]} \
+--measurement-model ${paths[geos_inte]}/measurement-model-model-err.rds \
+--process-model ${paths[geos_inte]}/process-model.rds \
+--output ${paths[geos_inte]}/real-model-${inversion_constants[land_ocean_equal_model_case]}-model-err.rds

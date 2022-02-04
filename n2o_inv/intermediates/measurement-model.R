@@ -35,19 +35,12 @@ process_model <- readRDS(args$process_model)
 
 log_info('Constructing bias matrix')
 A <- observations %>%
-  mutate(is_oco2 = as.integer(startsWith(observation_type, 'oco2'))) %>%
   model_matrix2(
-    ~ is_oco2:oco2_operation_mode
-    + is_oco2:oco2_operation_mode:oco2_dp
-    + is_oco2:oco2_operation_mode:oco2_co2_grad_del
-    + is_oco2:oco2_operation_mode:oco2_log_dws
-    - 1,
+    ~ obspack_site + 1,
     na.action = 'na.pass'
   ) %>%
   na_to_zero()
 
-# Omit is_oco2:oco2_operation_modeOG:oco2_log_dws
-A <- A[, -12]
 
 # Scale all non-zero values to have mean zero and standard deviation one, except
 # for indicators
