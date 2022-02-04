@@ -253,7 +253,10 @@ if __name__ == "__main__":
     # Visualise
     basic_plot(ecco2_ems)
     
+    # Examining the negative values in the ocean flux
+    map_plot.cartopy_plot(ecco2_ems["emi_n2o"].min("time"), "ECCO2 N2O ems / kg m-2 s-1", None)
     map_plot.cartopy_plot(ecco2_ems["emi_n2o"].mean("time"), "ECCO2 N2O ems / kg m-2 s-1", None)
+    map_plot.cartopy_plot(ecco2_ems["emi_n2o"].max("time"), "ECCO2 N2O ems / kg m-2 s-1", None)
     
     # =============================================================================
     # Total emissions
