@@ -4,14 +4,6 @@
 cd ../spinup
 source bash_var.sh
 
-if [[ $1 = ${inversion_constants[model_case]} ]]
-then
-    # remove old plots
-    echo "removing old plots..."
-    cd ${paths[inversion_results]}
-    rm *.pdf
-fi
-
 export RESULTS_BASE_PARTIAL=${paths[wombat_paper]}/4_results/src/partials/base.R
 export RESULTS_TABLES_PARTIAL=${paths[location_of_this_file]}/../results/partials/tables.R
 export RESULTS_DISPLAY_PARTIAL=${paths[wombat_paper]}/4_results/src/partials/display.R
