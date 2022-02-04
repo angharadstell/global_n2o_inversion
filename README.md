@@ -120,16 +120,14 @@ Rscript -e "testthat::test_local()"
 2. Run the GEOSChem perturbed runs (run n2o_inv/perturbed_runs/submit_perturbed.sh)
 
 ## Running the inversion
-Have to make models for full 10 years before doing window inversion (uses intermediates to change ic)
+Have to make intermediates for full 10 years before doing window inversion (uses intermediates to change ic)
 ### Make inversion intermediates
-1. make_intermediates.sh
-2. make_models.sh
+1. intermediates/make_intermediates.sh
+2. moving_window/make_intermediates.sh
 
 ### Do the inversion
-1. make_real_mcmc_samples.sh
+1. moving_window/moving_window_inversion.sh
 
 ### Plot the results
-1. traceplots.R
-2. flux_aggregators.sh
-3. plots.sh
+1. moving_window/plot_window_inversion.sh
 
