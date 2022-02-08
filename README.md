@@ -120,10 +120,10 @@ Rscript -e "testthat::test_local()"
 2. Run the GEOSChem perturbed runs (run n2o_inv/perturbed_runs/submit_perturbed.sh)
 
 ### Make model error runs
-1. Create a new set of obspack files where each grid cell around a measurement is also included (model_err/adjust_obspack.py)
-2. Set up the GEOSChem run (model_err/setup_model_err.sh)
+1. Create a new set of obspack files where each grid cell around a measurement is also included (run model_err/adjust_obspack.py)
+2. Set up the GEOSChem run (run model_err/setup_model_err.sh)
 3. Run the GEOSChem spinup (submit gcclassic_submit.sh in the GEOSChem rundir)
-4. model_err/calc_model_err.py
+4. Calculate the standard deviation of the grid cells around the measurements (run model_err/calc_model_err.py)
 
 ## Running the inversion
 Have to make intermediates for full 10 years before doing window inversion (uses intermediates to change ic)
