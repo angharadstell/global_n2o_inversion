@@ -86,10 +86,11 @@ The location of these directories is specified in the config.ini file of this re
 
 ## Checking everything is working
 
-from within the root directory "global_n2o_inversion", run these commands to check the unit tests:
+from within the root directory "global_n2o_inversion", run this commands to check the python unit tests:
 ```
 pytest
 ```
+from within the directory "global_n2o_inversion/tests/testthat", run this commands to check the R unit tests:
 ```
 Rscript -e "testthat::test_local()"
 ```
