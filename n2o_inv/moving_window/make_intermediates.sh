@@ -75,6 +75,7 @@ do
     # make sensitivities
     Rscript sensitivities.R --mf-file "combined_mf_window$window02d.nc" --control-mf "control-mole-fraction-window$window02d.fst" --output "sensitivities_window$window02d.fst"
 
-    # make observations
-    Rscript observations.R --mf-file "combined_mf_window$window02d.nc" --output "observations_window$window02d.fst"
+    # make observations with different model errors
+    Rscript observations.R --mf-file "combined_mf_window$window02d.nc" --model-err "n2o_std" --output "model-err-n2o_std-observations_window$window02d.fst"
+    Rscript observations.R --mf-file "combined_mf_window$window02d.nc" --model-err "arbitrary" --output "model-err-arbitrary-observations_window$window02d.fst"
 done
