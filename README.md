@@ -119,15 +119,22 @@ Rscript -e "testthat::test_local()"
 1. Create the perturbed run directories (run n2o_inv/perturbed_runs/setup_perturbed.sh)
 2. Run the GEOSChem perturbed runs (run n2o_inv/perturbed_runs/submit_perturbed.sh)
 
+### Make model error runs
+1. Create a new set of obspack files where each grid cell around a measurement is also included (model_err/adjust_obspack.py)
+2. Set up the GEOSChem run (model_err/setup_model_err.sh)
+3. Run the GEOSChem spinup (submit gcclassic_submit.sh in the GEOSChem rundir)
+4. model_err/calc_model_err.py
+
 ## Running the inversion
 Have to make intermediates for full 10 years before doing window inversion (uses intermediates to change ic)
 ### Make inversion intermediates
-1. intermediates/make_intermediates.sh
-2. moving_window/make_intermediates.sh
+1. Make intermediates for the full 10 years (run intermediates/make_intermediates.sh)
+2. Make intermediates for each of the windows (run moving_window/make_intermediates.sh)
 
 ### Do the inversion
-1. moving_window/moving_window_inversion.sh
+1. Run the inversion for each window in turn (run moving_window/moving_window_inversion.sh)
 
 ### Plot the results
-1. moving_window/plot_window_inversion.sh
+1. Plot the fluxes and compare posterior to the observations (run moving_window/plot_inversion_results.sh)
+2. Plot the hyperparameters (run moving_window/plot_hyperparameters.R)
 
