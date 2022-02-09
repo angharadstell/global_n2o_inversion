@@ -135,6 +135,11 @@ Have to make intermediates for full 10 years before doing window inversion (uses
 ### Do the inversion
 1. Run the inversion for each window in turn (run moving_window/moving_window_inversion.sh)
 
+### Check the inversion
+1. Check the control_mf is being adjusted correctly (run moving_window/check_change_control_mf.R)
+2. Do a moving window analytical inversion (run moving_window/moving_window_inversion.sh)
+3. Check the moving window inversion is working adequately (run moving_window/compare_to_full_analytical.R)
+
 ### Plot the results
 1. Plot the fluxes and compare posterior to the observations (run moving_window/plot_inversion_results.sh)
 2. Plot the hyperparameters (run moving_window/plot_hyperparameters.R)
