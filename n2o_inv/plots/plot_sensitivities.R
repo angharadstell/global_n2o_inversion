@@ -3,7 +3,9 @@ library(ggplot2)
 library(gridExtra)
 library(here)
 library(ini)
+library(raster)
 library(reshape2)
+library(stringi)
 library(stringr)
 
 ###############################################################################
@@ -12,7 +14,7 @@ library(stringr)
 config <- read.ini(paste0(here(), "/config.ini"))
 
 # locations of files
-case <- config$inversion_constants$case
+case <- "IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std_window01"
 no_regions <- as.numeric(config$inversion_constants$no_regions)
 inte_out_dir <- config$paths$geos_inte
 geos_out_dir <- config$paths$geos_out
@@ -27,7 +29,7 @@ source(paste0(here(), "/n2o_inv/intermediates/sensitivities.R"))
 
 plot_perturbation_dt <- function(region, year, month) {
   # read in the base run tracers
-  v_base <- base_ch4_tracers("combined_mf.nc")
+  v_base <- base_ch4_tracers(config, "combined_mf.nc")
 
   # read in the perturbed run tracers
   combined_file <- sprintf("%s/%s%s/combined_mf.nc", geos_out_dir, year, month)
@@ -37,7 +39,7 @@ plot_perturbation_dt <- function(region, year, month) {
 
   # Take the difference between the base run and perturbed run
   base_co2 <- v_base("CH4_sum")
-  perturb_co2 <- sum_ch4_tracers_perturbed(v_base, v, region)
+  perturb_co2 <- sum_ch4_tracers_perturbed(v_base, v, region, no_regions)
   dim(perturb_co2) <- dim(base_co2)
   diff <- perturb_co2 - base_co2
 
@@ -71,11 +73,9 @@ plot_perturbation_dt <- function(region, year, month) {
 # read in sensitivities
 sensitivities <- fst::read_fst(sprintf("%s/sensitivities.fst", inte_out_dir))
 
-# each site and month has a separate model id
-print(unique(sensitivities$model_id))
 # largest model ids are latest in the timeseries, so just plot one of those as an example
 control_mf <- fst::read_fst(paste0(inte_out_dir, "/control-mole-fraction.fst"))
-chosen_obs <- max(sensitivities$model_id)
+chosen_obs <- (control_mf %>% filter(control_mf$time == "2020-12-31", stri_detect_fixed(control_mf$observation_id, "alt")))$model_id
 obs_sens <- sensitivities[sensitivities$model_id == chosen_obs, ]
 # find out which site it is
 chosen_obs_info <- control_mf[control_mf$model_id == chosen_obs, ]
@@ -104,9 +104,24 @@ month <- format(start_date, "%m")
 plots <- lapply(0:config$inversion_constants$no_regions,
                 function(x) plot_perturbation_dt(x, year, month))
 
-
 grid_plot <- gridExtra::arrangeGrob(grobs = plots,
                                     left = "(perturbed - base) / ppb",
                                     bottom = "Months since perturbation")
                       
 ggsave(paste0(inte_out_dir, "/mf_perturbation_dt.pdf"), grid_plot)
+
+
+
+
+
+# remove sites with largest sensitivities?
+# used to remove dsiNOAAsurf, wlgNOAAsurf, palNOAAsurf, bktNOAAsurf, shmNOAAsurf, amtNOAAsurf as too sensitive to local emissions
+sites <- gsub("[[:digit:]]", "", stringr::str_split(control_mf$observation_id, "~", simplify = TRUE)[, 3])
+# calculate max sensitivity for each month at each site
+site_sens <- sensitivities %>% group_by(model_id) %>% summarise(max_co2_sensitivity=max(co2_sensitivity)) %>% mutate(site=sites)
+# calculate max sensitivity for each site
+site_sens_tot <- site_sens %>% group_by(site) %>% summarise(max_max_co2_sensitivity=max(max_co2_sensitivity)) %>% arrange(-max_max_co2_sensitivity)
+# plot
+p <- ggplot(site_sens_tot, aes(site, max_max_co2_sensitivity)) + geom_point() +
+       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+plot(p)

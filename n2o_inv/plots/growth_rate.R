@@ -1,7 +1,9 @@
 library(dplyr)
 library(fst)
 library(ggplot2)
+library(grid)
 library(gridExtra)
+library(gtable)
 library(here)
 library(ini)
 
@@ -57,7 +59,7 @@ plot_growth_rate <- function(obs, title) {
     geom_smooth(data = obs_glob_aw_mm, aes(color = "Global"), se=FALSE, span = 0.3, size = 2) +
     scale_color_manual(values = colors) +
     ggtitle(title) + ylab(expression(paste("Growth rate / ppb ", yr^{-1}))) +
-    xlab("Year") + guides(color = guide_legend(title = "Region"))
+    xlab("Year") + guides(color = guide_legend(title = "Region")) + theme(text = element_text(size = 20))
 
     # if restricted sites can have no sites in this band
     if (dim(obs_sh_tr_aw_mm)[1] > 0) {
@@ -85,7 +87,8 @@ control_mf_constant <- bind_rows(control_mf_constant_pre, control_mf_constant)
 
 
 # sort out posterior
-post_mf <- readRDS(sprintf("%s/obs_matched_samples-%s_windowall.rds", config$paths$inversion_result, config$inversion_constants$land_ocean_equal_model_case))
+case <- "IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std_windowall"
+post_mf <- readRDS(sprintf("%s/obs_matched_samples-%s.rds", config$paths$inversion_results, case))
 post_mf <- post_mf %>% mutate(latitude = obs$latitude) %>% rename("co2" = "Z2_hat", "obs" = "co2")
 
 
@@ -94,10 +97,20 @@ plot_growth_rate(obs, NULL)
 ggsave(paste0(config$paths$obspack_dir, "/obs_growth_rate.pdf"))
 
 
-
+# create panel plot of all growth rates
 obs_growth <- plot_growth_rate(obs, "a. Observations")
 prior_growth <- plot_growth_rate(control_mf, "b. Prior")
-prior_constant_growth <- plot_growth_rate(control_mf_constant, "c. Prior constant met after 2015")
-post_growth <- plot_growth_rate(post_mf, "d. Posterior")
+post_growth <- plot_growth_rate(post_mf, "c. Posterior")
+prior_constant_growth <- plot_growth_rate(control_mf_constant, "d. Prior constant met after 2015")
 
-grid.arrange(obs_growth, prior_growth, prior_constant_growth, post_growth, ncol = 1)
+
+layout <- rbind(c(1, 1, 1, 5), c(2, 2, 2, 5), c(3, 3, 3, 5), c(4, 4, 4, 5))
+legend <- gtable_filter(ggplotGrob(obs_growth), "guide-box")
+p <- grid.arrange(obs_growth + theme(axis.title.y = element_blank(), legend.position = "none"),
+                  prior_growth + theme(axis.title.y = element_blank(), legend.position = "none"),
+                  post_growth + theme(axis.title.y = element_blank(), legend.position = "none"),
+                  prior_constant_growth + theme(axis.title.y = element_blank(), legend.position = "none"), ncol = 1,
+                  legend,
+                  left = textGrob(expression(paste("Growth rate / ppb ", yr^{-1})), rot = 90, gp = gpar(fontsize = 20)),
+                  layout_matrix = layout)
+ggsave(paste0(config$paths$obspack_dir, "/all_growth_rate.pdf"), p)
