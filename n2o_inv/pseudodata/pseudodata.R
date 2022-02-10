@@ -29,8 +29,8 @@ alpha_to_obs <- function(alpha_samples, obs_err, control_mf, perturbations, sens
   )
   # add measurement noise
   set.seed(0)
-  measurement_noise <-  rnorm(n = (dim(Y2_tilde_samples)[1]*dim(Y2_tilde_samples)[2]),
-                              mean = 0, sd = obs_err)
+  measurement_noise <- rnorm(n = (dim(Y2_tilde_samples)[1] * dim(Y2_tilde_samples)[2]),
+                             mean = 0, sd = obs_err)
   dim(measurement_noise) <- dim(Y2_tilde_samples)
   obs_samples <- Y2_prior + Y2_tilde_samples + measurement_noise
 
@@ -54,11 +54,11 @@ alpha_generate <- function(n_samples, n_regions, n_months, a_std, a_corr) {
 ###############################################################################
 
 main <- function() {
-  args <- arg_parser('', hide.opts = TRUE) %>%
-    add_argument('--measurement-noise', '') %>%
-    add_argument('--acorr', '') %>%
-    add_argument('--alpha-range', '') %>%
-    add_argument('--output-suffix', '') %>%
+  args <- arg_parser("", hide.opts = TRUE) %>%
+    add_argument("--measurement-noise", "") %>%
+    add_argument("--acorr", "") %>%
+    add_argument("--alpha-range", "") %>%
+    add_argument("--output-suffix", "") %>%
     parse_args()
 
   print(as.numeric(args$measurement_noise))
@@ -66,10 +66,10 @@ main <- function() {
   print(as.numeric(args$alpha_range))
 
   # read in proper inversion intermediates
-  observations <- fst::read_fst(sprintf("%s/observations_pseudo.fst", config$path$geos_inte))
-  perturbations <- fst::read_fst(sprintf("%s/perturbations_pseudo.fst", config$path$geos_inte))
-  control_mf <- fst::read_fst(sprintf("%s/control-mole-fraction-pseudo.fst", config$path$geos_inte))
-  sensitivities <- fst::read_fst(sprintf("%s/sensitivities_pseudo.fst", config$path$geos_inte))
+  observations <- fst::read_fst(sprintf("%s/model-err-n2o_std-observations_window01.fst", config$path$geos_inte))
+  perturbations <- fst::read_fst(sprintf("%s/perturbations_window01.fst", config$path$geos_inte))
+  control_mf <- fst::read_fst(sprintf("%s/control-mole-fraction-window01.fst", config$path$geos_inte))
+  sensitivities <- fst::read_fst(sprintf("%s/sensitivities_window01.fst", config$path$geos_inte))
 
   # number of regions
   n_regions <- as.numeric(config$inversion_constants$no_regions) + 1
@@ -83,7 +83,8 @@ main <- function() {
   alpha_samples <- alpha_generate(n_samples, n_regions, n_months_pseudo, alpha_std, as.numeric(args$acorr))
 
   # turn alpha samples into mole fraction samples
-  obs_samples <- alpha_to_obs(alpha_samples, observations$co2_error * as.numeric(args$measurement_noise), 
+  obs_samples <- alpha_to_obs(alpha_samples,
+                              observations$co2_error * as.numeric(args$measurement_noise),
                               control_mf, perturbations, sensitivities)
 
   # save observations for inversion
@@ -96,6 +97,6 @@ main <- function() {
           sprintf("%s/alpha_samples_%s.rds", config$paths$pseudodata_dir, args$output_suffix))
 }
 
-if (getOption('run.main', default = TRUE)) {
+if (getOption("run.main", default = TRUE)) {
    main()
 }

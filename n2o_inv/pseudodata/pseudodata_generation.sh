@@ -5,7 +5,7 @@ source bash_var.sh
 cd ../pseudodata
 
 case=( m1_ac0_ar1 m4_ac0_ar1 m2_ac0_ar1 m05_ac0_ar1 m1_ac05_ar1 m1_ac1_ar1 m1_ac0_ar2 m1_ac0_ar05 )
-#case=( m1_ac0_ar1 m1_ac05_ar1 m1_ac1_ar1 )
+
 
 Rscript pseudodata.R --measurement-noise 1 --acorr 0 --alpha-range 1 --output-suffix "m1_ac0_ar1"
 
@@ -22,9 +22,17 @@ Rscript pseudodata.R --measurement-noise 1 --acorr 0.99 --alpha-range 1 --output
 Rscript pseudodata.R --measurement-noise 1 --acorr 0 --alpha-range 2 --output-suffix "m1_ac0_ar2"
 Rscript pseudodata.R --measurement-noise 1 --acorr 0 --alpha-range 0.5 --output-suffix "m1_ac0_ar05"
 
+# only need one process model, but need loads of measurement / real case models, so make separately
+export INVERSION_BASE_PARTIAL=${paths[wombat_paper]}/3_inversion/src/partials/base.R
+# Make process model
+Rscript ${paths[location_of_this_file]}/../intermediates/process-model.R \
+--control-emissions ${paths[geos_inte]}/control-emissions-window01.fst \
+--perturbations ${paths[geos_inte]}/perturbations_window01.fst \
+--control-mole-fraction ${paths[geos_inte]}/control-mole-fraction-window01.fst \
+--sensitivities ${paths[geos_inte]}/sensitivities_window01.fst \
+--output ${paths[pseudodata_dir]}/process-model.rds
 
-./make_process_models.sh
-
+# make measurement and real case models
 for i in "${case[@]}"
 do 
     echo $i
@@ -61,5 +69,3 @@ do
     sbatch make_real_mcmc_samples_varyw_${i}_submit.sh
 
 done
-
-

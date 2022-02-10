@@ -26,7 +26,7 @@ Rscript ${paths[location_of_this_file]}/../intermediates/measurement-model.R \
 --observations ${paths[pseudodata_dir]}/observations_${case}_`printf %04d $SLURM_ARRAY_TASK_ID`.fst \
 --process-model ${paths[pseudodata_dir]}/process-model.rds \
 --gamma-prior-min 0.1 \
---gamma-prior-max 1.9 \
+--gamma-prior-max 1.0 \
 --output ${paths[pseudodata_dir]}/measurement-model_${case}_`printf %04d $SLURM_ARRAY_TASK_ID`.rds
 
 # Make measurement model with fixed gamma
