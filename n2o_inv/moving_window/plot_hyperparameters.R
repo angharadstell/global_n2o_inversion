@@ -7,30 +7,18 @@ library(reshape2)
 
 # read in useful functions
 source(paste0(here(), "/n2o_inv/moving_window/functions.R"))
+# remove run.main option from functions.R so can run this main
+options(run.main = NULL)
 
 # read in config
 config <- read.ini(paste0(here(), "/config.ini"))
-
-# set specific plots wanted
-method <- "mcmc"
-case <- "IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std"
-
-# work out what observations (the only difference is the model-measurement error) 
-# need to be read in based on the case name
-if (grepl("model-err-n2o_std", case)) {
-  obs_file <- "model-err-n2o_std-observations.fst"
-} else if (grepl("model-err-arbitrary", case)) {
-  obs_file <- "model-err-arbitrary-observations.fst"
-} else {
-  obs_file <- "observations.fst"
-}
 
 ###############################################################################
 # FUNCTIONS
 ###############################################################################
 
 # extract parameter data
-extract_time_var <- function(param) {
+extract_time_var <- function(window_samples, param) {
   # read in constants from config
   nwindow <- as.numeric(config$moving_window$n_window)
   start_sample <- as.numeric(config$inversion_constants$burn_in) + 1
@@ -48,7 +36,7 @@ extract_time_var <- function(param) {
 # plot a nice histogram of parameters
 plot_param_hist <- function(window_samples, param, color_by) {
   # extract mean paramter values and put into nicely presented data frame
-  params <- extract_time_var(param)
+  params <- extract_time_var(window_samples, param)
   melted_params <- melt(params)
   names(melted_params) <- c("region", "year", param)
 
@@ -65,13 +53,13 @@ plot_param_hist <- function(window_samples, param, color_by) {
 }
 
 # plot model-measurement error data
-plot_model_measurement_error <- function(obs_file) {
+plot_model_measurement_error <- function(window_samples, obs_file) {
   # read in constants from config
   start_year <- year(as.Date(config$dates$perturb_start))
   end_year <- year(as.Date(config$dates$perturb_end)) - 1
 
   # extract gamma values from the runs
-  gammas <- extract_time_var("gamma")
+  gammas <- extract_time_var(window_samples, "gamma")
   # include spinup year values, which have the same gamma as the first year of the real run
   gammas <- cbind(gammas[, 1], gammas)
   colnames(gammas) <- start_year:end_year
@@ -117,52 +105,71 @@ plot_model_measurement_error <- function(obs_file) {
   p
 }
 
-
 ###############################################################################
 # CODE
 ###############################################################################
 
-# Constants
-nwindow <- as.numeric(config$moving_window$n_window)
+main <- function() {
+  # set specific plots wanted
+  method <- "mcmc"
+  case <- "IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std"
 
-# Read in moving window alphas
-window_samples <- lapply(1:nwindow,
-                         function(i) {
-                           try(readRDS(sprintf("%s/real-%s-samples-%s_window%02d.rds",
-                           config$paths$moving_window_dir,
-                           method,
-                           case,
-                           i)))
-                           }
-)
-
-# remove missing files data
-for (i in nwindow:1) {
-  if (class(window_samples[[i]]) == "try-error") {
-    window_samples[[i]] <- NULL
+  # work out what observations (the only difference is the model-measurement error) 
+  # need to be read in based on the case name
+  if (grepl("model-err-n2o_std", case)) {
+    obs_file <- "model-err-n2o_std-observations.fst"
+  } else if (grepl("model-err-arbitrary", case)) {
+    obs_file <- "model-err-arbitrary-observations.fst"
+  } else {
+    obs_file <- "observations.fst"
   }
+
+  # Constants
+  nwindow <- as.numeric(config$moving_window$n_window)
+
+  # Read in moving window alphas
+  window_samples <- lapply(1:nwindow,
+                          function(i) {
+                            try(readRDS(sprintf("%s/real-%s-samples-%s_window%02d.rds",
+                            config$paths$moving_window_dir,
+                            method,
+                            case,
+                            i)))
+                            }
+  )
+
+  # remove missing files data
+  for (i in nwindow:1) {
+    if (class(window_samples[[i]]) == "try-error") {
+      window_samples[[i]] <- NULL
+    }
+  }
+
+  # repeat missing data, just til I get a full run
+  for (i in (length(window_samples) + 1):nwindow) {
+      window_samples[[i]] <- window_samples[[length(window_samples)]]
+  }
+
+
+  ### Do the plotting
+
+  # plot a
+  p <- plot_param_hist(window_samples, "a", "year")
+  plot(p)
+
+  # plot w
+  p <- plot_param_hist(window_samples, "w", "year")
+  plot(p)
+
+  # plot gamma
+  p <- plot_param_hist(window_samples, "gamma", "year")
+  plot(p)
+
+  # plot model-measurement error
+  p <- plot_model_measurement_error(window_samples, obs_file)
+  plot(p)
 }
 
-# repeat missing data, just til I get a full run
-for (i in (length(window_samples) + 1):nwindow) {
-    window_samples[[i]] <- window_samples[[length(window_samples)]]
+if (getOption("run.main", default = TRUE)) {
+   main()
 }
-
-
-### Do the plotting
-
-# plot a
-p <- plot_param_hist(window_samples, "a", "year")
-plot(p)
-
-# plot w
-p <- plot_param_hist(window_samples, "w", "year")
-plot(p)
-
-# plot gamma
-p <- plot_param_hist(window_samples, "gamma", "year")
-plot(p)
-
-# plot model-measurement error
-p <- plot_model_measurement_error(obs_file)
-plot(p)

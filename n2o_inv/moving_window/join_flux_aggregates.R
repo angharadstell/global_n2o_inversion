@@ -14,8 +14,11 @@ args <- arg_parser("", hide.opts = TRUE) %>%
 # FUNCTIONS
 ###############################################################################
 
-# take window data and keep only the desired years
-select_desired_years <- function(raw) {
+# open the real flux aggregates samples for a window, then select the desired years for the results
+process_flux_aggregates <- function(window) {
+    print(window)
+    raw <- readRDS(sprintf("%s/real-flux-aggregates-samples-%s_window%02d.rds", config$paths$inversion_results, args$casename, window))
+
     start_date <- as.Date(config$dates$perturb_start)
     # if its the first window, want to include the spinup year as well as the second year of the run
     if (window == 1) {
@@ -24,14 +27,7 @@ select_desired_years <- function(raw) {
     } else {
         processed <- raw %>% filter(month_start >= (start_date + years(window)), month_start < (start_date + years(window + 1)))
     }
-    processed
-}
 
-# open the real flux aggregates samples for a window, then select the desired years for the results
-process_flux_aggregates <- function(window) {
-    print(window)
-    raw <- readRDS(sprintf("%s/real-flux-aggregates-samples-%s_window%02d.rds", config$paths$inversion_results, args$casename, window))
-    processed <- select_desired_years(raw)
     processed
 }
 
@@ -39,7 +35,16 @@ process_flux_aggregates <- function(window) {
 process_obs_matched <- function(window) {
     print(window)
     raw <- readRDS(sprintf("%s/obs_matched_samples-%s_window%02d.rds", config$paths$inversion_results, args$casename, window))
-    processed <- select_desired_years(raw)
+
+    start_date <- as.Date(config$dates$perturb_start)
+    # if its the first window, want to include the spinup year as well as the second year of the run
+    if (window == 1) {
+        processed <- raw %>% filter(time < (start_date + years(2)))
+    # otherwise, only want second year of the run
+    } else {
+        processed <- raw %>% filter(time >= (start_date + years(window)), time < (start_date + years(window + 1)))
+    }
+
     processed
 }
 
