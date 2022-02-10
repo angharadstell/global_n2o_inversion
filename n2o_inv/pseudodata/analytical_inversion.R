@@ -37,11 +37,40 @@ m_post_sample <- function(i) {
 }
 
 make_C_D <- function(observations) {
-  sparseMatrix(i=1:length(observations$co2_error),
-               j=1:length(observations$co2_error),
-               x=observations$co2_error^2,
-               dims=list(length(observations$co2_error),length(observations$co2_error)))
+  sparseMatrix(i = 1:length(observations$co2_error),
+               j = 1:length(observations$co2_error),
+               x = observations$co2_error^2,
+               dims = list(length(observations$co2_error), length(observations$co2_error)))
 }
+
+make_C_M <- function(var, kappa, kappa_regions, n_regions, n_months) {
+  C_M <- matrix(0, (n_regions * n_months), (n_regions * n_months))
+
+  region <- rep(1:n_regions, n_months)
+  month  <- rep(1:n_months, each = n_regions)
+
+  for (i in 1:(n_regions * n_months)) {
+    for (j in 1:(n_regions * n_months)) {
+      if (i == j) {
+        if (region[[i]] %in% kappa_regions) {
+          C_M[i, j] <- 1 / (1 - kappa^2)
+        } else {
+          C_M[i, j] <- 1
+        }
+      } else {
+        if (region[[i]] == region[[j]] & region[[i]] %in% kappa_regions) {
+          C_M[i, j] <- kappa^(abs(month[[i]] - month[[j]])) / (1 - kappa^2)
+        }
+      }
+
+    }
+  }
+
+  C_M <- C_M * var
+
+  C_M
+}
+
 ###############################################################################
 # EXECUTION
 ###############################################################################
@@ -81,11 +110,11 @@ main <- function() {
   print(cor(as.vector(m_true), as.vector(m_squiggle)))
   plot(as.vector(m_true), as.vector(m_squiggle))
 
-  region <- rep(1:n_region, times=n_month, each=n_sample)
+  region <- rep(1:n_region, times = n_month, each = n_sample)
   dim(region) <- dim(m_true)
-  month <- rep(1:n_month, each=n_region*n_sample)
+  month <- rep(1:n_month, each = n_region * n_sample)
   dim(month) <- dim(m_true)
-  run <- rep(1:n_sample, times=n_region*n_month)
+  run <- rep(1:n_sample, times = n_region * n_month)
   dim(run) <- dim(m_true)
 
   df <- data.frame(inversion = as.vector(m_squiggle),
@@ -93,7 +122,7 @@ main <- function() {
                   region = as.vector(region),
                   month = as.vector(month),
                   run = as.vector(run))
-  p <- ggplot(data=df[df$month<=3,], aes(x=truth, y=inversion, color=factor(region), shape=factor(month))) +
+  p <- ggplot(data = df[df$month<=3,], aes(x = truth, y = inversion, color = factor(region), shape = factor(month))) +
         geom_point() #+ theme(legend.position = "none")
   plot(p)
   ggsave(sprintf("%s/analytical_inversion.pdf", config$paths$pseudodata_dir),
@@ -102,15 +131,15 @@ main <- function() {
 
   #moved closer to obs?
   sample_no <- 1
-  prior_diff_to_obs <- d_obs[,sample_no] - model_out(control_mf, G, m_prior)[,1]
-  post_diff_to_obs <- d_obs[,sample_no] - model_out(control_mf, G, m_squiggle[sample_no,])[,1]
-  truth_diff_to_obs <- d_obs[,sample_no] - model_out(control_mf, G, m_true[sample_no,])[,1]
+  prior_diff_to_obs <- d_obs[, sample_no] - model_out(control_mf, G, m_prior)[, 1]
+  post_diff_to_obs <- d_obs[, sample_no] - model_out(control_mf, G, m_squiggle[sample_no,])[, 1]
+  truth_diff_to_obs <- d_obs[, sample_no] - model_out(control_mf, G, m_true[sample_no,])[, 1]
 
   # save samples to compare to WOMBAT
   m_post_cov <- m_post_cov_calc(C_M, G, C_D)
   lapply(1:n_samples, m_post_sample)
 }
 
-if (getOption('run.main', default=TRUE)) {
+if (getOption("run.main", default = TRUE)) {
    main()
 }
