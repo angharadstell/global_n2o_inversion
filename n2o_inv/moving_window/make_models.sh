@@ -11,7 +11,10 @@ CASE=%CASE%
 echo "model case: $CASE"
 
 # is this a model error case?
-if [[ "$CASE" =~ (model-err)([^,]*) ]]
+if [[ "$CASE" =~ (model-err)([^,]*)(-rescaled) ]]
+then
+    observations=model-err${BASH_REMATCH[2]}-observations
+elif [[ "$CASE" =~ (model-err)([^,]*) ]]
 then
     observations=model-err${BASH_REMATCH[2]}-observations
 else
