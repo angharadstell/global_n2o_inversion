@@ -144,3 +144,10 @@ Have to make intermediates for full 10 years before doing window inversion (uses
 1. Plot the fluxes and compare posterior to the observations (run moving_window/plot_inversion_results.sh)
 2. Plot the hyperparameters (run moving_window/plot_hyperparameters.R)
 
+## Looking at the effect of rescaling the prior
+Have to make intermediates for the first window inversion to do this (uses intermediates to rescale)
+### Make intermediates
+1. Make rescaled intermediates(run scaled_prior/rescale_prior.R)
+
+### Do the inversion
+1. Run the inversion for the rescaled cases (run scaled_prior/rescale_prior_inversion.sh)
