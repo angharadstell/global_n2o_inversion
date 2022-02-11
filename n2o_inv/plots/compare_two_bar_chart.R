@@ -58,19 +58,19 @@ compare_two <- function(case1, case2, title, labels) {
 
 
 
-# p <- compare_two("IS-RHO0-VARYA-VARYW-NOBIAS_window01-rescaled-halfland",
-#                 "IS-RHO0-VARYA-VARYW-NOBIAS_window01-rescaled-doubleland",
-#                 NULL,
-#                 c("half", "double"))
-# plot(p)
-# ggsave(sprintf("%s/compare_two_bar_chart_rescaleland.png", config$paths$inversion_results))
+p <- compare_two("IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std-rescaled-halfland_window01",
+                 "IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std-rescaled-doubleland_window01",
+                 NULL,
+                 c("half", "double"))
+plot(p)
+ggsave(sprintf("%s/compare_two_bar_chart_rescaleland.png", config$paths$inversion_results))
 
-# p <- compare_two("IS-RHO0-VARYA-VARYW-NOBIAS_window01-rescaled-halfocean",
-#                 "IS-RHO0-VARYA-VARYW-NOBIAS_window01-rescaled-doubleocean",
-#                 NULL,
-#                 c("half", "double"))
-# plot(p)
-# ggsave(sprintf("%s/compare_two_bar_chart_rescaleocean.png", config$paths$inversion_results))
+p <- compare_two("IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std-rescaled-halfocean_window01",
+                 "IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std-rescaled-doubleocean_window01",
+                 NULL,
+                 c("half", "double"))
+plot(p)
+ggsave(sprintf("%s/compare_two_bar_chart_rescaleocean.png", config$paths$inversion_results))
 
 
 
@@ -79,4 +79,4 @@ p <- compare_two("IS-RHO0-VARYA-VARYW-NOBIAS-model-err-n2o_std_window01",
                  NULL,
                  c("varya", "fixeda"))
 plot(p)
-#ggsave(sprintf("%s/compare_two_bar_chart_fixeda.png", config$paths$inversion_results))
+ggsave(sprintf("%s/compare_two_bar_chart_fixeda.png", config$paths$inversion_results))
