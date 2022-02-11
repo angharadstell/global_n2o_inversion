@@ -28,8 +28,18 @@ extract_time_var <- function(window_samples, param) {
 
   # extract mean paramter values and put into nicely presented data frame
   params <- sapply(1:nwindow, function(i) colMeans(window_samples[[i]][[param]][start_sample:end_sample, ]))
-  colnames(params) <- start_year:end_year
-
+  if (is.list(params)) {
+    # gammas don't combine nicely because not every site is present in each window!
+    # extract complete list of sites
+    unique_sites <- unique(unlist(sapply(1:nwindow, function(i) names(colMeans(window_samples[[i]]$gamma)))))
+    # match the parameters to the list of sites
+    matched <- lapply(1:nwindow, function(i) params[[i]][match(unique_sites, names(params[[i]]))])
+    # recombined as one matrix
+    params <- as.matrix(data.frame(matched))
+    colnames(params) <- start_year:end_year
+  } else {
+    colnames(params) <- start_year:end_year
+  }
   params
 }
 
@@ -38,6 +48,7 @@ plot_param_hist <- function(window_samples, param, color_by) {
   # extract mean paramter values and put into nicely presented data frame
   params <- extract_time_var(window_samples, param)
   melted_params <- melt(params)
+  # what is labelled as region will actually be site for gamma...
   names(melted_params) <- c("region", "year", param)
 
   # weird thing required to get aes to plot a variable
