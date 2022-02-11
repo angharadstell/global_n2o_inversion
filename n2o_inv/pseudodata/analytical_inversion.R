@@ -28,7 +28,7 @@ m_post_cov_calc <- function(C_M, G, C_D) {
   C_M - C_M %*% t(G) %*% solve(G %*% C_M %*% t(G) + C_D) %*% G %*% C_M
 }
 
-m_post_sample <- function(i) {
+m_post_sample <- function(i, m_squiggle, m_post_cov, case) {
   post_alpha_samples <- mvrnorm(n = 1000,
                               mu = m_squiggle[i, ],
                               m_post_cov)
@@ -76,38 +76,43 @@ make_C_M <- function(var, kappa, kappa_regions, n_regions, n_months) {
 ###############################################################################
 
 main <- function() {
-  case <- "m2_a1"
+  # choose case to look at
+  case <- "m1_ac0_ar1"
 
+  # read in true alphas
   m_true <- readRDS(sprintf("%s/alpha_samples_%s.rds", config$paths$pseudodata_dir, case))
 
+  # set some constants
   n_sample <- dim(m_true)[1]
-  n_region <- config$inversion_constants$no_regions + 1
+  n_region <- as.numeric(config$inversion_constants$no_regions) + 1
   n_month <- dim(m_true)[2] / n_region
 
+  # read in intermediates
+  print("Reading intermediates...")
   observations <- lapply(1:n_sample, function(i) {
                         fst::read_fst(sprintf("%s/observations_%s_%04d.fst", config$paths$pseudodata_dir, case, i))})
-  perturbations <- fst::read_fst(sprintf("%s/perturbations_pseudo.fst", config$paths$geos_inte))
-  control_mf <- fst::read_fst(sprintf("%s/control-mole-fraction-pseudo.fst", config$paths$geos_inte))
-  sensitivities <- fst::read_fst(sprintf("%s/sensitivities_pseudo.fst", config$paths$geos_inte))
+  perturbations <- fst::read_fst(sprintf("%s/perturbations_window01.fst", config$paths$geos_inte))
+  control_mf <- fst::read_fst(sprintf("%s/control-mole-fraction-window01.fst", config$paths$geos_inte))
+  sensitivities <- fst::read_fst(sprintf("%s/sensitivities_window01.fst", config$paths$geos_inte))
 
+  # set up matrices required for inversion
+  print("Setting up matrices...")
   d_obs <- sapply(1:n_sample, function(i) {observations[[i]]$co2})
-
   C_M <- diag(rep(0.5^2, dim(m_true)[2]))
   C_D <- make_C_D(observations[[1]])
-
   m_prior <- rep(0, dim(m_true)[2])
-
   # create H matrix
   G <- transport_matrix(perturbations,
                         control_mf,
                         sensitivities,
                         lag = Inf)
 
-
   # do inversion
+  print("Doing inversions...")
   m_squiggle <- t(sapply(1:n_sample, function(i) {m_post(control_mf, m_prior, C_M, G, C_D, d_obs[, i])}))
 
-  print(cor(as.vector(m_true), as.vector(m_squiggle)))
+  print("Analysing...")
+  print(sprintf("correlation between true and posterior alphas: %f", cor(as.vector(m_true), as.vector(m_squiggle))))
   plot(as.vector(m_true), as.vector(m_squiggle))
 
   region <- rep(1:n_region, times = n_month, each = n_sample)
@@ -134,10 +139,13 @@ main <- function() {
   prior_diff_to_obs <- d_obs[, sample_no] - model_out(control_mf, G, m_prior)[, 1]
   post_diff_to_obs <- d_obs[, sample_no] - model_out(control_mf, G, m_squiggle[sample_no,])[, 1]
   truth_diff_to_obs <- d_obs[, sample_no] - model_out(control_mf, G, m_true[sample_no,])[, 1]
+  print(sprintf("mean absolute difference of obs - prior: %f", mean(abs(prior_diff_to_obs))))
+  print(sprintf("mean absolute difference of obs - posterior: %f", mean(abs(post_diff_to_obs))))
+  print(sprintf("mean absolute difference of obs - truth: %f", mean(abs(truth_diff_to_obs))))
 
   # save samples to compare to WOMBAT
   m_post_cov <- m_post_cov_calc(C_M, G, C_D)
-  lapply(1:n_samples, m_post_sample)
+  invisible(lapply(1:n_sample, m_post_sample, m_squiggle = m_squiggle, m_post_cov = m_post_cov, case = case))
 }
 
 if (getOption("run.main", default = TRUE)) {
