@@ -41,3 +41,5 @@ Rscript control-mole-fraction.R --case $case --mf-file "combined_mf" --output "c
 Rscript sensitivities.R --mf-file "combined_mf.nc" --control-mf "control-mole-fraction.fst" --output "sensitivities.fst"
 
 Rscript observations.R --mf-file "combined_mf.nc" --model-err "" --output "observations.fst"
+Rscript observations.R --mf-file "combined_mf.nc" --model-err "n2o_std" --output "model-err-n2o_std-observations.fst"
+Rscript observations.R --mf-file "combined_mf.nc" --model-err "arbitrary" --output "model-err-arbitrary-observations.fst"
