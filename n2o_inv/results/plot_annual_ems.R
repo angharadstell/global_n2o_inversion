@@ -10,13 +10,6 @@ library(lubridate)
 
 source(paste0(here(), "/n2o_inv/results/partials/tables.R"))
 
-args <- arg_parser('', hide.opts = TRUE) %>%
-  add_argument('--casename', '') %>%
-  parse_args()
-
-# args <- list()
-# args$casename <- "IS-RHO0-VARYA-VARYW-NOBIAS_window01_model_err_restricta"
-
 ###############################################################################
 # GLOBAL CONSTANTS AND FUNCTIONS
 ###############################################################################
@@ -29,13 +22,13 @@ get_annual_ems <- function(casename) {
                   "/real-flux-aggregates-samples-",
                   casename, ".rds")))
 
-  annual_flux_samples <- flux_samples %>% mutate(year = year(month_start)) %>%
-    group_by(estimate, name, year) %>%
-    summarise(
-      flux_mean = sum(flux_mean),
-      flux_lower = quantile(colSums(flux_samples), probs = 0.025, na.rm = TRUE),
-      flux_upper = quantile(colSums(flux_samples), probs = 0.975, na.rm = TRUE)
-    )
+  annual_flux_samples <- flux_samples %>%
+                         mutate(year = year(month_start)) %>%
+                         group_by(estimate, name, year) %>%
+                         summarise(flux_mean = sum(flux_mean),
+                                   flux_lower = quantile(colSums(flux_samples), probs = 0.025, na.rm = TRUE),
+                                   flux_upper = quantile(colSums(flux_samples), probs = 0.975, na.rm = TRUE)
+                                  )
 
   annual_flux_samples
 }
@@ -44,10 +37,10 @@ get_annual_ems <- function(casename) {
 plot_annual_ems <- function(flux_samples, NAME_COLOURS, labels, first_year, last_year) {
   # make a nice ggplot
   p <- ggplot(flux_samples, aes(year, flux_mean, color = estimate)) +
-       {if (length(unique(flux_samples$year) > 1)) geom_line()} +
-       {if (length(unique(flux_samples$year) == 1)) geom_point()} +
-       {if (length(unique(flux_samples$year) > 1)) geom_ribbon(aes(ymin = flux_lower, ymax = flux_upper), alpha = 0.1)} +
-       {if (length(unique(flux_samples$year) == 1)) geom_errorbar(aes(ymin = flux_lower, ymax = flux_upper), width=0.5)} +
+       {if (length(unique(flux_samples$year)) > 1) geom_line()} +
+       {if (length(unique(flux_samples$year)) == 1) geom_point()} +
+       {if (length(unique(flux_samples$year)) > 1) geom_ribbon(aes(ymin = flux_lower, ymax = flux_upper), alpha = 0.1)} +
+       {if (length(unique(flux_samples$year)) == 1) geom_errorbar(aes(ymin = flux_lower, ymax = flux_upper), width = 0.5)} +
        ylab(expression(N[2] * "O Flux / TgN " * yr^-1)) +
        scale_x_continuous(breaks = seq(first_year, last_year, 2)) +
        scale_colour_manual(values = NAME_COLOURS,
@@ -111,6 +104,13 @@ config <- read.ini(paste0(here(), "/config.ini"))
 ###############################################################################
 
 main <- function() {
+  args <- arg_parser("", hide.opts = TRUE) %>%
+    add_argument("--casename", "") %>%
+    parse_args()
+
+  # args <- list()
+  # args$casename <- "IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std_windowall"
+
   NAME_COLOURS <- c(
   'Prior' = get_colour('wombat_prior'),
   'Posterior' = get_colour('wombat_lg')
