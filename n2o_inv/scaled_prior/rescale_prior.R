@@ -23,7 +23,7 @@ rescale_inputs <- function(scaling, alpha, scaling_word, suffix1, suffix2, direc
   perturbations <- fst::read_fst(sprintf("%s/perturbations%s.fst", directory, suffix2))
   sensitivities <- fst::read_fst(sprintf("%s/sensitivities%s.fst", directory, suffix2))
   if (suffix2 == "_window01") {
-    case <- "IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std"
+    case <- "IS-RHO0-VARYA-VARYW-NOBIAS-model-err-n2o_std"
     process_model <- readRDS(sprintf("%s/process-model-%s%s.rds", config$paths$moving_window_dir, case, suffix2))
   } else {
     process_model <- readRDS(sprintf("%s/process-model.rds", directory))

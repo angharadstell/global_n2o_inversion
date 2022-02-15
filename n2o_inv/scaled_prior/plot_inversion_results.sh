@@ -8,17 +8,17 @@
 #SBATCH --mem=5G
 #SBATCH --array=0-3
 
-BASE_CASE=IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std-rescaled
+BASE_CASE=IS-RHO0-VARYA-VARYW-NOBIAS-model-err-n2o_std
 CASE_ARRAY=(halfland doubleland halfocean doubleocean)
-CASE=${BASE_CASE}-${CASE_ARRAY[$SLURM_ARRAY_TASK_ID]}_window01
+CASE=${BASE_CASE}-rescaled-${CASE_ARRAY[$SLURM_ARRAY_TASK_ID]}_window01
 echo $CASE
 
 # is this a model error case?
-if [[ "$CASE" =~ (model-err)([^,]*) ]]
+if [[ "$BASE_CASE" =~ (model-err)([^,]*) ]]
 then
-    observations=model-err${BASH_REMATCH[2]}-observations
+    observations=model-err${BASH_REMATCH[2]}-observations_window01
 else
-    observations=observations
+    observations=observations_window01
 fi
 echo "Using observations file called: $observations"
 
