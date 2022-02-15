@@ -37,10 +37,10 @@ do
         Rscript analytical_inversion.R --window $window --case $CASE
 
     else
-        sed -e "s/%window02d%/$window02d/" -e "s/%CASE%/${CASE}_window$window02d/" make_real_mcmc_samples_submit.sh > make_real_mcmc_samples_submit_$CASE.sh
-        chmod +x make_real_mcmc_samples_submit_$CASE.sh
-        ./make_real_mcmc_samples_submit_$CASE.sh
-        rm make_real_mcmc_samples_submit_$CASE.sh
+        sed -e "s/%window02d%/$window02d/" -e "s/%CASE%/${CASE}_window$window02d/" make_real_mcmc_samples_submit.sh > make_real_mcmc_samples_${CASE}_submit.sh
+        chmod +x make_real_mcmc_samples_${CASE}_submit.sh
+        ./make_real_mcmc_samples_${CASE}_submit.sh
+        rm make_real_mcmc_samples_${CASE}_submit.sh
     fi
 
     # bring in spinup fluxes
