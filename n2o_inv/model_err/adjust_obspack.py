@@ -12,11 +12,7 @@ def reformat_obspack_id(old_obs, add_str):
 
     return new_obspack
 
-def surround_obspack(date):
-    # xarray messes up the times without turning off decode_times
-    with xr.open_dataset(OBSPACK_DIR / f"obspack_n2o.{date}.nc", decode_times=False) as load:
-        obspack_nc = load.load()
-
+def surround_obspack(obspack_nc):
     lon_25_lat000 = obspack_nc.copy()
     lon025_lat000 = obspack_nc.copy()
     lon000_lat020 = obspack_nc.copy()
@@ -67,6 +63,7 @@ def surround_obspack(date):
                        lon025_lat_20, lon025_lat020, lon_25_lat020])
 
     # could be doubles at poles
+    # this does mean anything at the poles repeats so will have an artificially low std...
     merged["latitude"] = xr.where(merged["latitude"] > 90, 
                                   90.0,
                                   merged["latitude"])
@@ -83,8 +80,7 @@ def surround_obspack(date):
                                   (merged["longitude"] - 180) - 180,
                                   merged["longitude"])
 
-    merged.to_netcdf(OBSPACK_DIR / f"model_err/obspack_n2o.{date}.nc", 
-                     encoding={"obs":{"dtype":"float64"}})
+    return merged
 
 
 
@@ -103,4 +99,15 @@ if __name__ == "__main__":
 
     daily_dates = pd.date_range(SPINUP_START, FINAL_END)[:-1]
     for date in daily_dates:
-        surround_obspack(date.strftime('%Y%m%d'))
+        formatted_date = date.strftime('%Y%m%d')
+        # read in original xarray file
+        # xarray messes up the times without turning off decode_times
+        with xr.open_dataset(OBSPACK_DIR / f"obspack_n2o.{formatted_date}.nc", decode_times=False) as load:
+            obspack_nc = load.load()
+
+        # make new surrounding obspack
+        new_obpack = surround_obspack(obspack_nc)
+
+        # save 
+        new_obpack.to_netcdf(OBSPACK_DIR / f"model_err/obspack_n2o.{formatted_date}.nc", 
+                             encoding={"obs":{"dtype":"float64"}})
