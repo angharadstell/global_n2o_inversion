@@ -15,7 +15,7 @@ echo $1
 echo "flux-aggregates-table.R"
 Rscript ${paths[location_of_this_file]}/../results/flux-aggregates-table.R \
     --flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$1.rds \
-    --start-date ${dates[perturb_start]} \
+    --start-date ${dates[analyse_start]} \
     --end-date ${dates[perturb_end]} \
     --output ${paths[inversion_results]}/flux-aggregates-table-$1.txt
 
@@ -26,7 +26,7 @@ Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
     --flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$1.rds \
     --height 18 \
     --small-y-axes \
-    --start-date ${dates[perturb_start]} \
+    --start-date ${dates[analyse_start]} \
     --end-date ${dates[perturb_end]} \
     --output ${paths[inversion_results]}/flux-aggregates-zonal-$1.pdf
 
@@ -35,7 +35,7 @@ Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
 		--region "Global" "Global land" "Global oceans" \
 		--flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$1.rds \
 		--height 16.5 \
-        --start-date ${dates[perturb_start]} \
+        --start-date ${dates[analyse_start]} \
         --end-date ${dates[perturb_end]} \
 		--output ${paths[inversion_results]}/flux-aggregates-globals-$1.pdf
 
@@ -46,7 +46,7 @@ Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
     --show-prior-uncertainty \
     --height 18 \
     --small-y-axes \
-    --start-date ${dates[perturb_start]} \
+    --start-date ${dates[analyse_start]} \
     --end-date ${dates[perturb_end]} \
     --output ${paths[inversion_results]}/flux-aggregates-zonal_priorunc-$1.pdf
 
@@ -56,7 +56,7 @@ Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
 		--flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$1.rds \
         --show-prior-uncertainty \
 		--height 16.5 \
-        --start-date ${dates[perturb_start]} \
+        --start-date ${dates[analyse_start]} \
         --end-date ${dates[perturb_end]} \
 		--output ${paths[inversion_results]}/flux-aggregates-globals_priorunc-$1.pdf
 
@@ -67,7 +67,7 @@ Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
     --flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$1.rds \
     --height 18 \
     --small-y-axes \
-    --start-date ${dates[perturb_start]} \
+    --start-date ${dates[analyse_start]} \
     --end-date ${dates[perturb_end]} \
     --output ${paths[inversion_results]}/flux-aggregates-americas-$1.pdf
 
@@ -77,7 +77,7 @@ Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
     --flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$1.rds \
     --height 18 \
     --small-y-axes \
-    --start-date ${dates[perturb_start]} \
+    --start-date ${dates[analyse_start]} \
     --end-date ${dates[perturb_end]} \
     --output ${paths[inversion_results]}/flux-aggregates-eurasia-$1.pdf
 
@@ -87,7 +87,7 @@ Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
     --flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$1.rds \
     --height 18 \
     --small-y-axes \
-    --start-date ${dates[perturb_start]} \
+    --start-date ${dates[analyse_start]} \
     --end-date ${dates[perturb_end]} \
     --output ${paths[inversion_results]}/flux-aggregates-remainderland-$1.pdf
 
@@ -98,7 +98,7 @@ Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
     --flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$1.rds \
     --height 18 \
     --small-y-axes \
-    --start-date ${dates[perturb_start]} \
+    --start-date ${dates[analyse_start]} \
     --end-date ${dates[perturb_end]} \
     --output ${paths[inversion_results]}/flux-aggregates-pacific-$1.pdf
 
@@ -108,7 +108,7 @@ Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
     --flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$1.rds \
     --height 18 \
     --small-y-axes \
-    --start-date ${dates[perturb_start]} \
+    --start-date ${dates[analyse_start]} \
     --end-date ${dates[perturb_end]} \
     --output ${paths[inversion_results]}/flux-aggregates-atlantic-$1.pdf
 
@@ -118,7 +118,7 @@ Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
     --flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$1.rds \
     --height 18 \
     --small-y-axes \
-    --start-date ${dates[perturb_start]} \
+    --start-date ${dates[analyse_start]} \
     --end-date ${dates[perturb_end]} \
     --output ${paths[inversion_results]}/flux-aggregates-remainderocean-$1.pdf
 

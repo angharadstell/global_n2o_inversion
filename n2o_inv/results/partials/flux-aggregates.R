@@ -71,16 +71,6 @@ scale_fill_estimate <- scale_fill_manual(values = ESTIMATE_COLOURS)
 
 region_plots <- lapply(args$region, function(region_i) {
   annual_plot <- ggplot() +
-    geom_tile(
-      mapping = aes(
-        x = substr(start_date, 1, 4),
-        y = 0,
-        width = 1,
-        height = Inf
-      ),
-      alpha = 0.3,
-      fill = '#bbbbbb'
-    ) +
     geom_crossbar(
       data = annual_fluxes %>%
         filter(name == region_i),
@@ -111,16 +101,6 @@ region_plots <- lapply(args$region, function(region_i) {
     filter(name == region_i)
 
   monthly_plot <- ggplot() +
-    geom_rect(
-      mapping = aes(
-        xmin = as.Date(start_date),
-        xmax = as.Date(paste0(substr(start_date, 1, 4), '-12-01')),
-        ymin = -Inf,
-        ymax = Inf
-      ),
-      fill = '#bbbbbb',
-      alpha = 0.3
-    ) +
     geom_ribbon(
       data = monthly_data,
       mapping = aes(

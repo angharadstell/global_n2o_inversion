@@ -1,9 +1,14 @@
 library(dplyr)
 library(ggplot2)
+library(ggthemes)
 library(here)
 library(ini)
 library(lubridate)
+library(raster)
+library(RColorBrewer)
 library(reshape2)
+library(rnaturalearth)
+library(viridis)
 
 # read in useful functions
 source(paste0(here(), "/n2o_inv/moving_window/functions.R"))
@@ -59,6 +64,62 @@ plot_param_hist <- function(window_samples, param, color_by) {
   p <- ggplot(melted_params, aes(x = !!param, fill = as.character(!!color_by))) +
         geom_histogram(bins = 10, position = "dodge") +
         scale_fill_discrete(name = color_by)
+
+  p
+}
+
+# plot the mean parameter values on a world map
+plot_param_map <- function(window_samples) {
+  # calculate the scaling factor standard deviation
+  ws <- extract_time_var(window_samples, "w")
+  std_df <- data.frame(std = rowMeans(1 / sqrt(ws)), region = 0:config$inversion_constants$no_regions)
+
+  # read in transcom map and make it into a pretty dataframe
+  transcom_mask <- raster(config$inversion_constants$geo_transcom_mask, stopIfNotEqualSpaced = FALSE)
+  test_spdf <- as(transcom_mask, "SpatialPixelsDataFrame")
+  test_df <- as.data.frame(test_spdf)
+  colnames(test_df) <- c("region", "x", "y")
+  matching <- match(test_df$region, std_df$region)
+  test_df$std <- std_df$std[matching]
+
+  # repeat -180 lon as 180 lon because world map includes 180, whereas geoschem includes -180
+  long_175 <- test_df[test_df$x == -180, ]
+  long_175$x <- 180
+  test_df <- rbind(test_df, long_175)
+
+  # get world map
+  world <- ne_countries(scale = "medium", returnclass = "sf")
+
+  # calculate scaling of std of model-measurement error
+  gammas <- extract_time_var(window_samples, "gamma")
+  mm_df <- data.frame(mm = rowMeans(1 / sqrt(gammas), na.rm = TRUE))
+
+  # read in obs, match gammas to site locations
+  obs_raw <- fst::read_fst(sprintf("%s/observations.fst", config$paths$geos_inte))
+  matching <- match(obs_raw$observation_group, rownames(mm_df))
+  obs <- obs_raw %>%
+         mutate(mm = mm_df$mm[matching]) %>%
+         dplyr::select(observation_group, latitude, longitude, mm) %>%
+         group_by(observation_group) %>%
+         summarise(lat = mean(latitude),
+                   lon = mean(longitude),
+                   mm_scale = mean(mm))
+
+  # plot
+  p <- ggplot(data = world) + geom_sf() +
+         coord_sf(ylim = c(-90, 90), expand = FALSE) +
+         geom_tile(data = test_df, aes(x = x, y = y, fill = std)) +
+         scale_fill_gradient(low = alpha("black", 0.8), high = alpha("grey", 0.8)) +
+         geom_point(data = obs, aes(x = lon, y = lat, color = mm_scale)) +
+         scale_color_gradient2(midpoint = 1, low = "blue", mid = "white",
+                     high = "red", space = "Lab") +
+         theme_map() +
+         theme(legend.position = "bottom", legend.box = "vertical", legend.box.just = "right") +
+         labs(fill = "Scaling factor standard deviation   ",
+              color = "Model-measurement error scaling factor   ") +
+         theme(legend.key.width = unit(2, "cm")) +
+         theme(text = element_text(size = 20))
+
 
   p
 }
@@ -168,9 +229,15 @@ main <- function() {
   p <- plot_param_hist(window_samples, "a", "year")
   plot(p)
 
-  # plot w
+ # plot w
   p <- plot_param_hist(window_samples, "w", "year")
   plot(p)
+
+
+  p <- plot_param_map(window_samples)
+  plot(p)
+  ggsave(paste0(config$paths$inversion_results, "/hyperparameter_map.pdf"), p)
+
 
   # plot gamma
   p <- plot_param_hist(window_samples, "gamma", "year")

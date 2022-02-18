@@ -27,6 +27,7 @@ compare_two <- function(case1, case2, title, labels) {
                 aes(fill = case, y = flux_mean, ymin = flux_lower, ymax = flux_upper, x = name)) +
     geom_bar(position = "dodge", stat = "identity") +
     geom_errorbar(position = "dodge", alpha = 0.5) +
+    geom_vline(xintercept = 12.5) +
     ylab(expression(N[2] * "O Flux / TgN " * yr^-1)) +
     xlab("Region") +
     scale_fill_discrete(name = title,
@@ -56,7 +57,7 @@ compare_two <- function(case1, case2, title, labels) {
 # plot(p)
 # ggsave(sprintf("%s/compare_two_bar_chart_fixedgamma.png", config$paths$inversion_results))
 
-base_case <- "IS-RHO0-VARYA-VARYW-NOBIAS-model-err-n2o_std"
+base_case <- "IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std"
 
 p <- compare_two(paste0(base_case, "-rescaled-halfland_window01"),
                  paste0(base_case, "-rescaled-doubleland_window01"),
