@@ -3,6 +3,8 @@ Tests format_obspack_geoschem.py
 
 @author: Angharad Stell
 """
+import configparser
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -76,6 +78,13 @@ def test_preprocess_aircraft_no_value_unc():
                         coords={"obs": np.array([888]), "calendar_components": range(6)})
 
     xr.testing.assert_equal(format_obspack_geoschem.preprocess(in_df), out_df)
+
+# requires config is set up right...
+def test_read_noaa_obspack_runs():
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    RAW_OBSPACK_DIR = Path(config["paths"]["raw_obspack_dir"])
+    format_obspack_geoschem.read_noaa_obspack(RAW_OBSPACK_DIR / "obspack_multi-species_1_CCGGSurfaceFlask_v2.0_2021-02-09")
 
 def test_geoschem_date_mask_2355():
 

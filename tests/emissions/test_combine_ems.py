@@ -70,3 +70,77 @@ def test_to_tgyr_one(geos_grid):
                                     "lon":geos_grid.lon})
 
     assert combine_ems.to_tgyr(ems, var="emi_n2o") == pytest.approx(1, 1E-4)
+
+def test_to_tgyr_notgeoschem_zero():
+    ems_field = np.zeros((12, 2, 4))
+    ems_time = pd.date_range(start="1/1/2012", end="12/31/2012", freq="MS")
+    ems = xr.Dataset({"emi_n2o":(("time", "lat", "lon"), ems_field)},
+                            coords={"time":ems_time,
+                                    "lat":np.array([-45, 45]),
+                                    "lon":np.array([-180, -90, 0, 90])})
+
+    assert combine_ems.to_tgyr(ems, var="emi_n2o") == 0
+
+def test_to_tgyr_notgeoschem_one():
+    ems_field = np.ones((12, 2, 4))
+    # turn Tgyr-1 to kg/m2/s
+    ems_field = ems_field / (366 * (60*60*24) * 10**-9)
+    ems_field = ems_field / (510.1E6*(10**3)**2)
+    ems_time = pd.date_range(start="1/1/2012", end="12/31/2012", freq="MS")
+    ems = xr.Dataset({"emi_n2o":(("time", "lat", "lon"), ems_field)},
+                            coords={"time":ems_time,
+                                    "lat":np.array([-45, 45]),
+                                    "lon":np.array([-180, -90, 0, 90])})
+
+    assert combine_ems.to_tgyr(ems, var="emi_n2o") == pytest.approx(1, 1E-2)
+
+def test_to_tgyr_onetime_zero():
+    ems_field = np.zeros((2, 4))
+    ems = xr.Dataset({"emi_n2o":(("lat", "lon"), ems_field),
+                      "time":pd.to_datetime("1/1/2012")},
+                            coords={"lat":np.array([-45, 45]),
+                                    "lon":np.array([-180, -90, 0, 90])})
+
+    assert combine_ems.to_tgyr(ems, var="emi_n2o") == 0
+
+def test_to_tgyr_onetime_one():
+    ems_field = np.ones((2, 4))
+    # turn Tgyr-1 to kg/m2/s
+    ems_field = ems_field / (366 * (60*60*24) * 10**-9)
+    ems_field = ems_field / (510.1E6*(10**3)**2)
+    ems = xr.Dataset({"emi_n2o":(("lat", "lon"), ems_field),
+                      "time":pd.to_datetime("1/1/2012")},
+                            coords={"lat":np.array([-45, 45]),
+                                    "lon":np.array([-180, -90, 0, 90])})
+
+    assert combine_ems.to_tgyr(ems, var="emi_n2o") == pytest.approx(1/12, 2E-2)
+
+def test_make_climatology_zero():
+    ems_field = np.zeros((24, 2, 4))
+    ems_time = pd.date_range(start="1/1/2012", end="12/31/2013", freq="MS")
+    ems = xr.Dataset({"emi_n2o":(("time", "lat", "lon"), ems_field)},
+                            coords={"time":ems_time,
+                                    "lat":np.array([-45, 45]),
+                                    "lon":np.array([-180, -90, 0, 90])})
+    assert len(combine_ems.make_climatology(ems, 2014)["time"]) == 12
+    assert (combine_ems.make_climatology(ems, 2014)["emi_n2o"] == 0).all()
+
+def test_make_climatology_one_one():
+    ems_field = np.zeros((24, 2, 4))
+    ems_field[0, :, :] = 1
+    ems_time = pd.date_range(start="1/1/2012", end="12/31/2013", freq="MS")
+    ems = xr.Dataset({"emi_n2o":(("time", "lat", "lon"), ems_field)},
+                            coords={"time":ems_time,
+                                    "lat":np.array([-45, 45]),
+                                    "lon":np.array([-180, -90, 0, 90])})
+    assert len(combine_ems.make_climatology(ems, 2014)["time"]) == 12
+    assert (combine_ems.make_climatology(ems, 2014)["emi_n2o"][0, :, :] == 0.5).all()
+
+def test_basic_plot_runs():
+    ems_field = np.zeros((24, 2, 4))
+    ems_time = pd.date_range(start="1/1/2012", end="12/31/2013", freq="MS")
+    ems = xr.Dataset({"emi_n2o":(("time", "lat", "lon"), ems_field)},
+                            coords={"time":ems_time,
+                                    "lat":np.array([-45, 45]),
+                                    "lon":np.array([-180, -90, 0, 90])})
+    combine_ems.basic_plot(ems)

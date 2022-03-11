@@ -1,3 +1,5 @@
+import configparser
+
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -77,3 +79,11 @@ def test_raw_obs_to_baseline_AGAGEsurf():
     output = obs_baseline.raw_obs_to_baseline(obspack_obs, baseline_dict)
 
     assert (output["baseline"] == [1, 0]).all()
+
+# going to require config set up right...
+def test_make_agage_baseline_dict():
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    test_dict = obs_baseline.make_agage_baseline_dict(config)
+    assert type(test_dict) == dict
+    assert len(test_dict) == len(config["inversion_constants"]["agage_sites"].split(","))
