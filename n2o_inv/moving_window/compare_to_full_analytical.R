@@ -9,7 +9,7 @@ source(paste0(here(), "/n2o_inv/moving_window/functions.R"))
 # compare analytical window inversion to check the moving window method works
 # or compare to the mcmc window inversion
 method <- "mcmc"
-case <- "IS-RHO0-VARYA-VARYW-NOBIAS-model-err-arbitrary"
+case <- "IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std"
 
 # work out what observations (the only difference is the model-measurement error)
 # need to be read in based on the case name
@@ -111,6 +111,6 @@ plot(p)
 
 # what are the R squared values for the full inversion vs the window inversion / the window spinup alphas?
 rsq <- cor(full_alphas[(nregions * 12 + 1):length(inv_alphas)], inv_alphas[(nregions * 12 + 1):length(inv_alphas)]) ^ 2
-print(sprintf("R2 value for full analytical alphas and window inversion alphas: %d", rsq))
+print(sprintf("R2 value for full analytical alphas and window inversion alphas: %f", rsq))
 rsq <- cor(full_alphas[(nregions * 12 + 1):length(inv_alphas)], spinup_alphas[(nregions * 12 + 1):length(inv_alphas)]) ^ 2
-print(sprintf("R2 value for full analytical alphas and window inversion spinup alphas: %d", rsq))
+print(sprintf("R2 value for full analytical alphas and window inversion spinup alphas: %f", rsq))
