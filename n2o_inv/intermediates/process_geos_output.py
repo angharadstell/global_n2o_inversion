@@ -23,20 +23,28 @@ def obspack_geos_preprocess(ds, obspack_obs, no_regions):
     """ 
     # match to obspack based on id
     intersection = np.intersect1d(ds.obspack_id, obspack_obs.obspack_id, return_indices=True)
-    intersection_indices = np.sort(intersection[2])
+    # need to make ds obs have the same values as the observations obs
+    intersection_indices_obs = np.sort(intersection[2])
+    intersection_indices_geo = np.sort(intersection[1])
 
-    # take the obspack dimensions
-    if (obspack_obs.obspack_id[intersection_indices] == ds.obspack_id).values.all():
-        ds = ds.assign_coords(obs=obspack_obs.obs[intersection_indices].values)
-    else:
-        raise ValueError("obspack obs and geoschem values don't align")
-    
-    wanted_var = [f"CH4_R{region:02d}" for region in range(0, no_regions+1)]
-    ds = ds[wanted_var]
-    
-    ds = ds * 1e9
-    
-    return ds
+    # only process if file contains desired obs, otherwise this function returns None
+    if len(intersection[2]) > 0:
+        # geoschem file might contain unwanted ob, remove these
+        if len(obspack_obs.obspack_id[intersection_indices_obs]) < len(ds.obspack_id.values):
+            ds = ds.isel(obs=intersection_indices_geo, drop=True)
+            
+        # take the obspack dimensions
+        if (obspack_obs.obspack_id[intersection_indices_obs].values == ds.obspack_id.values).all():
+            ds = ds.assign_coords(obs=obspack_obs.obs[intersection_indices_obs].values)
+        else:
+            raise ValueError("obspack obs and geoschem values don't align")
+        
+        wanted_var = [f"CH4_R{region:02d}" for region in range(0, no_regions+1)]
+        ds = ds[wanted_var]
+        
+        ds = ds * 1e9
+        
+        return ds
 
 def read_obs(obspack_dir, spinup_start, perturb_end, final_end):
     """
@@ -70,9 +78,14 @@ def read_geos(output_dir, obspack_obs, no_regions, first_year, last_year):
     # check stopping in right place
     print(geos_files[-1])
 
-    with xr.open_mfdataset(geos_files, 
-                           preprocess=lambda ds: obspack_geos_preprocess(ds, obspack_obs, no_regions)) as load:
-        obspack_geos = load.load()
+    xr_list = []
+    for ds in geos_files:
+        with  xr.open_dataset(ds) as load:
+            ds_pp = obspack_geos_preprocess(load.load(), obspack_obs, no_regions)
+        xr_list.append(ds_pp)
+    
+    obspack_geos = xr.concat(filter(None, xr_list), dim="obs")
+    
     return obspack_geos
 
 def read_geos_constant(output_dir, obspack_obs, no_regions, first_year, last_year):
@@ -80,11 +93,9 @@ def read_geos_constant(output_dir, obspack_obs, no_regions, first_year, last_yea
     Read in obspack geoschem files as xarray dataset for constant met run.
     """
     obspack_geos_list = []
-    for i in range(1, NO_CONSTANT_YEARS+2):
-        output_dir = GEOSOUT_DIR / CONSTANT_CASE / f"su_{i:02d}"
-        print(output_dir)
-
-        obspack_geos = read_geos(output_dir, obspack_obs, no_regions, first_year, last_year)
+    for output_dir_ext in sorted((output_dir).glob("su_??")):
+        print(output_dir_ext)
+        obspack_geos = read_geos(output_dir_ext, obspack_obs, no_regions, first_year, last_year)
         obspack_geos_list.append(obspack_geos)
 
     complete_obspack_geos = xr.merge(obspack_geos_list)
@@ -129,7 +140,6 @@ if __name__ == "__main__":
     NO_REGIONS = int(config["inversion_constants"]["no_regions"])
     CASE = config["inversion_constants"]["case"]
     CONSTANT_CASE = config["inversion_constants"]["constant_case"]
-    NO_CONSTANT_YEARS = int(config["inversion_constants"]["no_constant_years"])
     AGAGE_SITES = config["inversion_constants"]["agage_sites"].split(",")
     OBSPACK_DIR = Path(config["paths"]["obspack_dir"])
     GEOSOUT_DIR = Path(config["paths"]["geos_out"])
