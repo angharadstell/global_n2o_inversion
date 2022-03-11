@@ -30,6 +30,16 @@ Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
     --end-date ${dates[perturb_end]} \
     --output ${paths[inversion_results]}/flux-aggregates-zonal-$1.pdf
 
+echo "flux-aggregates.R zonal 30"
+Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
+    --region 'N extratropics (30 - 90)' 'N tropics (0 - 30)' 'S tropics (-30 - 0)' 'S extratropics (-90 - -30)' \
+    --flux-samples ${paths[inversion_results]}/real-flux-aggregates-samples-$1.rds \
+    --height 18 \
+    --small-y-axes \
+    --start-date ${dates[analyse_start]} \
+    --end-date ${dates[perturb_end]} \
+    --output ${paths[inversion_results]}/flux-aggregates-zonal30-$1.pdf
+
 echo "flux-aggregates.R global"
 Rscript ${paths[location_of_this_file]}/../results/flux-aggregates.R \
 		--region "Global" "Global land" "Global oceans" \

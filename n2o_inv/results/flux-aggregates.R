@@ -24,8 +24,8 @@ flux_samples <- bind_rows(
       is_prior = estimate == 'Prior',
       observation_group = ifelse(
         is_prior,
-        'WOMBAT Prior',
-        'WOMBAT IS'
+        'Prior',
+        'Posterior'
       ),
     )
 )

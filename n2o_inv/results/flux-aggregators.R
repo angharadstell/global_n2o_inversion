@@ -68,92 +68,28 @@ main <- function() {
       expr = quote(type %in% c('land', 'ocean') & latitude < -23.5)
     ),
     list(
-      name = 'N polar (65 - 90)',
-      expr = quote(type %in% c('land', 'ocean') & latitude > 65)
-    ),
-    list(
-      name = 'N mid (23.5 - 65)',
-      expr = quote(type %in% c('land', 'ocean') & between(latitude, 23.5, 65))
-    ),
-    list(
       name = 'N tropics (0 - 23.5)',
-      expr = quote(type %in% c('land', 'ocean') & between(latitude, 0, 23.4))
+      expr = quote(type %in% c('land', 'ocean') & between(latitude, 0, 23.5))
     ),
     list(
       name = 'S tropics (-23.5 - 0)',
       expr = quote(type %in% c('land', 'ocean') & between(latitude, -23.5, 0))
     ),
     list(
-      name = 'S mid (-65 - -23.5)',
-      expr = quote(type %in% c('land', 'ocean') & between(latitude, -65, -23.5))
+      name = 'N extratropics (30 - 90)',
+      expr = quote(type %in% c('land', 'ocean') & latitude > 30)
     ),
     list(
-      name = 'S polar (-90 - -65)',
-      expr = quote(type %in% c('land', 'ocean') & latitude < -65)
+      name = 'S extratropics (-90 - -30)',
+      expr = quote(type %in% c('land', 'ocean') & latitude < -30)
     ),
     list(
-      name = 'N upper (45 - 90)',
-      expr = quote(type %in% c('land', 'ocean') & latitude > 45)
+      name = 'N tropics (0 - 30)',
+      expr = quote(type %in% c('land', 'ocean') & between(latitude, 0, 30))
     ),
     list(
-      name = 'N lower (0 - 45)',
-      expr = quote(type %in% c('land', 'ocean') & between(latitude, 0, 45))
-    ),
-    list(
-      name = 'S upper (-45 - 0)',
-      expr = quote(type %in% c('land', 'ocean') & between(latitude, -45, 0))
-    ),
-    list(
-      name = 'S lower (-90 - -45)',
-      expr = quote(type %in% c('land', 'ocean') & latitude < -45)
-    ),
-    list(
-      name = 'N polar land (65 - 90)',
-      expr = quote(type == 'land' & latitude > 65)
-    ),
-    list(
-      name = 'N mid land (23.5 - 65)',
-      expr = quote(type == 'land' & between(latitude, 23.5, 65))
-    ),
-    list(
-      name = 'N tropics land (0 - 23.5)',
-      expr = quote(type == 'land' & between(latitude, 0, 23.4))
-    ),
-    list(
-      name = 'S tropics land (-23.5 - 0)',
-      expr = quote(type == 'land' & between(latitude, -23.5, 0))
-    ),
-    list(
-      name = 'S mid land (-65 - -23.5)',
-      expr = quote(type == 'land' & between(latitude, -65, -23.5))
-    ),
-    list(
-      name = 'S polar land (-90 - -65)',
-      expr = quote(type == 'land' & latitude < -65)
-    ),
-    list(
-      name = 'N polar oceans (65 - 90)',
-      expr = quote(type == 'ocean' & latitude > 65)
-    ),
-    list(
-      name = 'N mid oceans (23.5 - 65)',
-      expr = quote(type == 'ocean' & between(latitude, 23.5, 65))
-    ),
-    list(
-      name = 'N tropics oceans (0 - 23.5)',
-      expr = quote(type == 'ocean' & between(latitude, 0, 23.4))
-    ),
-    list(
-      name = 'S tropics oceans (-23.5 - 0)',
-      expr = quote(type == 'ocean' & between(latitude, -23.5, 0))
-    ),
-    list(
-      name = 'S mid oceans (-65 - -23.5)',
-      expr = quote(type == 'ocean' & between(latitude, -65, -23.5))
-    ),
-    list(
-      name = 'S polar oceans (-90 - -65)',
-      expr = quote(type == 'ocean' & latitude < -65)
+      name = 'S tropics (-30 - 0)',
+      expr = quote(type %in% c('land', 'ocean') & between(latitude, -30, 0))
     )
   ), lapply(process_model$regions, function(region) {
     list(

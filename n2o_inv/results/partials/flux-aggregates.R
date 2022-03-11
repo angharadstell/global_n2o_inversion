@@ -1,11 +1,11 @@
 ESTIMATE_COLOURS <- c(
-  'WOMBAT Prior (mean)' = get_colour('wombat_prior'),
-  'WOMBAT IS (mean, 95% cred. int.)' = get_colour('wombat_lg')
+  'Prior (mean)' = get_colour('wombat_prior'),
+  'Posterior (mean, 95% cred. int.)' = get_colour('wombat_lg')
 )
 
 ESTIMATE_LINETYPES = c(
-  'WOMBAT Prior (mean)' = 'solid',
-  'WOMBAT IS (mean, 95% cred. int.)' = 'solid'
+  'Prior (mean)' = 'solid',
+  'Posterior (mean, 95% cred. int.)' = 'solid'
 )
 
 log_info('Loading flux samples')
@@ -95,7 +95,7 @@ region_plots <- lapply(args$region, function(region_i) {
       linetype = guide_legend(ncol = legend_n_columns)
     ) +
     scale_x_discrete(breaks = seq(substr(start_date, 1, 4), substr(end_date, 1, 4), 3)) +
-    labs(x = 'Year', y = expression('Flux [TgN '*yr^-1*']'), colour = NULL, fill = NULL, linetype = NULL)
+    labs(x = 'Year', y = expression('Flux / TgN '*yr^-1), colour = NULL, fill = NULL, linetype = NULL)
 
   monthly_data <- monthly_fluxes %>%
     filter(name == region_i)
@@ -127,7 +127,7 @@ region_plots <- lapply(args$region, function(region_i) {
     scale_colour_estimate +
     scale_linetype_estimate +
     scale_fill_estimate +
-    labs(x = 'Month', y = expression('Flux [TgN '*mo^-1*']'), colour = NULL, fill = NULL, linetype = NULL) +
+    labs(x = 'Month', y = expression('Flux / TgN '*mo^-1), colour = NULL, fill = NULL, linetype = NULL) +
     guides(fill = "none", colour = "none", linetype = "none")
 
   region_name <- region_i
@@ -145,17 +145,19 @@ region_plots <- lapply(args$region, function(region_i) {
 stopifnot(length(region_plots) %in% c(3, 4))
 
 output <- wrap_plots(
-  do.call(c, lapply(region_plots, function(x) {
+  do.call(c, lapply(1:length(region_plots), function(x) {
     list(
       wrap_elements(
         grid::textGrob(
-          x$title,
+          paste0(letters[[x]], ". ", region_plots[[x]]$title),
+          x = unit(0, "lines"), y = unit(0, "lines"),
+          just = "left", hjust = 0, vjust = 0,
           gp = grid::gpar(fontsize = 11, fontface = 'bold')
         ),
         clip = FALSE
       ),
-      x$annual,
-      x$monthly
+      region_plots[[x]]$annual,
+      region_plots[[x]]$monthly
     )
   })),
   guides = 'collect',
