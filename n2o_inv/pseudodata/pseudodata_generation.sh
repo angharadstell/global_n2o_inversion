@@ -4,9 +4,13 @@ source bash_var.sh
 
 cd ../pseudodata
 
+# set up the cases and which parameters need to vary in WOMBAT for these
 case=( m1_ac0_ar1 m4_ac0_ar1 m2_ac0_ar1 m05_ac0_ar1 m1_ac05_ar1 m1_ac1_ar1 m1_ac0_ar2 m1_ac0_ar05 )
+gamma=( TRUE TRUE TRUE TRUE FALSE FALSE FALSE FALSE )
+a=( TRUE FALSE FALSE FALSE TRUE TRUE FALSE FALSE )
+w=( TRUE FALSE FALSE FALSE FALSE FALSE TRUE TRUE )
 
-
+# run base case
 Rscript pseudodata.R --measurement-noise 1 --acorr 0 --alpha-range 1 --output-suffix "m1_ac0_ar1"
 
 # # change measurement noise
@@ -33,10 +37,14 @@ Rscript ${paths[location_of_this_file]}/../intermediates/process-model.R \
 --output ${paths[pseudodata_dir]}/process-model.rds
 
 # make measurement and real case models
-for i in "${case[@]}"
+len=${#case[@]}
+for (( i=0; i<$len; i++ ));
 do 
-    echo $i
-    sed -i "s#case=.*#case='$i'#" make_models.sh
+    echo "${case[$i]}"
+    echo "${gamma[$i]}"
+    echo "${a[$i]}"
+    echo "${w[$i]}"
+    sed -i -e "s#case=.*#case='${case[$i]}'#" -e "s#param_gamma=.*#param_gamma=${gamma[$i]}#" -e "s#param_a=.*#param_a=${a[$i]}#" -e "s#param_w=.*#param_w=${w[$i]}#" make_models.sh
     sbatch make_models.sh
 done
 
@@ -51,21 +59,27 @@ do
 done
 echo "Exiting loop..."
 
-for i in "${case[@]}"
+
+# submit inversions
+for (( i=0; i<$len; i++ ));
 do
-    sed "s#%case%#$i#" make_real_mcmc_samples_bogstandard_submit.sh > make_real_mcmc_samples_bogstandard_${i}_submit.sh
-    sbatch make_real_mcmc_samples_bogstandard_${i}_submit.sh
-
-    sed "s#%case%#$i#" make_real_mcmc_samples_vary_submit.sh > make_real_mcmc_samples_vary_${i}_submit.sh
-    sbatch make_real_mcmc_samples_vary_${i}_submit.sh
-
-    sed "s#%case%#$i#" make_real_mcmc_samples_varya_submit.sh > make_real_mcmc_samples_varya_${i}_submit.sh
-    sbatch make_real_mcmc_samples_varya_${i}_submit.sh
-
-    sed "s#%case%#$i#" make_real_mcmc_samples_fixedalpha_submit.sh > make_real_mcmc_samples_fixedalpha_${i}_submit.sh
-    sbatch make_real_mcmc_samples_fixedalpha_${i}_submit.sh
-
-    sed "s#%case%#$i#" make_real_mcmc_samples_varyw_submit.sh > make_real_mcmc_samples_varyw_${i}_submit.sh
-    sbatch make_real_mcmc_samples_varyw_${i}_submit.sh
-
+    echo "${case[$i]}"
+    if [[ "${gamma[$i]}" = TRUE ]]
+    then
+        echo "submitting varying gamma..."
+        sed "s#%case%#${case[$i]}#" make_real_mcmc_samples_varygamma_submit.sh > make_real_mcmc_samples_varygamma_${case[$i]}_submit.sh
+        sbatch make_real_mcmc_samples_varygamma_${case[$i]}_submit.sh
+    fi
+    if [[ "${a[$i]}" = TRUE ]]
+    then
+        echo "submitting varying a..."
+        sed "s#%case%#${case[$i]}#" make_real_mcmc_samples_varya_submit.sh > make_real_mcmc_samples_varya_${case[$i]}_submit.sh
+        sbatch make_real_mcmc_samples_varya_${case[$i]}_submit.sh
+    fi
+    if [[ "${w[$i]}" = TRUE ]]
+    then
+        echo "submitting varying w..."
+        sed "s#%case%#${case[$i]}#" make_real_mcmc_samples_varyw_submit.sh > make_real_mcmc_samples_varyw_${case[$i]}_submit.sh
+        sbatch make_real_mcmc_samples_varyw_${case[$i]}_submit.sh
+    fi
 done
