@@ -12,8 +12,6 @@ library(viridis)
 
 # read in useful functions
 source(paste0(here(), "/n2o_inv/moving_window/functions.R"))
-# remove run.main option from functions.R so can run this main
-options(run.main = NULL)
 
 # read in config
 config <- read.ini(paste0(here(), "/config.ini"))

@@ -1,8 +1,7 @@
 library(here)
 library(wombat)
 
-options(run.main = FALSE)
-source(paste0(here(), "/n2o_inv/pseudodata/analytical_inversion.R"), chdir = TRUE)
+source(paste0(here(), "/n2o_inv/pseudodata/analytical_inversion_functions.R"), chdir = TRUE)
 
 config <- read.ini(paste0(here(), "/config.ini"))
 
