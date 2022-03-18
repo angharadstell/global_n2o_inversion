@@ -74,4 +74,5 @@ output <- as_tibble(observations) %>%
     Z2_hat_upper
   )
 
+log_info('Saving')
 saveRDS(output, args$output)
