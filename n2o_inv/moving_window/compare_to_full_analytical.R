@@ -34,7 +34,7 @@ nwindow <- as.numeric(config$moving_window$n_window)
 # get inversion alphas
 # try to read in files
 window_alphas <- lapply(1:nwindow,
-                        function(i) {try(inversion_alphas(i, case, method))})
+                        function(i) try(inversion_alphas(i, case, method)))
 # if file doesnt exist, just have nans
 for (i in 1:length(window_alphas)) {
   if (class(window_alphas[[i]]) == "try-error") {
@@ -58,10 +58,7 @@ for (i in 1:nwindow) {
 
 # do full series analytical inversion, or read in if already saved
 print("Doing full series inversion...")
-full_analytical_file <- sprintf("%s/real-mcmc-samples-analytical%s.rds", config$paths$geos_inte, model_err_suffix)
-# make analytical plottable
-file.copy(from = sprintf("%s/real-model-%s.rds", config$paths$geos_inte, case),
-          to = sprintf("%s/real-model-analytical%s.rds", config$paths$geos_inte, model_err_suffix))
+full_analytical_file <- sprintf("%s/real-mcmc-samples-analytical-IS-FIXEDGAMMA-NOBIAS%s.rds", config$paths$geos_inte, model_err_suffix)
 
 if (file.exists(full_analytical_file)) {
   print("full analytical file already exists...")
