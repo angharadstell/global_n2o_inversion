@@ -9,12 +9,14 @@ library(wombat)
 ###############################################################################
 # GLOBAL CONSTANTS
 ###############################################################################
+
 config <- read.ini(paste0(here(), "/config.ini"))
 
 ###############################################################################
 # FUNCTIONS
 ###############################################################################
 
+# turn alphas into observations
 alpha_to_obs <- function(alpha_samples, obs_err, control_mf, perturbations, sensitivities) {
   # create H matrix
   H <- transport_matrix(perturbations,
@@ -37,14 +39,17 @@ alpha_to_obs <- function(alpha_samples, obs_err, control_mf, perturbations, sens
   obs_samples
 }
 
+# create a series of AR(1) alphas using arima.sim
 alpha_generate <- function(n_samples, n_regions, n_months, a_std, a_corr) {
   set.seed(0)
   epsilon_std <- sqrt(a_std^2 * (1 - a_corr^2))
   alpha_samples <- t(sapply(1:n_samples,
-                            function(i) {as.vector(sapply(1:n_regions,
-                                                          function(i) {arima.sim(model = list(ar = a_corr),
-                                                          n = n_months,
-                                                          sd = epsilon_std)}))}))
+                            function(i) {
+                              as.vector(sapply(1:n_regions,
+                                               function(i) {
+                                                 arima.sim(model = list(ar = a_corr),
+                                                           n = n_months,
+                                                           sd = epsilon_std)}))}))
 
   alpha_samples
 }
@@ -65,7 +70,7 @@ main <- function() {
   print(as.numeric(args$acorr))
   print(as.numeric(args$alpha_range))
 
-  # read in proper inversion intermediates
+  # read in inversion intermediates
   observations <- fst::read_fst(sprintf("%s/model-err-n2o_std-observations_window01.fst", config$path$geos_inte))
   perturbations <- fst::read_fst(sprintf("%s/perturbations_window01.fst", config$path$geos_inte))
   control_mf <- fst::read_fst(sprintf("%s/control-mole-fraction-window01.fst", config$path$geos_inte))
