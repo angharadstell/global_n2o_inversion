@@ -71,8 +71,8 @@ process_perturbation_part <- function(month, year, region, config, v, v_base, co
   len_perturb <- as.numeric(config$inversion_constants$len_perturb)
   month_start <- (as.numeric(year) - first_year) * 12 + month
   month_end <- min(month_start + len_perturb - 1, length(unique_dates))
-  print(month_start)
-  print(month_end)
+  message("month_start: ", month_start)
+  message("month_end: ", month_end)
 
   no_regions <- as.numeric(config$inversion_constants$no_regions)
   no_land_regions <- as.numeric(config$inversion_constants$no_land_regions)

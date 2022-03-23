@@ -12,7 +12,7 @@ library(wombat)
 ###############################################################################
 
 sum_ch4_tracers <- function(v, region_start, region_end) {
-  # Sum up the emissions for each desired region in geoschem, outputting an 
+  # Sum up the emissions for each desired region in geoschem, outputting an
   # array of their distribution in space and time.
 
   # Create an array of zeros that matches the shape of "EMIS_CH4_R00"
@@ -30,16 +30,16 @@ sum_ch4_tracers <- function(v, region_start, region_end) {
 
 main <- function() {
   # Read in command line arguments
-  args <- arg_parser('', hide.opts = TRUE) %>%
-    add_argument('--flux-file', '') %>%
-    add_argument('--output', '') %>%
+  args <- arg_parser("", hide.opts = TRUE) %>%
+    add_argument("--flux-file", "") %>%
+    add_argument("--output", "") %>%
     parse_args()
 
   # Read in config file
   config <- read.ini(paste0(here(), "/config.ini"))
 
   # Read in flux file for the base run
-  fn <- nc_open(sprintf("%s/%s/%s", 
+  fn <- nc_open(sprintf("%s/%s/%s",
                         config$paths$geos_out,
                         config$inversion_constants$case,
                         args$flux_file))
@@ -108,6 +108,6 @@ main <- function() {
   fst::write_fst(emissions, sprintf("%s/%s", config$paths$geos_inte, args$output))
 }
 
-if (getOption('run.main', default=TRUE)) {
+if (getOption("run.main", default = TRUE)) {
    main()
 }

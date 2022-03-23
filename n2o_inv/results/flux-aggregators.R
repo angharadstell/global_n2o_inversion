@@ -11,9 +11,7 @@ options(dplyr.summarise.inform = FALSE)
 ###############################################################################
 
 process_transcom_regions <- function(transcome_mask_file) {
-  log_info('Loading Transcom mask')
   transcom_mask <- raster(transcome_mask_file, stopIfNotEqualSpaced = FALSE)
-
 }
 
 ###############################################################################
@@ -35,6 +33,7 @@ main <- function() {
   process_model <- readRDS(args$process_model)
 
   # process transcom regions
+  log_info('Loading Transcom mask')
   transcom_mask <- process_transcom_regions(args$transcom_mask)
 
   log_info('Calculating')
