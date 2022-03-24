@@ -126,6 +126,15 @@ Rscript -e "testthat::test_local()"
 3. Run the GEOSChem spinup (submit gcclassic_submit.sh in the GEOSChem rundir)
 4. Calculate the standard deviation of the grid cells around the measurements (run model_err/calc_model_err.py)
 
+## Checking the inversion using pseudodata
+Run analytical and WOMBAT inversions for the first window using pseudodata and compare the performance. It makes more sense to run this with the WOMBAT alpha truncation turned off to make it more comparable.
+### Make pseudodata and do inversions
+1. Creates the pseduo scaling factors, generates pseudo observations, and perform the WOMBAT inversions (run pseudodata/pseudodata_generate.sh)
+2. Carry out analytical inversions for the pseudodata (run pseudodata/analytical_inversion.R)
+
+### Compare the inversions
+4. Compare how the analytical and WOMBAT inversions do (run pseudodata/analyse_mcmc_samples.R)
+
 ## Running the inversion
 Have to make intermediates for full 10 years before doing window inversion (uses intermediates to change ic)
 ### Make inversion intermediates
@@ -151,3 +160,10 @@ Have to make intermediates for the first window inversion to do this (uses inter
 
 ### Do the inversion
 1. Run the inversion for the rescaled cases (run scaled_prior/rescale_prior_inversion.sh)
+
+## Validation of inversion results
+1. Extract alphas from inversion (run validation/extract_alphas.R)
+2. Make optimised emissions (run validation/make_ems.py)
+3. Create the validation run files (run validation/setup_validation.sh)
+4. Run the GEOSChem spinup (submit gcclassic_submit.sh in the GEOSChem rundir)
+5. Plot and analyse (run validation/validating.py)
