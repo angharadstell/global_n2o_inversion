@@ -126,6 +126,8 @@ Rscript -e "testthat::test_local()"
 3. Run the GEOSChem spinup (submit gcclassic_submit.sh in the GEOSChem rundir)
 4. Calculate the standard deviation of the grid cells around the measurements (run model_err/calc_model_err.py)
 
+
+
 ## Checking the inversion using pseudodata
 Run analytical and WOMBAT inversions for the first window using pseudodata and compare the performance. It makes more sense to run this with the WOMBAT alpha truncation turned off to make it more comparable.
 ### Make pseudodata and do inversions
@@ -134,6 +136,8 @@ Run analytical and WOMBAT inversions for the first window using pseudodata and c
 
 ### Compare the inversions
 4. Compare how the analytical and WOMBAT inversions do (run pseudodata/analyse_mcmc_samples.R)
+
+
 
 ## Running the inversion
 Have to make intermediates for full 10 years before doing window inversion (uses intermediates to change ic)
@@ -153,6 +157,19 @@ Have to make intermediates for full 10 years before doing window inversion (uses
 1. Plot the fluxes and compare posterior to the observations (run moving_window/plot_inversion_results.sh)
 2. Plot the hyperparameters (run moving_window/plot_hyperparameters.R)
 
+
+
+## Compare moving window inversion to analytical inversion
+You can check the performance of the moving window inversion, vs the whole time series, by: 
+1. Running the moving window inversion analytically (set the method in moving_window/moving_window_inversion.sh to "analytical")
+2. Comparing to the whole time series analytical inversion (set the method in moving_window/compare_to_full_analytical.R to "analytical")
+
+You can compare the WOMBAT moving window inversion to the whole time series analytical inversion by:
+1. Compare the two sets of alphas (run moving_window/compare_to_full_analytical.R)
+2. Plot the analytical results like the WOMBAT moving window (run moving_window/plot_analytical_results.sh)
+
+
+
 ## Looking at the effect of rescaling the prior
 Have to make intermediates for the first window inversion to do this (uses intermediates to rescale)
 ### Make intermediates
@@ -160,6 +177,8 @@ Have to make intermediates for the first window inversion to do this (uses inter
 
 ### Do the inversion
 1. Run the inversion for the rescaled cases (run scaled_prior/rescale_prior_inversion.sh)
+
+
 
 ## Validation of inversion results
 1. Extract alphas from inversion (run validation/extract_alphas.R)
