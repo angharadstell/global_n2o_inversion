@@ -160,3 +160,10 @@ Have to make intermediates for the first window inversion to do this (uses inter
 
 ### Do the inversion
 1. Run the inversion for the rescaled cases (run scaled_prior/rescale_prior_inversion.sh)
+
+## Validation of inversion results
+1. Extract alphas from inversion (run validation/extract_alphas.R)
+2. Make optimised emissions (run validation/make_ems.py)
+3. Create the validation run files (run validation/setup_validation.sh)
+4. Run the GEOSChem spinup (submit gcclassic_submit.sh in the GEOSChem rundir)
+5. Plot and analyse (run validation/validating.py)
