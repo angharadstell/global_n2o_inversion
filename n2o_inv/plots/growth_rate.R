@@ -16,13 +16,13 @@ area_weighted_monthly_mean <- function(obs) {
   group_by(time) %>%
   summarise(sum_co2_aw = sum(co2_aw), sum_w = sum(abs_cos_lat)) %>%
   mutate(mean_co2_aw = sum_co2_aw / sum_w) %>%
-  select(time, mean_co2_aw) %>%
+  dplyr::select(time, mean_co2_aw) %>%
   mutate(growth = mean_co2_aw - lag(mean_co2_aw, 12))
 }
 
 process_obs <- function(obs) {
     obs %>%
-        select(time, latitude, co2) %>%
+        dplyr::select(time, latitude, co2) %>%
         mutate(abs_cos_lat = abs(cos(latitude * (pi / 180))),
                 co2_aw = abs_cos_lat * co2)
 }
