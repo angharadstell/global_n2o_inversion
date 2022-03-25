@@ -64,7 +64,7 @@ regional_ems_plot <- function(annual_flux_samples, region, name_colours, labels)
     # need to remove prior ems first
     lm_emissions <- regional_flux_samples %>% filter(estimate == "Posterior")
     lm_analysis <- lm(lm_emissions$flux_mean ~ lm_emissions$year)
-    message(summary(lm_analysis))
+    print(summary(lm_analysis))
     p <- plot_annual_ems(regional_flux_samples, name_colours, labels)
   } else {
     nice_names <- setNames(names(REGION_NAME_TO_CODE), REGION_NAME_TO_CODE)
@@ -140,7 +140,7 @@ main <- function() {
   # plot all land area annual ems
   max_land_region <- as.numeric(config$inversion_constants$no_land_regions) - 1
   regional_plots <- lapply(sprintf("T%02d", seq(0, max_land_region)), regional_ems_plot,
-                           annual_flux_samples=annual_flux_samples, NAME_COLOURS=NAME_COLOURS, labels=labels)
+                           annual_flux_samples=annual_flux_samples, name_colours=NAME_COLOURS, labels=labels)
   p_regional <- ggarrange(plotlist=regional_plots, ncol=4, nrow=3, common.legend = TRUE, legend="bottom")
   p_regional <- annotate_figure(p_regional, left = textGrob(expression(N[2] * "O Flux / TgN " * yr^-1),
                                                             rot = 90, vjust = 0.5, gp = gpar(cex = 1.3)))
@@ -149,7 +149,7 @@ main <- function() {
 
   # plot all ocean areas
   regional_plots <- lapply(sprintf("T%02d", seq(max_land_region + 1, config$inversion_constants$no_regions)),
-                          regional_ems_plot, annual_flux_samples=annual_flux_samples, NAME_COLOURS=NAME_COLOURS, labels=labels)
+                          regional_ems_plot, annual_flux_samples=annual_flux_samples, name_colours=NAME_COLOURS, labels=labels)
   p_regional <- ggarrange(plotlist=regional_plots, ncol=4, nrow=3, common.legend = TRUE, legend="bottom")
   p_regional <- annotate_figure(p_regional, left = textGrob(expression(N[2] * "O Flux / TgN " * yr^-1),
                                                             rot = 90, vjust = 0.5, gp = gpar(cex = 1.3)))
