@@ -22,7 +22,7 @@ inversion_alphas <- function(window, case, method) {
   nsamples <- dim(samples$alpha)[1]
   # take mean discarding burn in period
   mean_alphas <- colMeans(samples$alpha[start_sample:nsamples, ])
-  print(length(mean_alphas))
+  message("There are ", length(mean_alphas), " alphas")
 
   mean_alphas
 }
@@ -70,11 +70,11 @@ do_analytical_inversion <- function(observations, control_mf, perturbations, sen
                         lag = Inf)
 
   # do analytical inversion
-  print("calculating mean...")
+  message("calculating mean...")
   m_squiggle <- m_post(control_mf, m_prior, C_M, G, C_D, observations$co2)
-  print("calculating cov...")
+  message("calculating cov...")
   m_post_cov <- m_post_cov_calc(C_M, G, C_D)
 
-  print("outputting...")
+  message("outputting...")
   list(mean = m_squiggle, cov = m_post_cov)
 }

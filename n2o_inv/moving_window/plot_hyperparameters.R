@@ -165,8 +165,8 @@ plot_model_measurement_error <- function(window_samples, obs_file) {
   }
 
   # print some useful values
-  print(sprintf("Unscaled model-measurement error: %f ppb", median(rescaled_obs_err$co2_err, na.rm = TRUE)))
-  print(sprintf("Posterior model-measurement error: %f ppb", median(rescaled_obs_err$rescaled_co2_err, na.rm = TRUE)))
+  message(sprintf("Unscaled model-measurement error: %f ppb", median(rescaled_obs_err$co2_err, na.rm = TRUE)))
+  message(sprintf("Posterior model-measurement error: %f ppb", median(rescaled_obs_err$rescaled_co2_err, na.rm = TRUE)))
 
   # plot
   p <- ggplot(data = rescaled_obs_err, aes(x = time, y = rescaled_co2_err, color = site)) +
