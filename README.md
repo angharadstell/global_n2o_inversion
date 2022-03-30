@@ -70,12 +70,10 @@ You have two options to try here:
     There will also be some missing packages, which you can attempt to figure out from environment.yml or just conda install as they come up.
 
 ## Getting data
-- GEOSChem output
-- the rest of the files (e.g. intermediates, results, etc)
-
+- The intermediates and results of this work is available at [OSF LINK]. This does not include: the emissions (except the intermediate used in the inversion), observations (except the intermediate used in the inversion), GEOSChem output, GEOSChem running directories, and pseudodata because this is a lage amount of data that is not required to reproduce the main results of the paper. This data is available if you contact me.
 - emissions?
-- obspack?
-- other NOAA data?
+- The obspacks used (obspack_multi-species_1_CCGGSurfaceFlask_v2.0_2021-02-09 and obspack_multi-species_1_CCGGAircraftFlask_v2.0_2021-02-09) can be downloaded from https://gml.noaa.gov/ccgg/obspack/data.php
+- The obspack didn't include 2020 when I did this work, so I downloaded the separate NOAA N2O surface data from https://gml.noaa.gov/dv/data.html
 - AGAGE data?
 
 The location of these directories is specified in the config.ini file of this repo, you'll have to change the paths for your system. 
