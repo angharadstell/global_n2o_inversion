@@ -8,6 +8,8 @@ library(ncdf4)
 library(tidyr)
 library(wombat)
 
+source(paste0(here(), "/n2o_inv/intermediates/functions.R"))
+
 ###############################################################################
 # FUNCTIONS
 ###############################################################################
@@ -16,8 +18,8 @@ sum_ch4_tracers <- function(v_base, v_pert,
                             region_start, region_end,
                             perturbed_region,
                             month_start, month_end) {
-  # Sum up the emissions for each desired region in geoschem, outputting an 
-  # array of their distribution in space and time. For each perturbed run, the 
+  # Sum up the emissions for each desired region in geoschem, outputting an
+  # array of their distribution in space and time. For each perturbed run, the
   # emissions are the base emissions summed over the not perturbed regions, added
   # to the perturbed run emissions for the perturbed region
 
@@ -25,9 +27,9 @@ sum_ch4_tracers <- function(v_base, v_pert,
   total_ch4 <- array(rep(0, length(v_base("EMIS_CH4_R00"))), dim(v_base("EMIS_CH4_R00")))
   # Iterate over desired regions
   for (region in region_start:region_end) {
-    # Add on the perturbed run emissions if the region is the perturbed region, else 
+    # Add on the perturbed run emissions if the region is the perturbed region, else
     # add on the base run emissions.
-    # month_start and month_end needed because each perturbed run os only 2 years long
+    # month_start and month_end needed because each perturbed run is only 2 years long
     if (region == perturbed_region) {
       total_ch4[, , month_start:month_end] <- total_ch4[, , month_start:month_end] + v_pert(sprintf("EMIS_CH4_R%02d", region))
     } else {
@@ -37,17 +39,9 @@ sum_ch4_tracers <- function(v_base, v_pert,
   total_ch4
 }
 
-read_flux_file <- function(month, year, config, flux_file) {
-  # Read in flux file for the perturbed run
-  flux_file <- sprintf("%s/%s%02d/%s", config$paths$geos_out, year, month, flux_file)
-  print(flux_file)
-  perturbed <- ncdf4::nc_open(flux_file)
-  v <- function(...) ncdf4::ncvar_get(perturbed, ...)
-}
-
 base_run_info <- function(base_flux_file) {
   # Read in flux file for the base run
-  fn <- nc_open(base_flux_file)
+  fn <- ncdf4::nc_open(base_flux_file)
   v_base <- function(...) ncdf4::ncvar_get(fn, ...)
 
   # Extract grid cell info from gesochem
@@ -57,11 +51,11 @@ base_run_info <- function(base_flux_file) {
     month_start = as.Date(ncvar_get_time(fn, "time"))
   )
 
-  list(v_base=v_base, locations=locations)
+  list(v_base = v_base, locations = locations)
 }
 
 process_perturbation_part <- function(month, year, region, config, v, v_base, control, locations) {
-  # Extract the perturbed run emissions for a specific date and region, subtract the base run to 
+  # Extract the perturbed run emissions for a specific date and region, subtract the base run to
   # calculate perturbation emissions. The output is a nice data frame.
 
   # Bit of a hacky way to stop hitting index error in sum_ch4_tracers
@@ -121,7 +115,10 @@ process_perturbation_part <- function(month, year, region, config, v, v_base, co
 
 process_perturbation_part_wrapper <- function(month, year, region, config, v_base, control, locations, flux_file) {
   # Read in flux file for the perturbed run
-  v <- read_flux_file(month, year, config, flux_file)
+  flux_file <- sprintf("%s/%s%02d/%s", config$paths$geos_out, year, month, flux_file)
+  print(flux_file)
+  v <- read_nc_file(flux_file)
+  # Process
   process_perturbation_part(month, year, region, config, v, v_base, control, locations)
 }
 
@@ -131,10 +128,10 @@ process_perturbation_part_wrapper <- function(month, year, region, config, v_bas
 
 main <- function() {
   # Read in command line arguments
-  args <- arg_parser('', hide.opts = TRUE) %>%
-    add_argument('--flux-file', '') %>%
-    add_argument('--control-ems', '') %>%
-    add_argument('--output', '') %>%
+  args <- arg_parser("", hide.opts = TRUE) %>%
+    add_argument("--flux-file", "") %>%
+    add_argument("--control-ems", "") %>%
+    add_argument("--output", "") %>%
     parse_args()
 
   # Read in config file
@@ -163,15 +160,17 @@ main <- function() {
     years <- rep(first_year:last_year, each = (length(unique_dates) * (no_regions + 1)))
   }
 
-  # Run process_perturbation_part for each month and region to collect all the 
+  # Run process_perturbation_part for each month and region to collect all the
   # perturbed emissions data
   perturbations <- mapply(process_perturbation_part_wrapper,
-                          month=months,
-                          year=years,
-                          region=rep(0:no_regions, length(unique_dates)),
-                          MoreArgs=list(config=config, v_base=base_run_extracted$v_base,
-                                        control=control, locations=base_run_extracted$locations,
-                                        flux_file=args$flux_file),
+                          month = months,
+                          year = years,
+                          region = rep(0:no_regions, length(unique_dates)),
+                          MoreArgs = list(config = config,
+                                          v_base = base_run_extracted$v_base,
+                                          control = control,
+                                          locations = base_run_extracted$locations,
+                                          flux_file = args$flux_file),
                           SIMPLIFY = FALSE)
   # Recombine to one data frame
   perturbations_combined <- bind_rows(perturbations)
@@ -180,6 +179,6 @@ main <- function() {
   fst::write_fst(perturbations_combined, sprintf("%s/%s", config$paths$geos_inte, args$output))
 }
 
-if (getOption('run.main', default=TRUE)) {
+if (getOption("run.main", default = TRUE)) {
    main()
 }

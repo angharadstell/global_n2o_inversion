@@ -7,6 +7,9 @@ library(ini)
 options(run.main = FALSE)
 source(paste0(here(), "/n2o_inv/intermediates/sensitivities.R"), chdir = TRUE)
 
+# use same fake_combined_mf function
+source(paste0(here(), "/tests/testthat/fake_data.R"), chdir = TRUE)
+
 fake_control_mf <- function() {
     # create a fake mole fraction intermediate for testing
     fake_observation_id <- c(sprintf("obspack_multi-species_1_CCGGSurfaceFlask_v2.0_2021-02-09~n2o_aNOAAsurf_surface-flask_1_ccgg_Event~a2010%02d", 1:10),
@@ -33,7 +36,7 @@ test_that("sum_ch4_tracers_perturbed with perturbed ones", {
     total_ch4 <- sum_ch4_tracers_perturbed(v_base, v_pert,
                                            perturbed_region = 5, no_regions = 22)
     ideal_ch4 <- rep(1, 72 * 46 * 132)
-    
+
     expect_equal(total_ch4, ideal_ch4)
 })
 
@@ -61,7 +64,7 @@ test_that("process_sensitivity_part with zeros in perturbed run", {
 
 
 test_that("process_sensitivity_part with values in perturbed run", {
-    v_base <- function(name) array(0,c(2 * 10))
+    v_base <- function(name) array(0, c(2 * 10))
 
     v <- function(name) {
         if (name == "obspack_id") {

@@ -6,19 +6,9 @@ library(WoodburyMatrix)
 
 set.seed(20200706)
 
-as_case <- function(process_model, measurement_model) {
-  list(
-    process_model = process_model,
-    measurement_model = measurement_model
-  )
-}
-
-args <- arg_parser('', hide.opts = TRUE) %>%
-  add_argument('--case', '') %>%
-  add_argument('--measurement-model', '') %>%
-  add_argument('--process-model', '') %>%
-  add_argument('--output', '') %>%
-  parse_args()
+###############################################################################
+# FUNCTIONS
+###############################################################################
 
 log_info_case <- function(str, ...) {
   log_info(paste0(
@@ -26,6 +16,17 @@ log_info_case <- function(str, ...) {
     str
   ), ...)
 }
+
+###############################################################################
+# EXECUTION
+###############################################################################
+
+args <- arg_parser('', hide.opts = TRUE) %>%
+  add_argument('--case', '') %>%
+  add_argument('--measurement-model', '') %>%
+  add_argument('--process-model', '') %>%
+  add_argument('--output', '') %>%
+  parse_args()
 
 log_info_case('Loading measurement model')
 measurement_model <- readRDS(args$measurement_model)
@@ -85,10 +86,9 @@ if ('NOBIAS' %in% case_parts) {
 process_model$sensitivities <- NULL
 process_model$H <- NULL
 
-output <- as_case(
-  process_model,
-  measurement_model
-)
+output <- list(process_model = process_model,
+               measurement_model = measurement_model
+              )
 
 log_info_case('Saving')
 saveRDS_gz1(output, args$output)

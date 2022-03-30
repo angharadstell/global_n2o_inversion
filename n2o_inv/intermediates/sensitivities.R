@@ -4,21 +4,14 @@ library(fst)
 library(here)
 library(ini)
 library(lubridate)
-library(ncdf4)
 library(stringr)
 library(tibble)
 
+source(paste0(here(), "/n2o_inv/intermediates/functions.R"))
 
 ###############################################################################
 # FUNCTIONS
 ###############################################################################
-
-base_ch4_tracers <- function(config, mf_file) {
-  # return the variables in the base run netcdf
-  base_nc <- ncdf4::nc_open(sprintf("%s/%s/%s", config$paths$geos_out, config$inversion_constants$case, mf_file))
-  v_base <- function(...) ncdf4::ncvar_get(base_nc, ...)
-  v_base
-}
 
 sum_ch4_tracers_perturbed <- function(v_base, v_pert, perturbed_region, no_regions) {
   # sum up the tracers for each perturbed run
@@ -31,14 +24,6 @@ sum_ch4_tracers_perturbed <- function(v_base, v_pert, perturbed_region, no_regio
     }
   }
   total_ch4
-}
-
-read_flux_file <- function(month, year, config, flux_file) {
-  # Read in combined file
-  combined_file <- sprintf("%s/%s%02d/%s", config$paths$geos_out, year, month, flux_file)
-  print(combined_file)
-  perturbed <- ncdf4::nc_open(combined_file)
-  v <- function(...) ncdf4::ncvar_get(perturbed, ...)
 }
 
 process_sensitivity_part <- function(year, month, v_base, v, control_tibble, config) {
@@ -80,7 +65,10 @@ process_sensitivity_part <- function(year, month, v_base, v, control_tibble, con
 
 process_sensitivity_part_wrapper <- function(year, month, v_base, flux_file, control_tibble, config) {
   # Read in flux file for the perturbed run
-  v <- read_flux_file(month, year, config, flux_file)
+  combined_file <- sprintf("%s/%s%02d/%s", config$paths$geos_out, year, month, flux_file)
+  print(combined_file)
+  v <- read_nc_file(combined_file)
+  # Process
   process_sensitivity_part(year, month, v_base, v, control_tibble, config)
 }
 
@@ -92,14 +80,15 @@ main <- function() {
 
   config <- read.ini(paste0(here(), "/config.ini"))
 
-  args <- arg_parser('', hide.opts = TRUE) %>%
-  add_argument('--mf-file', '') %>%
-  add_argument('--control-mf', '') %>%
-  add_argument('--output', '') %>%
+  args <- arg_parser("", hide.opts = TRUE) %>%
+  add_argument("--mf-file", "") %>%
+  add_argument("--control-mf", "") %>%
+  add_argument("--output", "") %>%
   parse_args()
 
   # read in the base run tracers
-  v_base <- base_ch4_tracers(config, args$mf_file)
+  base_nc <- sprintf("%s/%s/%s", config$paths$geos_out, config$inversion_constants$case, args$mf_file)
+  v_base <- read_nc_file(base_nc)
 
   # read in the processed base run
   control <- fst::read_fst(sprintf("%s/%s", config$paths$geos_inte, args$control_mf))
@@ -132,7 +121,10 @@ main <- function() {
                                 year = years,
                                 month = months,
                                 SIMPLIFY = FALSE,
-                                MoreArgs = list(v_base=v_base, flux_file=args$mf_file, control_tibble=control_tibble, config=config))
+                                MoreArgs = list(v_base = v_base,
+                                                flux_file = args$mf_file,
+                                                control_tibble = control_tibble,
+                                                config = config))
 
   # stick all the perturbed sensitivities together
   sensitivities <- bind_rows(sensitivities_parts) %>%
@@ -149,6 +141,6 @@ main <- function() {
   fst::write_fst(sensitivities, sprintf("%s/%s", config$paths$geos_inte, args$output))
 }
 
-if (getOption('run.main', default = TRUE)) {
+if (getOption("run.main", default = TRUE)) {
    main()
 }

@@ -27,15 +27,14 @@ source(paste0(here(), "/n2o_inv/intermediates/sensitivities.R"))
 # FUNCTIONS
 ###############################################################################
 
-plot_perturbation_dt <- function(region, year, month) {
+plot_perturbation_dt <- function(region, year, month, mf_file, no_regions) {
   # read in the base run tracers
-  v_base <- base_ch4_tracers(config, "combined_mf.nc")
+  base_nc <- sprintf("%s/%s/%s", config$paths$geos_out, config$inversion_constants$case, mf_file)
+  v_base <- read_nc_file(base_nc)
 
   # read in the perturbed run tracers
-  combined_file <- sprintf("%s/%s%s/combined_mf.nc", geos_out_dir, year, month)
-  print(combined_file)
-  perturbed <- ncdf4::nc_open(combined_file)
-  v <- function(...) ncdf4::ncvar_get(perturbed, ...)
+  perturb_nc <- sprintf("%s/%s%s/%s", geos_out_dir, year, month, mf_file)
+  v <- read_nc_file(perturb_nc)
 
   # Take the difference between the base run and perturbed run
   base_co2 <- v_base("CH4_sum")
@@ -69,59 +68,65 @@ plot_perturbation_dt <- function(region, year, month) {
 # EXECUTION
 ###############################################################################
 
-# Do sensitivities make sense?
-# read in sensitivities
-sensitivities <- fst::read_fst(sprintf("%s/sensitivities.fst", inte_out_dir))
+main <- function() {
+  # Do sensitivities make sense?
+  # read in sensitivities
+  sensitivities <- fst::read_fst(sprintf("%s/sensitivities.fst", inte_out_dir))
 
-# largest model ids are latest in the timeseries, so just plot one of those as an example
-control_mf <- fst::read_fst(paste0(inte_out_dir, "/control-mole-fraction.fst"))
-chosen_obs <- (control_mf %>% filter(control_mf$time == "2020-12-31", stri_detect_fixed(control_mf$observation_id, "alt")))$model_id
-obs_sens <- sensitivities[sensitivities$model_id == chosen_obs, ]
-# find out which site it is
-chosen_obs_info <- control_mf[control_mf$model_id == chosen_obs, ]
-substrings <- str_split(chosen_obs_info$observation_id, "~")
+  # largest model ids are latest in the timeseries, so just plot one of those as an example
+  control_mf <- fst::read_fst(paste0(inte_out_dir, "/control-mole-fraction.fst"))
+  chosen_obs <- (control_mf %>% filter(control_mf$time == "2020-12-31", stri_detect_fixed(control_mf$observation_id, "alt")))$model_id
+  obs_sens <- sensitivities[sensitivities$model_id == chosen_obs, ]
+  # find out which site it is
+  chosen_obs_info <- control_mf[control_mf$model_id == chosen_obs, ]
+  substrings <- str_split(chosen_obs_info$observation_id, "~")
 
-# plot a nice graph to visualise sensitivities
-# seasonal cycle as sensitivity based on doublings: bigger response when more N2O ems
-# additional exponential decay over time
-p <- ggplot(obs_sens,
-            aes(from_month_start, co2_sensitivity,
-                group = factor(region), color = factor(region))) +
-            geom_point() + geom_line() +
-            ggtitle(substrings[[1]][3]) +
-            theme(plot.title = element_text(hjust = 0.5))
-plot(p)
-
-
-# Can we cut off sensitivities?
-
-# choose a date and region to examine
-# start of time series makes most sense
-start_date <- as.Date(config$dates$perturb_start)
-year <- format(start_date, "%Y")
-month <- format(start_date, "%m")
-
-plots <- lapply(0:config$inversion_constants$no_regions,
-                function(x) plot_perturbation_dt(x, year, month))
-
-grid_plot <- gridExtra::arrangeGrob(grobs = plots,
-                                    left = "(perturbed - base) / ppb",
-                                    bottom = "Months since perturbation")
-                      
-ggsave(paste0(inte_out_dir, "/mf_perturbation_dt.pdf"), grid_plot)
+  # plot a nice graph to visualise sensitivities
+  # seasonal cycle as sensitivity based on doublings: bigger response when more N2O ems
+  # additional exponential decay over time
+  p <- ggplot(obs_sens,
+              aes(from_month_start, co2_sensitivity,
+                  group = factor(region), color = factor(region))) +
+              geom_point() + geom_line() +
+              ggtitle(substrings[[1]][3]) +
+              theme(plot.title = element_text(hjust = 0.5))
+  plot(p)
 
 
+  # Can we cut off sensitivities?
+
+  # choose a date and region to examine
+  # start of time series makes most sense
+  start_date <- as.Date(config$dates$perturb_start)
+  year <- format(start_date, "%Y")
+  month <- format(start_date, "%m")
+
+  plots <- lapply(0:config$inversion_constants$no_regions,
+                  function(x) plot_perturbation_dt(x, year, month, "combined_mf.nc", no_regions))
+
+  grid_plot <- gridExtra::arrangeGrob(grobs = plots,
+                                      left = "(perturbed - base) / ppb",
+                                      bottom = "Months since perturbation")
+
+  ggsave(paste0(inte_out_dir, "/mf_perturbation_dt.pdf"), grid_plot)
 
 
 
-# remove sites with largest sensitivities?
-# used to remove dsiNOAAsurf, wlgNOAAsurf, palNOAAsurf, bktNOAAsurf, shmNOAAsurf, amtNOAAsurf as too sensitive to local emissions
-sites <- gsub("[[:digit:]]", "", stringr::str_split(control_mf$observation_id, "~", simplify = TRUE)[, 3])
-# calculate max sensitivity for each month at each site
-site_sens <- sensitivities %>% group_by(model_id) %>% summarise(max_co2_sensitivity=max(co2_sensitivity)) %>% mutate(site=sites)
-# calculate max sensitivity for each site
-site_sens_tot <- site_sens %>% group_by(site) %>% summarise(max_max_co2_sensitivity=max(max_co2_sensitivity)) %>% arrange(-max_max_co2_sensitivity)
-# plot
-p <- ggplot(site_sens_tot, aes(site, max_max_co2_sensitivity)) + geom_point() +
-       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
-plot(p)
+
+
+  # remove sites with largest sensitivities?
+  # used to remove dsiNOAAsurf, wlgNOAAsurf, palNOAAsurf, bktNOAAsurf, shmNOAAsurf, amtNOAAsurf as too sensitive to local emissions
+  sites <- gsub("[[:digit:]]", "", stringr::str_split(control_mf$observation_id, "~", simplify = TRUE)[, 3])
+  # calculate max sensitivity for each month at each site
+  site_sens <- sensitivities %>% group_by(model_id) %>% summarise(max_co2_sensitivity=max(co2_sensitivity)) %>% mutate(site=sites)
+  # calculate max sensitivity for each site
+  site_sens_tot <- site_sens %>% group_by(site) %>% summarise(max_max_co2_sensitivity=max(max_co2_sensitivity)) %>% arrange(-max_max_co2_sensitivity)
+  # plot
+  p <- ggplot(site_sens_tot, aes(site, max_max_co2_sensitivity)) + geom_point() +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  plot(p)
+}
+
+if (getOption("run.main", default = TRUE)) {
+   main()
+}
