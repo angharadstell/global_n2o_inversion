@@ -1,11 +1,11 @@
 # global_n2o_inversion
-This repository contains the code to reproduce the results in [PAPER LINK]. This paper uses the WOMBAT framework (https://arxiv.org/abs/2102.04004, https://github.com/mbertolacci/wombat-paper), which has been adapted to our use case. The primary differences between the inversion problem in the original version of WOMBAT and this work are:
+This repository contains the code to reproduce the results in [PAPER LINK]. This paper uses the WOMBAT framework (https://doi.org/10.5194/gmd-15-45-2022, https://github.com/mbertolacci/wombat-paper), which has been adapted to our use case. The primary differences between the inversion problem in the original version of WOMBAT and this work are:
 1. This work solves for N<sub>2</sub>O fluxes rather than CO<sub>2</sub> fluxes
 2. This work solves for 10 years of fluxes rather than 1.5 years
 3. This work solely uses surface observations rather than satellite observations
 
 These differences meant some changes to the WOMBAT package were required, namely:
-1. Change molecular masses to N<sub>2</sub>O  from CO<sub>2</sub>
+1. Change molecular masses to N<sub>2</sub>O from CO<sub>2</sub>
 2. A truncated normal distribution is used for the scaling factor to prevent negative fluxes over the TRANSCOM regions
 The adapted N<sub>2</sub>O  repository can be found at https://github.com/angharadstell/wombat.
 
@@ -19,11 +19,9 @@ The adapted N<sub>2</sub>O  repository can be found at https://github.com/anghar
 The location of these directories is specified in the config.ini file of this repo, you'll have to change the paths for your system. 
 
 ## Setting up an environment
-You have three options to try here:
+You have two options to try here:
 
-1. [CONDA PACK]?!
-
-2. I have tried to make an environment yaml file that you can just pass to conda:
+1. I have tried to make an environment yaml file that you can just pass to conda:
 
     ```
     conda env create -f environment.yml
@@ -63,7 +61,7 @@ You have three options to try here:
 
 
 
-3. If the above options don't work, follow the instructions in the "Installation/setting up an environment" section of https://github.com/mbertolacci/wombat-paper, with a few exceptions: 
+2. If the above options don't work, follow the instructions in the "Installation/setting up an environment" section of https://github.com/mbertolacci/wombat-paper, with a few exceptions: 
     - I made my environment in my default conda location, but where you put it is up to you (you'll have to adapt the paths)
     - When installing the CRAN and local R packages, use the command in the environment.yml section above (includes the R packages I added)
     - Don't bother with the GEOSChem installation in the wombat-paper repo
@@ -72,7 +70,6 @@ You have three options to try here:
     There will also be some missing packages, which you can attempt to figure out from environment.yml or just conda install as they come up.
 
 ## Getting data
-- [CONDA PACK]
 - GEOSChem output
 - the rest of the files (e.g. intermediates, results, etc)
 
