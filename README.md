@@ -75,7 +75,7 @@ The following data is only needed if you want to recreate the geoschem runs:
 - The emissions used can be downloaded from: EDGAR (https://edgar.jrc.ec.europa.eu/dataset_ghg50), Saikawa 2013 (either cotact the authors https://doi.org/10.1002/gbc.20087 or me), GFED (https://www.globalfiredata.org/data.html), Manizza 2012 (either contact the authors https://doi.org/10.3402/tellusb.v64i0.18429 or me)
 - The obspacks used (obspack_multi-species_1_CCGGSurfaceFlask_v2.0_2021-02-09 and obspack_multi-species_1_CCGGAircraftFlask_v2.0_2021-02-09) can be downloaded from https://gml.noaa.gov/ccgg/obspack/data.php
 - The obspack didn't include 2020 when I did this work, so I downloaded the separate NOAA N2O surface data from https://gml.noaa.gov/dv/data.html
-- AGAGE data?
+- [AGAGE DATA]
 
 The location of these directories is specified in the config.ini file of this repo (and in emissions/combine_ems.py for emissions - sorry), you'll have to change the paths for your system. 
 
@@ -91,7 +91,15 @@ from within the directory "global_n2o_inversion/tests/testthat", run this comman
 Rscript -e "testthat::test_local()"
 ```
 
+If you have downloaded the intermediates/ results (see section above) and correctly changed the config.ini to have the correct paths, all the tests should pass.
+
+## Getting started
+A good place to start might be tutorials/wombat_intermediates.ipynb which goes through how I create all the WOMBAT intermediates from the GEOSChem runs. To run all of this tutorial, you will either need your own set of GEOSChem runs or contacted me to get my set. However, the tutorial intermediates are included in the easily downloadable intermediates/ results data, so you can still examine the intermediates. Even without the raw GEOSChem runs this is useful script to look at, because it contains descriptions of all the variables in the WOMBAT intermediates.
+
+
+
 ## Running GEOSChem
+You won't be able to run any of this without the emissions / observations/ raw GEOSChem output.
 ### Make emissions
 1. Make your global emissions for 1970-2020 (run n2o_inv/emissions/combine_ems.py)
 2. Split into regional basis functions (run n2o_inv/emissions/ems_tagged.py)
@@ -125,6 +133,7 @@ Rscript -e "testthat::test_local()"
 
 
 ## Checking the inversion using pseudodata
+You won't be able to run any of this without the emissions / observations/ raw GEOSChem output.
 Run analytical and WOMBAT inversions for the first window using pseudodata and compare the performance. It makes more sense to run this with the WOMBAT alpha truncation turned off to make it more comparable.
 ### Make pseudodata and do inversions
 1. Creates the pseduo scaling factors, generates pseudo observations, and perform the WOMBAT inversions (run pseudodata/pseudodata_generate.sh)
@@ -136,6 +145,7 @@ Run analytical and WOMBAT inversions for the first window using pseudodata and c
 
 
 ## Running the inversion
+You won't be able to run any of the "Making inversion intermediates" without the emissions / observations/ raw GEOSChem output.
 Have to make intermediates for full 10 years before doing window inversion (uses intermediates to change ic)
 ### Make inversion intermediates
 1. Make intermediates for the full 10 years (run intermediates/make_intermediates.sh)
@@ -177,6 +187,7 @@ Have to make intermediates for the first window inversion to do this (uses inter
 
 
 ## Validation of inversion results
+You won't be able to run any of this without the emissions / observations/ raw GEOSChem output.
 1. Extract alphas from inversion (run validation/extract_alphas.R)
 2. Make optimised emissions (run validation/make_ems.py)
 3. Create the validation run files (run validation/setup_validation.sh)
