@@ -99,11 +99,12 @@ A good place to start might be tutorials/wombat_intermediates.ipynb which goes t
 
 
 ## Running GEOSChem
-You won't be able to run any of this without the emissions / observations/ raw GEOSChem output.
+You won't be able to run any of this without the emissions / observations / raw GEOSChem output.
 ### Make emissions
 1. Make your global emissions for 1970-2020 (run n2o_inv/emissions/combine_ems.py)
 2. Split into regional basis functions (run n2o_inv/emissions/ems_tagged.py)
 3. Create a series of perturbed emissions for the time period of interest (run n2o_inv/emissions/perturb_ems.py)
+4. Work out the starting mole fractions for different regions based on the ratio of the emissions in the spinup (run n2o_inv/emissions/ems_ratio.py)
 
 ### Make observations
 1. Format the AGAGE observations to look like obspack (run n2o_inv/obs/agage_obs.py)
@@ -133,7 +134,7 @@ You won't be able to run any of this without the emissions / observations/ raw G
 
 
 ## Checking the inversion using pseudodata
-You won't be able to run any of this without the emissions / observations/ raw GEOSChem output.
+You won't be able to run any of this without the emissions / observations / raw GEOSChem output.
 Run analytical and WOMBAT inversions for the first window using pseudodata and compare the performance. It makes more sense to run this with the WOMBAT alpha truncation turned off to make it more comparable.
 ### Make pseudodata and do inversions
 1. Creates the pseduo scaling factors, generates pseudo observations, and perform the WOMBAT inversions (run pseudodata/pseudodata_generate.sh)
@@ -145,7 +146,7 @@ Run analytical and WOMBAT inversions for the first window using pseudodata and c
 
 
 ## Running the inversion
-You won't be able to run any of the "Making inversion intermediates" without the emissions / observations/ raw GEOSChem output.
+You won't be able to run any of the "Making inversion intermediates" without the emissions / observations / raw GEOSChem output.
 Have to make intermediates for full 10 years before doing window inversion (uses intermediates to change ic)
 ### Make inversion intermediates
 1. Make intermediates for the full 10 years (run intermediates/make_intermediates.sh)
@@ -187,7 +188,7 @@ Have to make intermediates for the first window inversion to do this (uses inter
 
 
 ## Validation of inversion results
-You won't be able to run any of this without the emissions / observations/ raw GEOSChem output.
+You won't be able to run any of this without the emissions / observations / raw GEOSChem output.
 1. Extract alphas from inversion (run validation/extract_alphas.R)
 2. Make optimised emissions (run validation/make_ems.py)
 3. Create the validation run files (run validation/setup_validation.sh)
