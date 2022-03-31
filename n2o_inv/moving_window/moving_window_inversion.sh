@@ -8,6 +8,7 @@
 #SBATCH --mem=5G
 #SBATCH --array=0-3
 
+# choose which case to run
 CASE_ARRAY=(IS-RHO0-VARYA-VARYW-NOBIAS-model-err-arbitrary IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-arbitrary IS-RHO0-VARYA-VARYW-NOBIAS-model-err-n2o_std IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std)
 CASE=${CASE_ARRAY[$SLURM_ARRAY_TASK_ID]}
 echo $CASE
@@ -26,11 +27,13 @@ do
     echo "starting window $window"
     window02d=`printf %02d $window`
 
+    # make process / measurement / real models
     sed -e "s/%window02d%/$window02d/" -e "s/%CASE%/$CASE/" make_models.sh > make_models_$CASE.sh
     chmod +x make_models_$CASE.sh
     ./make_models_$CASE.sh
     rm make_models_$CASE.sh
 
+    # do the inversion
     echo "Doing inversion..."
     if [ $analytical = TRUE ]
     then
@@ -43,7 +46,7 @@ do
         rm make_real_mcmc_samples_${CASE}_submit.sh
     fi
 
-    # bring in spinup fluxes
+    # bring in fluxes from finished window and adjust the control mole fraction
     if [ $window -lt $nwindow ]
     then
         echo "changing ic..."

@@ -16,11 +16,11 @@ source bash_var.sh
 
 cd ../intermediates
 
-# make control emissions
+# make control emissions intermediate
 python process_geos_ems.py 2010 2020 "monthly_fluxes.nc"
 Rscript control-emissions.R --flux-file "monthly_fluxes.nc" --output "control-emissions.fst"
 
-# make perturbations
+# make perturbations intermediate
 Rscript perturbations.R --flux-file "monthly_fluxes.nc" --control-ems "control-emissions.fst" --output "perturbations.fst"
 
 # make mole fraction intermediates
@@ -38,8 +38,11 @@ echo "Exiting loop..."
 
 Rscript control-mole-fraction.R --case $case --mf-file "combined_mf" --output "control-mole-fraction"
 
+# make sensitivities intermediates
 Rscript sensitivities.R --mf-file "combined_mf.nc" --control-mf "control-mole-fraction.fst" --output "sensitivities.fst"
 
+# make three observation intermediates: one with no model error, one with the model error set by the spatial variability of N2O,
+# one with a constant "arbitrary" model error
 Rscript observations.R --mf-file "combined_mf.nc" --model-err "" --output "observations.fst"
 Rscript observations.R --mf-file "combined_mf.nc" --model-err "n2o_std" --output "model-err-n2o_std-observations.fst"
 Rscript observations.R --mf-file "combined_mf.nc" --model-err "arbitrary" --output "model-err-arbitrary-observations.fst"

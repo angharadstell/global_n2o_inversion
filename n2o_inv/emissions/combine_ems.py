@@ -16,7 +16,6 @@ import xarray as xr
 
 from acrg.grid.areagrid import areagrid
 from acrg.grid.regrid import regrid2d
-#from acrg_mozart import acrg_MOZART_angharad as mzt
 
 from n2o_inv.plots import map_plot
 
@@ -229,8 +228,7 @@ if __name__ == "__main__":
     ecco2_ems = ecco2_ems.drop_vars(["Flux_N2O_Th", "Flux_N2O_Vent", "SurfaceMask", "Area"])
     ecco2_ems = ecco2_ems.rename({"Flux_N2O_Tot":"emi_n2o", "latitude":"lat", "longitude":"lon"})
     
-    # Negative flux means it comes out of the ocean, positive goes in?
-    # Do I want positive ones?
+    # Negative flux means it comes out of the ocean, positive goes in
     ecco2_ems["emi_n2o"] = ecco2_ems["emi_n2o"] * -1
     
     # Convert to kg/m2/s

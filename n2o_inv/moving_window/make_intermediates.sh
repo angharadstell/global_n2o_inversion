@@ -25,6 +25,7 @@ do
     echo "starting window $window"
     window02d=`printf %02d $window`
 
+    # work out years
     first_year=$(( ${dates[perturb_start]:0:4} + window - 1 ))
     if [ $(( first_year + len_window - 1 )) -ge $final_year ]
     then
@@ -34,11 +35,11 @@ do
     fi
     echo "covers $first_year - $last_year"
 
-    # make control emissions
+    # make control emissions intermediate
     python process_geos_ems.py $first_year $last_year "monthly_fluxes_window$window02d.nc"
     Rscript control-emissions.R  --flux-file "monthly_fluxes_window$window02d.nc" --output "control-emissions-window$window02d.fst"
 
-    # make perturbations
+    # make perturbations intermediate
     Rscript perturbations.R --flux-file "monthly_fluxes_window$window02d.nc" --control-ems "control-emissions-window$window02d.fst" --output "perturbations_window$window02d.fst"
 
     # make mole fraction intermediates
@@ -69,10 +70,10 @@ do
     echo "starting window $window, phase 2"
     window02d=`printf %02d $window`
 
-    # make control_mf
+    # make control mole fraction intermediate
     Rscript control-mole-fraction.R --case $case --mf-file "combined_mf_window$window02d" --output "control-mole-fraction-window$window02d"
 
-    # make sensitivities
+    # make sensitivities intermediate
     Rscript sensitivities.R --mf-file "combined_mf_window$window02d.nc" --control-mf "control-mole-fraction-window$window02d.fst" --output "sensitivities_window$window02d.fst"
 
     # make observations with different model errors

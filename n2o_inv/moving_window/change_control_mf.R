@@ -39,16 +39,24 @@ mean_alphas <- lapply(1:window, function(i) {inversion_alphas(i, args$case, args
 # create ic alphas
 new_alphas <- updated_alphas(window, mean_alphas, nregions, ntime)
 
+# turn alphas into mole fraction
 new_control_mf <- alpha_to_obs(new_alphas, 0,
                                control_mf, perturbations, sensitivities)
 
+# read in next window control mole fraction
 next_control_mf <- fst::read_fst(sprintf("%s/control-mole-fraction-window%02d.fst", config$path$geos_inte, window + 1))
 
+# put new control mole fraction into nice data frame and filter so it matches the
+# time length of the next window
 new_control_mf_df <- data.frame(observation_id = observations$observation_id,
                                 time = observations$time,
                                 co2 = new_control_mf) %>%
                                 filter(time >= min(next_control_mf$time), time <= max(next_control_mf$time))
 
+# input the new control mole fraction in the next window
 new_next_control_mf <- next_control_mf %>% mutate(co2 = new_control_mf_df$co2)
-print("Saving...")
-fst::write_fst(new_next_control_mf, sprintf("%s/control-mole-fraction-%s-window%02d-%s-rescaled.fst", config$path$geos_inte, args$case, window + 1, args$method))
+
+# save new control mole fraction file
+message("Saving...")
+output_file <- sprintf("%s/control-mole-fraction-%s-window%02d-%s-rescaled.fst", config$path$geos_inte, args$case, window + 1, args$method)
+fst::write_fst(new_next_control_mf, output_file)
