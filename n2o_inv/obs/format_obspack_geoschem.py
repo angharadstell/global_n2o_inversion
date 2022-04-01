@@ -1,7 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 This script formats all the obspack style observations into a format that GEOSChem can use.
-
-@author: Angharad Stell
 """
 import configparser
 
@@ -15,8 +15,7 @@ Define useful functions
 """
 
 def date_mask(df, date):
-    """
-    Create a mask that only includes a specific date.
+    """ Create a mask that only includes a specific date.
     """
     year_mask = (df["time_components"][:, 0] == date.year)
     month_mask = (df["time_components"][:, 1] == date.month)
@@ -27,8 +26,7 @@ def date_mask(df, date):
     return date_mask
 
 def preprocess(xr_df):
-    """
-    Process the NOAA obspack before it can be read into xarray. 
+    """ Process the NOAA obspack before it can be read into xarray. 
     This includes a monotonically increasing coordinate, and only
     keeping the desired variables.
     """
@@ -50,8 +48,7 @@ def preprocess(xr_df):
     return xr_df
 
 def read_noaa_obspack(obspack_folder):
-    """
-    Create a list of the N2O files, preprocess, and combine into a single xarray object.
+    """ Create a list of the N2O files, preprocess, and combine into a single xarray object.
     """
     # Make a list of the N2O files
     obspack_dir = obspack_folder / "data/nc" 
@@ -65,8 +62,7 @@ def read_noaa_obspack(obspack_folder):
     return noaa_obspack_data
 
 def geoschem_date_mask(obspack_data, date):
-    """
-    Create a mask that runs from 23.55 for 24h, because geoschem timestep is 10min.
+    """ Create a mask that runs from 23.55 for 24h, because geoschem timestep is 10min.
     """
     late_mask = np.logical_and(obspack_data["time_components"][:,3] >= 23,
                             obspack_data["time_components"][:,4] >= 55)
@@ -133,9 +129,9 @@ if __name__ == "__main__":
     # combine the datasets
     obspack_data = xr.merge([noaa_surface_obspack_data, noaa_aircraft_obspack_data, agage_obspack_data])
         
-
-
-
+    """ 
+    Adjust obspack to required GEOSChem format
+    """
 
     # How to sample model, 4 is instantaneous
     obspack_data["CT_sampling_strategy"] = (("obs"), 
@@ -151,7 +147,11 @@ if __name__ == "__main__":
     obspack_data["value_unc"] = obspack_data.value_unc.fillna(obspack_data.value_unc.median())
     # large number of missing lat/lon/alt because it looks like there are calibration sites? BLD and TST
     obspack_data = obspack_data.dropna("obs") 
-    # do I want to ignore col 2 too?
+    # drop rejection flag samples, keep the rest
+    # the second column of NOAA data is a selection flag which seems to be applied differently at different sites...
+    # we can inspect this in the observation plots and we remove sites with several pollution events anyway
+    # also its better to keep observations we maybe want so we don't have to rerun GEOSChem
+    # therefore, ignore selection flag
     bad_data_mask = [flag.decode('utf-8')[0] == "." for flag in obspack_data.qcflag.values]
     bad_data_mask = xr.DataArray(data=bad_data_mask, dims=["obs"], coords={"obs":obspack_data.obs})
     obspack_data = obspack_data.where(bad_data_mask, drop=True)
@@ -159,14 +159,14 @@ if __name__ == "__main__":
     # reindex so monotoically increasing
     obspack_data = obspack_data.sortby("time").assign_coords(obs=range(0, len(obspack_data.obs)))
 
+    """ 
+    Save GEOSChem formatted files
+    """
 
-
-
+    # geoschem wants a series of daily files
     # Desired times
     daily_dates = pd.date_range(SPINUP_START, FINAL_END)[:-1]
     constant_met_dates = pd.date_range(CONSTANT_END, FINAL_END)[:-1]
-
-    # geoschem wants a series of daily files
     for date in daily_dates:
         # create mask - geoschem reads 23.55 form the day before, through to 23.55 that day
         geoschem_mask = geoschem_date_mask(obspack_data, date)
@@ -179,23 +179,30 @@ if __name__ == "__main__":
 
         # save file
         if len(obspack_date["obs"]) > 0: 
+            # file for main runs
             obspack_date.to_netcdf(OBSPACK_DIR /f"obspack_n2o.{date.strftime('%Y%m%d')}.nc")
 
+            # file for constant met runs
             if date in constant_met_dates:
                 constant_met_year = pd.to_datetime(CONSTANT_START).year
                 no_years_constant = date.year - constant_met_year
 
                 obspack_date_copy = obspack_date.copy(deep=True)
 
-                # edit time components and time
-                # try to move 29th feb to 28th
+                # because we repeat 2015 met, if the year is leap year, then the emissions from Feb 29th would be lost
+                # and the emissions slightly different to the main runs. Therefore, for leap years move the emissions
+                # from 29th to 28th
+                # edit time components of emissions to correct year
                 for i in range(len(obspack_date_copy["time_components"])):
+                    # set year to 2015
                     obspack_date_copy["time_components"][i][0] = np.float64(constant_met_year)
+                    # if Feb 29, make Feb 28 so can be combined and used for 2015
                     if obspack_date_copy["time_components"][i][1] == 2 and obspack_date_copy["time_components"][i][2] == 29:
                         leap_year = True
                         obspack_date_copy["time_components"][i][2] = 28
                     else:
                         leap_year = False
+                # edit time of emissions to correct year (2015)
                 time_minus_year = pd.to_datetime(obspack_date_copy["time"].values, unit="s")  - pd.offsets.DateOffset(years=no_years_constant)
                 # put back into seconds since 1970
                 obspack_date_copy["time"].values = (time_minus_year - pd.to_datetime("1970-01-01")).total_seconds()
@@ -203,7 +210,7 @@ if __name__ == "__main__":
                 # save 28th feb for leap year combinations
                 if obspack_date["time_components"][i][1] == 2 and obspack_date["time_components"][i][2] == 28:
                     obspack_date_0228 = obspack_date_copy.copy(deep=True)
-
+                # if 29th feb, combine with 28th feb
                 if leap_year:
                     obspack_date_copy = obspack_date_copy.merge(obspack_date_0228)
 

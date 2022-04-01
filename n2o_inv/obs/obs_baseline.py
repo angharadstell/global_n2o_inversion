@@ -1,9 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-This module establishes which observations we want to keep.
-
-@author: Angharad Stell
+This script establishes which observations we want to keep.
 """
-
 import configparser
 from pathlib import Path
 
@@ -12,18 +11,23 @@ import numpy as np
 import xarray as xr
 
 def agage_baseline(df, time_vec):
-    # interpolate baseline df to measurement times
-    # take only points between two baseline points in Alistair's baseline
+    """ Interpolate baseline df to measurement times.
+
+    Take only points between two baseline points in Alistair's baseline.
+    """
+
     return (df.interp(time = time_vec)["baseline_NAME"] == True).astype(int).values
 
 def raw_obs_to_baseline(obspack_obs, baseline_dict):
+    """ Create baseline variable, which is 1 for baseline, 0 for not baseline.
+    """
     # create place to store baseline
     obspack_obs["baseline"] = xr.zeros_like(obspack_obs["value"])
 
     # pick a site
     unique_sites = np.unique(obspack_obs["site"])
 
-    # sites that look visibly dodgy
+    # sites that look visibly dodgy when plotted
     dodgy_sites = ['abpNOAAsurf', 'balNOAAsurf', 'bmeNOAAsurf', 'bscNOAAsurf',  # too few obs
                    'bwdNOAAsurf', 'crsNOAAsurf', 'hfmNOAAsurf', 'hsuNOAAsurf', 
                    'lacNOAAsurf', 'llbNOAAsurf', 'mknNOAAsurf', 'mrcNOAAsurf', 
@@ -45,6 +49,7 @@ def raw_obs_to_baseline(obspack_obs, baseline_dict):
 
         if site in dodgy_sites:
             pass
+        # ignore aircraft obs
         elif "NOAAair" in site:
             pass
         else:
@@ -63,7 +68,9 @@ def raw_obs_to_baseline(obspack_obs, baseline_dict):
     return obspack_obs
 
 def plot_baseline(site_obs):
-    fig, ax = plt.subplots()
+    """ Plot a scatter plot of the observations, coloured by whether it is "baseline".
+    """
+    _, ax = plt.subplots()
     scatter = ax.scatter(x=site_obs["time"].values, y=site_obs["value"], c=site_obs["baseline"])
     clegend = plt.legend(*scatter.legend_elements())
     ax.add_artist(clegend)

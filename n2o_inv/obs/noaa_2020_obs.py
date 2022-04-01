@@ -1,7 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 This script formats all NOAA 2020 obs into an obspack style.
-
-@author: Angharad Stell
 """
 import configparser
 
@@ -15,8 +15,7 @@ import agage_obs
 import format_obspack_geoschem
     
 def create_obspack_id(site, year, month, day, identifier):
-    """
-    Make an obspack id for each observation, following the pattern in the NOAA data.
+    """ Make an obspack id for each observation, following the pattern in the NOAA data.
     """
     date = f"{int(year)}-{int(month):02}-{int(day):02}"
     whole_string = f"obspack_multi-species_1_CCGGSurfaceFlask_v1.0_{date}~n2o_{site.lower()}_surface-flask_1_ccgg_Event~{identifier}"

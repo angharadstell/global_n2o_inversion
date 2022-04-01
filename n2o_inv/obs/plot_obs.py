@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+This script plots all the observations so we can establish which ones to keep.
+"""
 import configparser
 from pathlib import Path
 
@@ -10,6 +15,8 @@ import xarray as xr
 from n2o_inv.intermediates import process_geos_output
 
 def add_ch4(combined, no_regions):
+    """ Add all the emissions from the regions to make a single total variable.
+    """
     combined["CH4_sum"] = xr.zeros_like(combined["CH4_R00"])
     for i in range(0, no_regions):
         combined["CH4_sum"] += combined[f"CH4_R{i:02d}"]
@@ -51,54 +58,54 @@ if __name__ == "__main__":
     print("Reading in geos...")
     obspack_geos = process_geos_output.read_geos(GEOSOUT_DIR / CASE, obspack_obs, NO_REGIONS, PERTURB_START.year, (PERTURB_END.year-1))
 
-
+    # combine obs and GEOSChem base run
     combined = xr.merge([obspack_obs[["latitude", "longitude", "altitude",
                                       "time", "obspack_id", "value", 
                                       "value_unc", "network", "site", "qcflag"]],
                          obspack_geos])
-
+    # rename obs variables
     combined = combined.rename({"latitude":"obs_lat", "longitude":"obs_lon",
                                 "altitude":"obs_alt", "time":"obs_time", 
                                 "value":"obs_value", "value_unc":"obs_value_unc"})
 
     # sum up different regions
     combined = add_ch4(combined, NO_REGIONS+1)
-
+    # swap dimensions
     combined = combined.swap_dims({"obs":"obs_time"})
 
-    #%config InlineBackend.figure_format = 'png'
+    # save plots as a pdf for each site
     pp = PdfPages(OBSPACK_DIR / 'obs_plots.pdf')
     print("Plotting desired sites...")
     for site in unique_sites:
+        # don't plot aircraft data
         if "NOAAair" in site:
             pass
+        # plot rest
         else:
             onesite = combined.where(combined["site"] == site, drop=True)
               
-
+            # masks based on is it flagged or strangely low?
             any_flag = (onesite["qcflag"] == b'...')
             dodgy_low = (onesite["obs_value"] < 320)
 
-            #onesite_mean = onesite.resample(obs_time="M").mean()
-            #onesite_median = onesite.resample(obs_time="M").median()
-
-            # also want to plot model base run
+            # plot observations
+            # colour according to the masks: 
+            # is it flagged?
+            # is it strangely low? (firn air)
             fig = plt.figure()
             onesite.where(any_flag, drop=True).plot.scatter("obs_time", "obs_value")
             onesite.where(~any_flag, drop=True).plot.scatter("obs_time", "obs_value", c="r")
             onesite.where(dodgy_low, drop=True).plot.scatter("obs_time", "obs_value", c="g")
 
+            # plot model base run values
             if all(xr.ufuncs.isnan(onesite["CH4_sum"])):
                 pass
             else:
                 onesite.plot.scatter("obs_time", "CH4_sum", c="k")
 
-            #onesite_mean.plot.scatter("obs_time", "obs_value", c="m", marker="x")
-            #onesite_median.plot.scatter("obs_time", "obs_value", c="y", marker="x")
-
+            # set title
             plt.title(site)
-            #plt.show()
+
             pp.savefig()
             plt.close()
     pp.close()
-

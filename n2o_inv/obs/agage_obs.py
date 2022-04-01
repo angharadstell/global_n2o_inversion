@@ -1,10 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 This script reads in the AGAGE observations and formats them to look more like NOAA obspack.
 NOAA obspack can be matched to the location and time in GEOSChem.
-
-@author: Angharad Stell
 """
-
 import configparser
 from pathlib import Path
 
@@ -17,8 +16,7 @@ Define useful functions
 """
 
 def dt2cal(dt):
-    """
-    Convert array of datetime64 to a calendar list of year, month, day, hour,
+    """ Convert array of datetime64 to a calendar list of year, month, day, hour,
     minute, seconds with these quantites indexed on the last axis.
 
     Parameters
@@ -49,16 +47,15 @@ def dt2cal(dt):
     return out
 
 def create_obspack_id(site, year, month, day, identifier):
-    """
-    Make an obspack id for each observation, following the pattern in the NOAA data.
+    """ Make an obspack id for each observation, following the pattern in the NOAA data.
     """
     date = f"{int(year)}-{int(month):02}-{int(day):02}"
     whole_string = f"obspack_multi-species_1_AGAGEInSitu_v1.0_{date}~n2o_{site.lower()}_surface-insitu_1_agage_Event~{identifier}"
     return whole_string.encode()
 
 def create_noaa_style_flag(status_flag):
-    """
-    Make a NOAA style flag (a 3-character string).
+    """ Make a NOAA style flag (a 3-character string).
+
     Note that the AGAGE status flag won't match to the definition of NOAA flags.
     The AGAGE NOAA style flag is currently the first character is the status.
     """
@@ -70,6 +67,8 @@ def create_noaa_style_flag(status_flag):
     return f"{first_char}..".encode()
     
 def datetime_to_unix(array):
+    """ Convert datetime to unix time.
+    """
     return array.astype('datetime64[s]').astype("int") 
 
 if __name__ == "__main__":
@@ -86,9 +85,8 @@ if __name__ == "__main__":
     FINAL_END = config["dates"]["final_end"]
 
     """ 
-    Read in the AGAGE site observations for the inversion period
+    Read in the desired AGAGE site observations for the inversion period
     """
-    # Are there any other sites?
     agage_obs = read.get_obs(sites=AGAGE_SITES, start_date=SPINUP_START, end_date=FINAL_END, species="N2O")
 
     """ 
@@ -99,7 +97,7 @@ if __name__ == "__main__":
     total_obs = 0
 
     # iterate through each site, format, and save
-    # use j so can extend runs without ruining obspack numbers
+    # use j so can extend runs to longer time period without ruining obspack numbers
     for j, site in enumerate(AGAGE_SITES):
         print(site)
 
