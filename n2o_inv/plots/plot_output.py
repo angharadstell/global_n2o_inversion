@@ -1,7 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 This script reads in GEOSChem output and plots it to check it makes sense.
-
-@author: Angharad Stell
 """
 import configparser
 from pathlib import Path
@@ -17,8 +17,7 @@ from n2o_inv.plots import map_plot
 # =============================================================================
 
 def time_adjust_spinup(out_files):
-    """
-    Read in spinup geoschem output and adjust the dates so they can be merged 
+    """ Read in spinup geoschem output and adjust the dates so they can be merged 
     into a single xarray object that contains all the years.
     """ 
     spinup_list = []
@@ -35,8 +34,7 @@ def time_adjust_spinup(out_files):
     return geos_all
 
 def calc_monthly_mean_conc(geos_out):   
-    """
-    Calculate the monthly mean value for the GEOSChem output.
+    """ Calculate the monthly mean value for the GEOSChem output.
     """ 
     geos_n2o_area = geos_out["SpeciesConc_CH4"] * geos_out["AREA"]
     total_area = geos_out["AREA"].sum(dim=["lat", "lon"])
@@ -44,8 +42,7 @@ def calc_monthly_mean_conc(geos_out):
     return geos_n2o_mean
 
 def plot_monthly_mean(geos_out):
-    """
-    Calculate and plot the monthly mean value for the GEOSChem output.
+    """ Calculate and plot the monthly mean value for the GEOSChem output.
     """ 
     monthly_mean = calc_monthly_mean_conc(geos_out)
     plt.plot(monthly_mean.time, monthly_mean)
@@ -55,16 +52,14 @@ def plot_monthly_mean(geos_out):
     plt.close()
 
 def calc_height(geos_out):
-    """
-    Calculate the approximate height of geoschem levels.
+    """ Calculate the approximate height of geoschem levels.
     """ 
     Pm = geos_out.hyam + geos_out.hybm * geos_out.P0 
     Hm = np.log(Pm/1000) * -7640  
     return Hm  
 
 def plot_zonal_mean(geos_out):
-    """
-    Plot a zonal mean of the geoschem output.
+    """ Plot a zonal mean of the geoschem output.
     """ 
     # work out altitude
     Hm = calc_height(geos_out)
@@ -76,8 +71,7 @@ def plot_zonal_mean(geos_out):
     plt.close()
 
 def sum_tracers(geos_out, no_regions):
-    """
-    Sum up the geoschem tracers to give a total tracer.
+    """ Sum up the geoschem tracers to give a total tracer.
     """ 
     total = xr.zeros_like(geos_out["SpeciesConc_CH4"])
     transcom = [f"SpeciesConc_CH4_R{index:02d}" for index in range(0, no_regions)]
@@ -86,8 +80,7 @@ def sum_tracers(geos_out, no_regions):
     return total
 
 def global_total_ems(ems, varname):
-    """
-    Calculate the global total ems in kgs-1.
+    """ Calculate the global total ems in kgs-1.
     """ 
     # get geoschem area
     with xr.open_dataset(Path(config["em_n_loss"]["geos_ems"]) / "geos_grid_info.nc") as load:
@@ -99,8 +92,7 @@ def global_total_ems(ems, varname):
     return ems_summed
 
 def plot_monthly_ems(geos_ems, my_ems):
-    """
-    Plot a monthly emissions timeseries comparing my ems and geos ems.
+    """ Plot a monthly emissions timeseries comparing my ems and geos ems.
     """ 
     plt.plot(geos_ems.time, global_total_ems(geos_ems, "EMIS_CH4_TOTAL"), label="geos ems")
     plt.plot(geos_ems.time, global_total_ems(my_ems, "emi_n2o"), label="my ems")
@@ -111,8 +103,7 @@ def plot_monthly_ems(geos_ems, my_ems):
     plt.close()
 
 def calc_lifetime(out_files, ch4_files, molecular_weight):
-    """
-    Calculate the global lifetime in years.
+    """ Calculate the global lifetime in years.
     """ 
     mm_air = 28.9647
     sec2year = 1/(3600*24*365.25)
@@ -153,8 +144,7 @@ def calc_lifetime(out_files, ch4_files, molecular_weight):
     return lifetimes_gc_new
 
 def plot_lifetime(geos_out, lifetimes_gc_new):
-    """
-    Plot the lifetime and compare it to the Wells paper value.
+    """ Plot the lifetime and compare it to the Wells paper value.
     """ 
     plt.plot(geos_out.time, lifetimes_gc_new, label="GEOS-Chem")
     plt.plot(geos_out.time, np.repeat(127, len(geos_out.time)), ":", label="Wells")
