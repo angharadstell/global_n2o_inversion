@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script creates the files needed for the perturbed GEOSChem runs
 
 # load variables
 source ../spinup/bash_var.sh
@@ -71,5 +72,3 @@ do
         make install
     done
 done
-
-

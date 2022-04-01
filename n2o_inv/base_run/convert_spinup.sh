@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script converts the spinup GEOSChem files to those needed to run the base run
 
 # load variables
 source ../spinup/bash_var.sh
@@ -23,8 +24,3 @@ cd $geo_rundirs/$case
 rm gcclassic_submit.sh
 cp $location_of_this_file/templates/gcclassic_submit.sh ./gcclassic_submit.sh
 sed -i "s#%exe_path%#$geo_rundirs/$case#" gcclassic_submit.sh
-
-
- 
-
-

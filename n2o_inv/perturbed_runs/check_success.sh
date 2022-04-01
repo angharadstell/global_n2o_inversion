@@ -1,4 +1,8 @@
 #!/bin/bash
+# This script checks if all the perturbed runs finish normally
+# Expected output for each successful run:
+# **************   E N D   O F   G E O S -- C H E M   **************
+# anything else suggests a problem! GO check it
 
 # load variables
 source ../spinup/bash_var.sh

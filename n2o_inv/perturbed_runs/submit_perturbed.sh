@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script submits all the perturbed GEOSChem runs to the queue system
 
 # load variables
 source ../spinup/bash_var.sh
