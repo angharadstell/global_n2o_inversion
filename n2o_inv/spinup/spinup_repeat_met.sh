@@ -1,5 +1,5 @@
 # read in variables
-source ../spinup/bash_var.sh
+source ./bash_var.sh
 
 module load apps/nco-toolkit/4.9.2-gcc
 

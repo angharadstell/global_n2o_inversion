@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script reads the config variables into bash
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
@@ -9,6 +10,8 @@ echo $SCRIPT_DIR/../../config.ini
 eval "$(cat $SCRIPT_DIR/../../config.ini  | $SCRIPT_DIR/ini2arr.py)"
 
 # variables
+# this seemed like a good idea at the time but is actually just annoying
+# should just read variables directly form the config
 location_of_this_file=${paths[location_of_this_file]}
 
 geo_wrapper_dir=${paths[geo_wrapper_dir]}

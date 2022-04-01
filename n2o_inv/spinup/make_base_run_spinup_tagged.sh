@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script sorts out tagged tracers to be regional transcom basis functions
 
 # Check git setup right
 cd $geo_wrapper_dir/src/GEOS-Chem
@@ -14,14 +15,11 @@ printf "7\n1\n1\n1\n1\n1\n$geo_rundirs\n$case\nn\n" | ./createRunDir.sh
 
 
 #################
-# Edit input.geos
+# Edit GEOSChem config/ input files
 
 # Change date of simulation
 cd $geo_rundirs/$case
 sed -i -e "s/Start YYYYMMDD, hhmmss  : .*/Start YYYYMMDD, hhmmss  : ${dates[spinup_start]//-} 000000/" -e "s/End   YYYYMMDD, hhmmss  : .*/End   YYYYMMDD, hhmmss  : ${dates[perturb_start]//-} 000000/" input.geos
-
-
-
 
 # Copy HEMCO_Config_template across
 cp $location_of_this_file/templates/HEMCO_Config_template.rc ./HEMCO_Config.rc
@@ -48,17 +46,17 @@ do
         sed -i "/^EMIS_CH4_TOTAL/a EMIS_CH4_R$(printf '%02d' $REGION)         CH4    0      $((REGION+1))  -1   2   kg\/m2\/s" HEMCO_Diagn.rc
     fi
     # in HEMCO_Config.rc
-    sed -i -e "/^(((STELL/a 0 STELL_CH4_R$(printf '%02d' $REGION)_T   $ems_dir/$ems_file emi_R$(printf '%02d' $REGION) 1970-2020/1-12/1/0 C xy kg/m2/s CH4_R$(printf '%02d' $REGION) - $((REGION+1)) 1" -e "/^(((STELL/a 0 STELL_CH4_R$(printf '%02d' $REGION)     $ems_dir/$ems_file emi_R$(printf '%02d' $REGION) 1970-2020/1-12/1/0 C xy kg/m2/s CH4     - $((REGION+1)) 1"  HEMCO_Config.rc
+    sed -i -e "/^(((STELL/a 0 STELL_CH4_R$(printf '%02d' $REGION)_T   $ems_dir/$ems_file emi_R$(printf '%02d' $REGION) 1970-2020/1-12/1/0 C xy kg/m2/s CH4_R$(printf '%02d' $REGION) - $((REGION+1)) 1" \
+           -e "/^(((STELL/a 0 STELL_CH4_R$(printf '%02d' $REGION)     $ems_dir/$ems_file emi_R$(printf '%02d' $REGION) 1970-2020/1-12/1/0 C xy kg/m2/s CH4     - $((REGION+1)) 1"  HEMCO_Config.rc
 done
 
 # Add CH4 back to input.geos
 sed -i "/^%%% ADVECTED SPECIES MENU %%%:/a Species name            : CH4" input.geos
 
-
+#################
 # Modify global_ch4_mod
 cd $geo_rundirs/$case/CodeDir/src/GEOS-Chem/GeosCore
 cp $location_of_this_file/templates/global_ch4_mod_tagged_template.txt .
-
 
 # delete print statements
 sed -i "/^       WRITE(\*,\*) 'Oil          : ', SUM(CH4_EMIS(:,:,2))/,/^       WRITE(\*,\*) 'Soil absorb  : ', SUM(CH4_EMIS(:,:,15))/d" global_ch4_mod.F90
@@ -79,10 +77,9 @@ do
     sed -i "s/%number%/$((REGION+2))/g" global_ch4_mod.F90
 done
 
-
-
 rm global_ch4_mod_tagged_template.txt
 
+#################
 # Modify hcoi_gc_diagn_mod
 cp $location_of_this_file/templates/hcoi_gc_diagn_mod_template.txt .
 
@@ -96,9 +93,4 @@ do
     sed -i "s/%number%/$((REGION+1))/g" hcoi_gc_diagn_mod.F90
 done
 
-
 rm hcoi_gc_diagn_mod_template.txt
-
-
-
-

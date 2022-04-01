@@ -1,10 +1,7 @@
 #!/bin/bash
-
-
-
+# this script changes the CH4 run to N2O
 
 cd $geo_rundirs/$case
-
 
 # edit species_database.yml
 echo "editing species_database.yml"
@@ -24,4 +21,3 @@ cd CodeDir/src/GEOS-Chem/GeosCore
 sed -i "s/16d-3/$mw_gas/g" global_ch4_mod.F90
 # turn off tropospheric losses
 sed -i "/    CALL CH4_DECAY( Input_Opt,  State_Chm, State_Diag, &/,+1 s/^/\!/" global_ch4_mod.F90
-
