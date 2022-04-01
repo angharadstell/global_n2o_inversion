@@ -126,6 +126,7 @@ You won't be able to run any of this without the emissions / observations / raw 
 ### Make perturbed runs
 1. Create the perturbed run directories (run n2o_inv/perturbed_runs/setup_perturbed.sh)
 2. Run the GEOSChem perturbed runs (run n2o_inv/perturbed_runs/submit_perturbed.sh)
+3. Check that all the perturbed runs finished successfully (run n2o_inv/perturbed_runs/check_success.sh)
 
 ### Make model error runs
 1. Create a new set of obspack files where each grid cell around a measurement is also included (run model_err/adjust_obspack.py)
