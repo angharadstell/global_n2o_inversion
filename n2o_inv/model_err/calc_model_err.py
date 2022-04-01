@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+This script calculates the model error from the GEOSChem output.
+"""
 import configparser
 
 from pathlib import Path
@@ -28,6 +33,10 @@ if __name__ == "__main__":
     PERTURB_END = pd.to_datetime(config["dates"]["perturb_end"])
     FINAL_END = pd.to_datetime(config["dates"]["final_end"])
 
+    """ 
+    Make combined.nc file
+    """
+
     print("Does combined.nc file already exist?")
     combined_file = GEOS_OUT / CASE / "combined.nc"
     if combined_file.is_file():
@@ -57,13 +66,12 @@ if __name__ == "__main__":
         obspack_baseline = obspack_baseline.where(obspack_baseline["time"] >= pd.to_datetime(f"{PERTURB_START.year - 1}-12-31 23:55"), drop=True)
         obspack_baseline = obspack_baseline.where(obspack_baseline["time"] < pd.to_datetime(f"{FINAL_END.year}-12-31 23:55"), drop=True)
 
-
-
         # read in geos output
         # have to redo this (which was originally done in process_geos_output.py) because
         # need to do it with the extra eight grid cells
+        print("Reading in geos...")
         obspack_geos = process_geos_output.read_geos(GEOS_OUT / CASE, obspack_baseline,
-                                                    NO_REGIONS, PERTURB_START.year, (PERTURB_END.year-1))
+                                                     NO_REGIONS, PERTURB_START.year, (PERTURB_END.year-1))
 
         # sum up different regions
         obspack_geos = plot_obs.add_ch4(obspack_geos, NO_REGIONS+1)
@@ -106,7 +114,9 @@ if __name__ == "__main__":
         # save for later since its so slow
         combined.to_netcdf(GEOS_OUT / CASE / "combined.nc")
 
-
+    """ 
+    Create monthly mean
+    """
 
     # create monthly mean for each site
     print("Making monthly mean...")

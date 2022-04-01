@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+This script reads in GEOSChem obspack files and adjusts them for the model_err run.
+"""
 import configparser
 
 import pandas as pd
@@ -5,6 +10,8 @@ from pathlib import Path
 import xarray as xr
 
 def reformat_obspack_id(old_obs, add_str):
+    """ Add on string to obspack id to identify that it's a box surrounding an observation.
+    """
     new_obspack = []
     for i in old_obs["obspack_id"].values:
         new_id = i.strip() + add_str
@@ -13,6 +20,8 @@ def reformat_obspack_id(old_obs, add_str):
     return new_obspack
 
 def surround_obspack(obspack_nc):
+    """ Make it look like there are observations in the horizontal boxes surrounding real observations.
+    """
     lon_25_lat000 = obspack_nc.copy()
     lon025_lat000 = obspack_nc.copy()
     lon000_lat020 = obspack_nc.copy()

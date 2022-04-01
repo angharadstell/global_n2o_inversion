@@ -1,9 +1,8 @@
 #!/bin/bash
-
+# This script creates all the files required for the GEOSChem model error run
 
 # Read in variables
 source ../spinup/bash_var.sh
-
 
 # Create base run spinup folder
 cd $geo_wrapper_dir/run
@@ -24,8 +23,6 @@ ln -s $output_dir/$case/su_$(printf '%02d' $((no_spinup_years+1)))/GEOSChem.Rest
 cd $geo_rundirs/${inversion_constants[model_err_case]}
 sed -i -e "s/Start YYYYMMDD, hhmmss  : .*/Start YYYYMMDD, hhmmss  : ${dates[perturb_start]//-} 000000/" -e "s/End   YYYYMMDD, hhmmss  : .*/End   YYYYMMDD, hhmmss  : ${dates[perturb_end]//-} 000000/" input.geos
 
-
-
 # need to sample from adjusted obspack
 cd $geo_rundirs/${inversion_constants[model_err_case]}
 sed -i "s#obspack_n2o.YYYYMMDD.nc#${inversion_constants[model_err_case]}/obspack_n2o.YYYYMMDD.nc#g" input.geos
@@ -40,13 +37,10 @@ sed -i "s#$output_dir/$case#$output_dir/${inversion_constants[model_err_case]}#"
 sed -i -e "s#EXPID:  .*#EXPID:  ./GEOSChem#" -e "s#$output_dir/$case/GEOSChem.Restart.%y4%m2%d2_%h2%n2z.nc4#GEOSChem.Restart.%y4%m2%d2_%h2%n2z.nc4#" HISTORY.rc
 sed -i "s#DiagnPrefix:                 $output_dir/$case/HEMCO_diagnostics#DiagnPrefix:                 $output_dir/${inversion_constants[model_err_case]}/HEMCO_diagnostics#" HEMCO_Config.rc
 
-
-
 # Get submission script
 cd $geo_rundirs/${inversion_constants[model_err_case]}
 cp $location_of_this_file/templates/gcclassic_submit.sh .
 sed -i "s#%exe_path%#$geo_rundirs/${inversion_constants[model_err_case]}#" gcclassic_submit.sh
-
 
 # Compile
 cd $geo_rundirs/${inversion_constants[model_err_case]}/build
