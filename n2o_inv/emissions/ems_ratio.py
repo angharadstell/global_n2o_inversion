@@ -1,4 +1,9 @@
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+This script works out the starting mole fractions for the different tagged species of N2O
+(each from a different region), based on the ratio of the emissions in the spinup year.
+"""
 import configparser
 from pathlib import Path
 
@@ -24,9 +29,9 @@ with xr.open_dataset(GEOS_EMS / "base_emissions_tagged.nc") as load:
 # select spinup ems
 ems = ems.sel(time=slice(SPINUP_START, PERTURB_START))
 
+# work out days and secs in 
 days_in_month = pd.date_range(SPINUP_START, PERTURB_START, freq="MS").days_in_month
 secs_in_month = np.array(days_in_month * 24 * 60 * 60)
-
 
 # if geoschem ends on the start of month, this month is not in the spinup
 if PERTURB_START[8:] == '01':
@@ -37,10 +42,10 @@ if PERTURB_START[8:] == '01':
 with xr.open_dataset(Path(config["em_n_loss"]["geos_ems"]) / "geos_grid_info.nc") as load:
     area = load.load()
 
-
-
+# work out the total emissions 
 all_ems = (ems * area["area"]).sum(dim=["lon","lat"])
 annual_all_ems = (all_ems * secs_in_month).sum()
 
+# work out the tagged species mole fractions using the emissions ratio
 ems_ratios = annual_all_ems / annual_all_ems["emi_n2o"] * BCKGRND_CONC
 ems_ratios.to_netcdf(GEOS_EMS / "ems_frac.nc")

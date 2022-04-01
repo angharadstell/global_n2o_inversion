@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Apr 14 16:10:05 2021
-
-@author: as16992
+This script creates the emissions for the perturbed runs.
 """
 import configparser
 from pathlib import Path
@@ -29,11 +27,12 @@ perturb_dates = pd.date_range(PERTURB_START, PERTURB_END, freq="MS").strftime("%
 # if geoschem ends on the start of month, no point perturbing this month
 if PERTURB_END[8:] == '01':
     perturb_dates = perturb_dates[:-1]
-   
+
+# iterate through each month in the time series
 for date in perturb_dates:
+    # select that month and multiply the emissions by 2
     mask = np.ones(np.shape(ems["emi_n2o"]))
     mask[friendly_dates == date,:,:] = 2.
-
     perturb_ems = ems * mask
     
     # Multiplication ruins units
@@ -41,5 +40,6 @@ for date in perturb_dates:
     for region in range(0, len(ems.keys())-1):
         perturb_ems[f"emi_R{region:02d}"].attrs["units"] = "kg/m2/s"
     
+    # save
     perturb_ems.to_netcdf(GEOS_EMS / f"ems_{date[:6]}.nc")
     

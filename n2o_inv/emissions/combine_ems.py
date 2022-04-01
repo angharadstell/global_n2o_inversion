@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Mar  3 10:32:26 2021
-
-@author: as16992
+This script reads in the emissions files, regrids them onto a GEOSChem grid, does some basic
+plotting for sanity checks, and then combines the different types of emissions to a single
+GEOSChem N2O emissions file.
 """
 import calendar
 import configparser
