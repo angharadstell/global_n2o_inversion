@@ -1,3 +1,7 @@
+#!/bin/bash
+# This script generates some pseudo flux scaling factors, makes pseudo observations, and then runs a
+# WOMBAT inversion to try to get back the pseudo flux scaling factors
+
 # read in variables
 cd ../spinup
 source bash_var.sh

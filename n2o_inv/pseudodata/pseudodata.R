@@ -1,3 +1,5 @@
+# This script creates pseudo flux scaling factors and then pseudo observations using 
+# those flux scaling factors
 library(argparser)
 library(dplyr)
 library(here)

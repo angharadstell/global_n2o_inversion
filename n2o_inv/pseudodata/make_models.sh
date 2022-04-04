@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script makes the WOMBAT models required for running the pseudodata WOMBAT inversions
 
 #SBATCH --job-name=models_pseudo
 #SBATCH --ntasks-per-node=1

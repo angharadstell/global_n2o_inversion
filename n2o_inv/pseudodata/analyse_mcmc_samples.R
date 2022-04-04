@@ -1,3 +1,5 @@
+# This script plots qq plots for the analytical and WOMBAT pseudodata inversions,
+# comapring performance in different scenarios
 library(argparser)
 library(dplyr)
 library(ggplot2)
@@ -192,6 +194,6 @@ main <- function() {
   print(mae(as.vector(t(alpha_true)), as.vector(alpha_wombat_mean)))
 }
 
-# if (getOption("run.main", default = TRUE)) {
-#    main()
-# }
+if (getOption("run.main", default = TRUE)) {
+   main()
+}
