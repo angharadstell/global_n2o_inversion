@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# This script creates all the files required for the GEOSChem valiidation run
 
 # Read in variables
 source ../spinup/bash_var.sh

@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Apr 14 16:10:05 2021
-
-@author: as16992
+This script makes a set of emissions for GEOSChem by rescaling the prior
+emissions using the posterior flux scaling factors.
 """
 import configparser
 from pathlib import Path
@@ -27,9 +26,13 @@ N_REGIONS = int(config["inversion_constants"]["no_regions"]) + 1
 # =============================================================================  
 
 def month_diff(a, b):
+    """ Work out the number of months between two dates.
+    """
     return 12 * abs(a.year - b.year) + abs(a.month - b.month)
 
 def rescale_ems(ems, alphas_reshaped, n_regions):
+    """ Rescale the emissions using a set of flux scaling factors.
+    """
     # create new post_ems
     post_ems = ems.copy()
 

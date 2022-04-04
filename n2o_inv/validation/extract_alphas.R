@@ -1,3 +1,5 @@
+# This script extracts the flux scaling factors (alphas) from the moving window inversion results,
+# and saves those values for later use
 library(ggplot2)
 library(here)
 library(ini)

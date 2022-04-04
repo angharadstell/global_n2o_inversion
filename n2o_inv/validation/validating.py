@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+This script plots the GEOSChem validation run against the HIPPO observations.
+"""
 import configparser
 from pathlib import Path
 
@@ -9,9 +14,13 @@ import xarray as xr
 from n2o_inv.intermediates import process_geos_output
 
 def read_geos(hippo_obs, geos_dir, n_regions):
+    """ This function reads in the GEOSChem N2O concentrations for 2011.
+    """
+    # read in GEOSChem data
     hippo_geos = process_geos_output.read_geos(geos_dir,
                                                hippo_obs, n_regions, 2011, 2011)
 
+    # sum up the tagged species to a total N2O concentration
     hippo_geos["CH4_sum"] = xr.zeros_like(hippo_geos["CH4_R00"])
     for i in range(0, n_regions+1):
         hippo_geos["CH4_sum"] += hippo_geos[f"CH4_R{i:02d}"]
@@ -19,41 +28,52 @@ def read_geos(hippo_obs, geos_dir, n_regions):
     return hippo_geos
 
 def zonal_plot(hippo_obs, hippo_geos_prior, hippo_geos_post, campaign_name, filename):
+    """ This function two scatter plots of the HIPPO observations and the GEOSChem validation run,
+    against latitude, one plot for 1-3km altitude, one for 3-7km altitude.
+    """
+    # Create masks for 1-3km and 3-7km
     low_mask = np.logical_and(hippo_obs["altitude"] > 1000, hippo_obs["altitude"] <= 3000)
     high_mask = np.logical_and(hippo_obs["altitude"] > 3000, hippo_obs["altitude"] <= 7000)
 
+    # Select data for 1-3km plot
     hippo_obs_low = hippo_obs.where(low_mask, drop=True)
     hippo_geos_prior_low = hippo_geos_prior.where(low_mask, drop=True)
     hippo_geos_post_low = hippo_geos_post.where(low_mask, drop=True)
+    # Select data for 3-7km plot
     hippo_obs_high = hippo_obs.where(high_mask, drop=True)
     hippo_geos_prior_high = hippo_geos_prior.where(high_mask, drop=True)
     hippo_geos_post_high = hippo_geos_post.where(high_mask, drop=True)
-
+    
+    # do plotting 
     fig, axs = plt.subplots(2, sharex=True, sharey=True)
 
+    # 1-3km scatter plot
     axs[0].set_title(f"a. {campaign_name}, 1-3 km", loc="left")
     axs[0].scatter(hippo_obs_low["latitude"], hippo_obs_low["value"], label = "observed")
     axs[0].scatter(hippo_obs_low["latitude"], hippo_geos_prior_low["CH4_sum"], label = "prior")
     axs[0].scatter(hippo_obs_low["latitude"], hippo_geos_post_low["CH4_sum"], label = "posterior")
     axs[0].legend(bbox_to_anchor=(1.3, 0.15), fontsize="medium")
-
+    # 3-7km scatter plot 
     axs[1].set_title(f"\n b. {campaign_name}, 3-7 km", loc="left")
     axs[1].scatter(hippo_obs_high["latitude"], hippo_obs_high["value"], label = "observed")
     axs[1].scatter(hippo_obs_high["latitude"], hippo_geos_prior_high["CH4_sum"], label = "prior")
     axs[1].scatter(hippo_obs_high["latitude"], hippo_geos_post_high["CH4_sum"], label = "posterior")
 
+    # x axis label
     for ax in axs.flat:
         ax.set(xlabel='Latitude / $^\circ$')
         ax.label_outer()
 
+    # y axis label
     fig.text(0.01, 0.5, 'N$_2$O Mole fraction / ppb', va='center', rotation='vertical', size="large", color="#555555")
 
+    # move plots further apart
     plt.subplots_adjust(hspace=0.3)
 
+    # save
     plt.savefig(filename, bbox_inches='tight')
     plt.show()
     plt.close()
-
 
 if __name__ == "__main__":
     # read in variables from the config file
@@ -88,7 +108,7 @@ if __name__ == "__main__":
     hippo_geos_prior_4 = read_geos(hippo_obs_4, GEOSOUT_DIR / BASE_CASE, NO_REGIONS)
     hippo_geos_prior_5 = read_geos(hippo_obs_5, GEOSOUT_DIR / BASE_CASE, NO_REGIONS)
 
-    #print differences to obs
+    # print differences to obs
     diff = (hippo_geos_prior_4["CH4_sum"] - hippo_obs_4["value"]).mean().values
     print(f"prior - HIPP04 (model - obs): {diff:.2f} ppb")
     diff = (hippo_geos_prior_5["CH4_sum"] - hippo_obs_5["value"]).mean().values
