@@ -1,3 +1,4 @@
+# This script plots and analyses the inferred hyperparameters
 library(dplyr)
 library(ggplot2)
 library(ggthemes)

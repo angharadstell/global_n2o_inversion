@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script plots the rescaled prior WOMBAT inversion results
 
 #SBATCH --job-name=plot_inv
 #SBATCH --nodes=1

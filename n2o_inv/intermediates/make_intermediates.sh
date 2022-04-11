@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script creates the required WOMBAT intermediates for running the full 10 year inversion
 
 #SBATCH --job-name=make_int
 #SBATCH --nodes=1

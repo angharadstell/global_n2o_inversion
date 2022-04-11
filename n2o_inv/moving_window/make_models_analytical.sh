@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script makes the WOMBAT models to plot the analytical inversion results in the same way as WOMBAT
 
 # read in variables
 cd ../spinup

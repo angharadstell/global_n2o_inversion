@@ -139,24 +139,43 @@ main <- function() {
 
   # plot all land area annual ems
   max_land_region <- as.numeric(config$inversion_constants$no_land_regions) - 1
-  regional_plots <- lapply(sprintf("T%02d", seq(0, max_land_region)), regional_ems_plot,
-                           annual_flux_samples=annual_flux_samples, name_colours=NAME_COLOURS, labels=labels)
-  p_regional <- ggarrange(plotlist=regional_plots, ncol=4, nrow=3, common.legend = TRUE, legend="bottom")
-  p_regional <- annotate_figure(p_regional, left = textGrob(expression(N[2] * "O Flux / TgN " * yr^-1),
-                                                            rot = 90, vjust = 0.5, gp = gpar(cex = 1.3)))
-  ggsave(sprintf("%s/regional_land_annual_ems_wombat-%s.pdf", config$paths$inversion_results, args$casename),
+  regional_plots <- lapply(sprintf("T%02d", seq(0, max_land_region)),
+                           regional_ems_plot,
+                           annual_flux_samples = annual_flux_samples,
+                           name_colours = NAME_COLOURS,
+                           labels = labels)
+  p_regional <- ggarrange(plotlist = regional_plots,
+                          ncol = 4,
+                          nrow = 3,
+                          common.legend = TRUE,
+                          legend = "bottom")
+  p_regional <- annotate_figure(p_regional,
+                                left = textGrob(expression(N[2] * "O Flux / TgN " * yr^-1),
+                                                rot = 90, vjust = 0.5, gp = gpar(cex = 1.3)))
+  ggsave(sprintf("%s/regional_land_annual_ems_wombat-%s.pdf",
+                 config$paths$inversion_results,
+                 args$casename),
         p_regional, height = 20, width = 20)
 
   # plot all ocean areas
   regional_plots <- lapply(sprintf("T%02d", seq(max_land_region + 1, config$inversion_constants$no_regions)),
-                          regional_ems_plot, annual_flux_samples=annual_flux_samples, name_colours=NAME_COLOURS, labels=labels)
-  p_regional <- ggarrange(plotlist=regional_plots, ncol=4, nrow=3, common.legend = TRUE, legend="bottom")
-  p_regional <- annotate_figure(p_regional, left = textGrob(expression(N[2] * "O Flux / TgN " * yr^-1),
-                                                            rot = 90, vjust = 0.5, gp = gpar(cex = 1.3)))
-  ggsave(sprintf("%s/regional_ocean_annual_ems_wombat-%s.pdf", config$paths$inversion_results, args$casename),
+                          regional_ems_plot,
+                          annual_flux_samples = annual_flux_samples,
+                          name_colours = NAME_COLOURS,
+                          labels = labels)
+  p_regional <- ggarrange(plotlist = regional_plots,
+                          ncol = 4,
+                          nrow = 3,
+                          common.legend = TRUE,
+                          legend = "bottom")
+  p_regional <- annotate_figure(p_regional,
+                                left = textGrob(expression(N[2] * "O Flux / TgN " * yr^-1),
+                                                rot = 90, vjust = 0.5, gp = gpar(cex = 1.3)))
+  ggsave(sprintf("%s/regional_ocean_annual_ems_wombat-%s.pdf",
+                 config$paths$inversion_results, args$casename),
         p_regional, height = 20, width = 20)
 }
 
-if (getOption('run.main', default = TRUE)) {
+if (getOption("run.main", default = TRUE)) {
    main()
 }

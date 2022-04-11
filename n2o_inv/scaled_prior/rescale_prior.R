@@ -1,3 +1,5 @@
+# This script rescales prior and the WOMBAT inputs to do a WOMBAT inversion with a
+# rescaled prior
 library(dplyr)
 library(here)
 library(ini)

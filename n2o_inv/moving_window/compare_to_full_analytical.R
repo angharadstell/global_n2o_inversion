@@ -1,3 +1,5 @@
+# This script compares the moving window inversion to a full analytical
+# inversion to check it's working
 library(ggplot2)
 library(here)
 library(ini)
@@ -11,8 +13,8 @@ source(paste0(here(), "/n2o_inv/moving_window/functions.R"))
 method <- "mcmc"
 case <- "IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std"
 
-# work out what observations (the only difference is the model-measurement error)
-# need to be read in based on the case name
+# work out what observations (the only difference is the model-measurement
+# error) need to be read in based on the case name
 if (grepl("model-err-n2o_std", case)) {
   obs_file <- "model-err-n2o_std-observations.fst"
   model_err_suffix <- "-model-err-n2o_std"

@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Plots a nice version of the dD-CH4 map.
-
-Author: Angharad Stell (angharadstell@gmail.com)
+This script has functions to do nice map plots.
 """
 import cartopy
 import matplotlib.pyplot as plt

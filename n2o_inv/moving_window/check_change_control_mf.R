@@ -1,3 +1,6 @@
+# This script plots a comparison of the observations, the full time series
+# analytical inversion posterior mole fraction, the prior control mole
+# fraction, and the next rescaled moving window control mole fraction
 library(dplyr)
 library(ggplot2)
 library(here)
@@ -37,11 +40,12 @@ full_alphas <- do_analytical_inversion(observations, control_mf, perturbations, 
 full_inv_mf <- alpha_to_obs(t(full_alphas$mean), 0,
                             control_mf, perturbations, sensitivities)
 
-# plot a comparison od the observations, the full time series inversion observations, the prior,
-# and the shifted window control mf
-# have to cut the data to just the first site (ALT) for len_window years so that it can be compared
-# to the shorter window inversion time frame
-len_window <- config$moving_window$n_years
+# plot a comparison of the observations, the full time series analytical
+# inversion posterior mole fraction, the prior control mole fraction, and
+# the next rescaled moving window control mole fraction
+# have to cut the data to just the first site (ALT) for len_window years so
+# that it can be compared to the shorter window inversion time frame
+len_window <- as.numeric(config$moving_window$n_years)
 start_index <- ((12 * (test_window - 1)) + 1)
 end_index <- ((test_window + (len_window - 1)) * 12)
 # do the plotting

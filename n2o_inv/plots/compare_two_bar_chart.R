@@ -1,3 +1,4 @@
+# This script compares the output fo GEOSChem simulations
 library(ggplot2)
 library(gtable)
 library(here)
@@ -12,6 +13,7 @@ config <- read.ini(paste0(here(), "/config.ini"))
 # FUNCTIONS
 ###############################################################################
 
+# plots a bar chart comparing two GEOSChem runs
 compare_two <- function(case1, case2, string_pattern, title, labels) {
     case1_annual_flux_samples <- get_annual_ems(case1) %>%
                                    mutate(case = case1) %>%
@@ -26,16 +28,16 @@ compare_two <- function(case1, case2, string_pattern, title, labels) {
 
     p <- ggplot(annual_flux_samples,
                 aes(fill = case, y = flux_mean, ymin = flux_lower, ymax = flux_upper, x = name)) +
-    geom_bar(position = "dodge", stat = "identity") +
-    geom_errorbar(position = "dodge", alpha = 0.5) +
-    geom_vline(xintercept = 12.5) +
-    ylab(expression(N[2] * "O Flux / TgN " * yr^-1)) +
-    xlab(NULL) +
-    scale_fill_discrete(name = title,
-                        breaks = c(case1, case2),
-                        labels = labels) +
-    theme(text = element_text(size = 20),
-          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+                geom_bar(position = "dodge", stat = "identity") +
+                geom_errorbar(position = "dodge", alpha = 0.5) +
+                geom_vline(xintercept = 12.5) +
+                ylab(expression(N[2] * "O Flux / TgN " * yr^-1)) +
+                xlab(NULL) +
+                scale_fill_discrete(name = title,
+                                    breaks = c(case1, case2),
+                                    labels = labels) +
+                theme(text = element_text(size = 20),
+                      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
     p
 }

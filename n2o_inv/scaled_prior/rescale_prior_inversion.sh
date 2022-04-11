@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script makes the WOMBAT models, and runs the WOMBAT inversion with a rescaled prior
 
 #SBATCH --job-name=window_sub
 #SBATCH --nodes=1

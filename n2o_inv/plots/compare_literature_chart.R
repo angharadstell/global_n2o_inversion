@@ -27,6 +27,7 @@ plot_bar <- function(df) {
     p
 }
 
+# select the desired years and subtract the mean flux for the time series
 subtract_mean <- function(df) {
     df <- df %>% filter(year >= 2011, year <= 2020)
     mean_flux <- mean(df$flux)

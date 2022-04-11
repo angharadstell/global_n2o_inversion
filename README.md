@@ -144,7 +144,7 @@ Run analytical and WOMBAT inversions for the first window using pseudodata and c
 2. Carry out analytical inversions for the pseudodata (run pseudodata/analytical_inversion.R)
 
 ### Compare the inversions
-4. Compare how the analytical and WOMBAT inversions do (run pseudodata/analyse_mcmc_samples.R)
+1. Compare how the analytical and WOMBAT inversions do (run pseudodata/analyse_mcmc_samples.R)
 
 
 
@@ -160,8 +160,7 @@ Have to make intermediates for full 10 years before doing window inversion (uses
 
 ### Check the inversion
 1. Check the control_mf is being adjusted correctly (run moving_window/check_change_control_mf.R)
-2. Do a moving window analytical inversion (run moving_window/moving_window_inversion.sh)
-3. Check the moving window inversion is working adequately (run moving_window/compare_to_full_analytical.R)
+2. See "Compare moving window inversion to analytical inversion" section below
 
 ### Plot the results
 1. Plot the fluxes and compare posterior to the observations (run moving_window/plot_inversion_results.sh)

@@ -1,3 +1,5 @@
+# This script plots the observed and modelled growth rate for different latitude
+# bands
 library(dplyr)
 library(fst)
 library(ggplot2)
@@ -11,6 +13,7 @@ library(ini)
 # FUNCTIONS
 ###############################################################################
 
+# calculate the area weighted monthly mean mole fraction
 area_weighted_monthly_mean <- function(obs) {
   obs %>%
   group_by(time) %>%
@@ -20,6 +23,8 @@ area_weighted_monthly_mean <- function(obs) {
   mutate(growth = mean_co2_aw - lag(mean_co2_aw, 12))
 }
 
+# process the observations: selecting the desired variables and adding in a cosine
+# weghted latitude
 process_obs <- function(obs) {
     obs %>%
         dplyr::select(time, latitude, co2) %>%
@@ -27,6 +32,7 @@ process_obs <- function(obs) {
                 co2_aw = abs_cos_lat * co2)
 }
 
+# plot the growth rate against time in four latitude bands
 plot_growth_rate <- function(obs, title) {
     # select required fields and add cosine lat weighting
     obs <- process_obs(obs)

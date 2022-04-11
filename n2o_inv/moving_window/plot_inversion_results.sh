@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script plots the WOMBAT moving window inversion results
 
 #SBATCH --job-name=plot_inv
 #SBATCH --nodes=1
@@ -35,7 +36,7 @@ fi
 echo "Using observations file called: $observations"
 
 
-
+# iterate through each window
 for window in $(eval echo "{1..$nwindow}")
 do
     echo "starting window $window"

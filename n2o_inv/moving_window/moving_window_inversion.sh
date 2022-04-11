@@ -1,4 +1,6 @@
 #!/bin/bash
+# This script runs a moving window inversion by iterating through each window, doing the inversion
+# and changing the control mole fraction for the next window
 
 #SBATCH --job-name=window_sub
 #SBATCH --nodes=1
@@ -22,6 +24,7 @@ source ../spinup/bash_var.sh
 nwindow=${moving_window[n_window]}
 analytical=FALSE
 
+# iterate through each window
 for window in $(eval echo "{1..$nwindow}")
 do
     echo "starting window $window"

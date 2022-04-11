@@ -1,3 +1,5 @@
+# This script contains the functions that are used in multiple different scripts
+# in the moving window inversion section
 library(here)
 library(wombat)
 

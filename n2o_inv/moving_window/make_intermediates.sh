@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script creates the required WOMBAT intermediates for running the 3 year moving window inversion
 
 #SBATCH --job-name=int_window
 #SBATCH --ntasks-per-node=1
@@ -14,12 +15,12 @@ source ../spinup/bash_var.sh
 
 cd ../intermediates
 
+# get some constants from the config
 len_window=${moving_window[n_years]}
 nwindow=${moving_window[n_window]}
-
-
 final_year=${dates[perturb_end]:0:4}
 
+# iterate through each 3 year window
 for window in $(eval echo "{1..$nwindow}")
 do
     echo "starting window $window"
@@ -48,6 +49,7 @@ do
     echo "covers months  $start_month - $end_month"
     sed -e "s/%range%/$start_month-$end_month/" -e "s/%first_year%/$first_year/" -e "s/%last_year%/$last_year/" -e "s/%window02d%/$window02d/" process_geos_output_window_template_submit.sh > process_geos_output_window_submit.sh
     sed -e "s/%first_year%/$first_year/" -e "s/%last_year%/$last_year/" -e "s/%window02d%/$window02d/" process_geos_output_window0_template_submit.sh > process_geos_output_window0_submit.sh
+    # submit to queue system
     sbatch process_geos_output_window_submit.sh
     sbatch process_geos_output_window0_submit.sh
 done
@@ -64,7 +66,7 @@ do
 done
 echo "Exiting loop..."
 
-
+# iterate through each 3 year window
 for window in $(eval echo "{1..$nwindow}")
 do
     echo "starting window $window, phase 2"

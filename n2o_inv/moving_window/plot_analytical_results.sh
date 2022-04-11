@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script plots the full time series analytical inversion results
 
 CASE=analytical-IS-FIXEDGAMMA-NOBIAS-model-err-n2o_std
 echo $CASE

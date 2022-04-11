@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script makes the required WOMBAT models to run one window of the moving window inversion
 
 # read in variables
 cd ../spinup

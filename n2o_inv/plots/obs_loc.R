@@ -1,3 +1,4 @@
+# This script plots the location of the observations on a map
 library(ggplot2)
 library(here)
 library(ini)
@@ -36,7 +37,9 @@ world <- ne_countries(scale = "medium", returnclass = "sf")
 p <- ggplot(data = world) + geom_sf() +
        coord_sf(ylim = c(-90, 90), expand = FALSE) +
        geom_point(data = obs, aes(x = longitude, y = latitude), color = "red", size = 3) +
-       xlab('Longitude') + ylab('Latitude') + theme(text = element_text(size = 20))
+       xlab('Longitude') +
+       ylab('Latitude') +
+       theme(text = element_text(size = 20))
 
 plot(p)
 
