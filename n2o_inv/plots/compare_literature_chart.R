@@ -35,6 +35,19 @@ subtract_mean <- function(df) {
     df
 }
 
+# get my flux aggregates to right format for inter annual variation plot
+process_fluxes_iav <- function(fluxes) {
+    fluxes_iav <- fluxes %>%
+                  filter(estimate == "Posterior", name == "Global", month_start >= as.Date("2011-01-01")) %>%
+                  mutate(year = as.integer(format(month_start, format = "%Y"))) %>%
+                  group_by(year) %>%
+                  summarise(flux = sum(flux_mean),
+                            flux_lower = quantile(colSums(flux_samples), probs = 0.025, na.rm = TRUE),
+                            flux_upper = quantile(colSums(flux_samples), probs = 0.975, na.rm = TRUE))
+
+    fluxes_iav
+}
+
 ###############################################################################
 # CODE
 ###############################################################################
@@ -125,40 +138,48 @@ main <- function() {
                             2.819, 2.963, 2.872, 2.926, 2.638,
                             2.83, 3.149, 2.856))
 
-    my_fluxes_iav <- my_fluxes %>%
-                    filter(estimate == "Posterior", name == "Global", month_start >= as.Date("2011-01-01")) %>%
-                    mutate(year = as.integer(format(month_start, format = "%Y"))) %>%
-                    group_by(year) %>%
-                    summarise(flux = sum(flux_mean),
-                              flux_lower = quantile(colSums(flux_samples), probs = 0.025, na.rm = TRUE),
-                              flux_upper = quantile(colSums(flux_samples), probs = 0.975, na.rm = TRUE))
+    # my hierarchical results
+    my_fluxes_iav <- process_fluxes_iav(my_fluxes)
 
-    thompson_1 <- thompson_1 %>% mutate(flux = land_flux + ocean_flux) %>% select(year, flux)
-    thompson_2 <- thompson_2 %>% mutate(flux = land_flux + ocean_flux) %>% select(year, flux)
-    thompson_3 <- thompson_3 %>% mutate(flux = land_flux + ocean_flux) %>% select(year, flux)
-    patra <- patra %>% mutate(flux = land_flux + ocean_flux) %>% select(year, flux)
+    # my analytical results
+    ana_fluxes <- readRDS(sprintf("%s/real-flux-aggregates-samples-analytical-IS-FIXEDGAMMA-NOBIAS-model-err-n2o_std.rds", config$paths$inversion_results))
+    ana_fluxes_iav <- process_fluxes_iav(ana_fluxes)
 
 
+    thompson_1 <- thompson_1 %>% mutate(flux = land_flux + ocean_flux) %>% dplyr::select(year, flux)
+    thompson_2 <- thompson_2 %>% mutate(flux = land_flux + ocean_flux) %>% dplyr::select(year, flux)
+    thompson_3 <- thompson_3 %>% mutate(flux = land_flux + ocean_flux) %>% dplyr::select(year, flux)
+    patra <- patra %>% mutate(flux = land_flux + ocean_flux) %>% dplyr::select(year, flux)
+
+    # subtract mean for 2011-2020 so IAV can be clearly seen
     thompson_1 <- subtract_mean(thompson_1)
     thompson_2 <- subtract_mean(thompson_2)
     thompson_3 <- subtract_mean(thompson_3)
     patra <- subtract_mean(patra)
     my_fluxes_iav <- subtract_mean(my_fluxes_iav)
+    ana_fluxes_iav <- subtract_mean(ana_fluxes_iav)
 
-    full_tibble <- full_join(thompson_1, thompson_2, by = "year") %>%
-                    full_join(thompson_3, by = "year") %>%
+    # join results together
+    full_tibble <-  full_join(my_fluxes_iav %>% dplyr::select(year, flux), ana_fluxes_iav %>% dplyr::select(year, flux), by = "year") %>%
                     full_join(patra, by = "year") %>%
-                    full_join(my_fluxes_iav  %>% select(year, flux), by = "year")
-    names(full_tibble) <- c("year", "Thompson 2019 INV1", "Thompson 2019 INV2", "Thompson 2019 INV3", "Patra 2022", "This work")
+                    full_join(thompson_1, by = "year") %>%
+                    full_join(thompson_2, by = "year") %>%
+                    full_join(thompson_3, by = "year")
+    names(full_tibble) <- c("year", "This work (hierarchical)", "This work (analytical)", "Patra 2022", "Thompson 2019 INV1", "Thompson 2019 INV2", "Thompson 2019 INV3")
     full_tibble_melted <- melt(full_tibble, id.vars = "year")
 
+    # colour blind friendly colours
+    cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+    # plotting
     p <- ggplot() +
-        geom_ribbon(data = my_fluxes_iav, aes(x = year, ymin=flux_lower, ymax=flux_upper), alpha = 0.25) +
+        geom_ribbon(data = my_fluxes_iav, aes(x = year, ymin = flux_lower, ymax = flux_upper), alpha = 0.25) +
         geom_line(data = full_tibble_melted, aes(x = year, y = value, color = variable)) +
         ylab(expression(N[2] * "O Flux / TgN " * yr^-1)) +
         scale_x_continuous(breaks = seq(2011, 2020, 2), expand = c(0, 0)) +
         xlab("") +
-        scale_color_discrete(name = "") +
+        scale_color_manual(values = cbbPalette,
+                           name = "") +
         theme(text = element_text(size = 20))
 
     plot(p)

@@ -51,6 +51,9 @@ def cartopy_plot(ems_grid, colorbar_label, filename, cmap="Reds", norm=None):
                         transform=cartopy.crs.PlateCarree(), cmap=cmap, norm=norm, 
                         rasterized=True)
 
+    gl = ax.gridlines(crs=cartopy.crs.PlateCarree(), draw_labels=True,
+                      linewidth=2, color='gray', alpha=0.5, linestyle='--')
+
     cbar = plt.colorbar(cs, orientation="horizontal", pad=0.1)
     cbar.ax.tick_params(labelsize=14)
     cbar.set_label(colorbar_label)
