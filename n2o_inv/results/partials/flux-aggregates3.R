@@ -1,23 +1,21 @@
-# plots the fluxes with the prior for one case
+# plots the fluxes for two cases
 ESTIMATE_COLOURS <- c(
-  'Prior (mean)' = get_colour('wombat_prior'),
-  'Posterior (mean, 95% cred. int.)' = get_colour('wombat_lg')
+  'Prior' = "#56B4E9",
+  'Hierarchical Posterior' = "#E69F00",
+  'Analytical Posterior' = "#009E73"
 )
 
 ESTIMATE_LINETYPES = c(
-  'Prior (mean)' = 'solid',
-  'Posterior (mean, 95% cred. int.)' = 'solid'
+  'Prior' = 'solid',
+  'Hierarchical Posterior' = 'solid',
+  'Analytical Posterior' = 'solid'
 )
 
 log_info('Loading flux samples')
 flux_samples <- flux_samples %>%
   mutate(
     year = year(month_start),
-    estimate = factor(ifelse(
-      is_prior,
-      sprintf('%s (mean)', observation_group),
-      sprintf('%s (mean, 95%% cred. int.)', observation_group)
-    ), levels = names(ESTIMATE_COLOURS))
+    estimate = factor(observation_group, levels = names(ESTIMATE_COLOURS))
   ) %>%
   select(-observation_group)
 
@@ -54,12 +52,12 @@ monthly_fluxes <- flux_samples %>%
   ungroup() %>%
   mutate(
     flux_lower = if_else(
-      is_prior & !show_prior_uncertainty,
+      is_prior & !show_prior_uncertainty | estimate == 'Analytical Posterior',
       as.double(NA),
       matrixStats::rowQuantiles(flux_samples, probs = 0.025)
     ),
     flux_upper = if_else(
-      is_prior & !show_prior_uncertainty,
+      is_prior & !show_prior_uncertainty | estimate == 'Analytical Posterior',
       as.double(NA),
       matrixStats::rowQuantiles(flux_samples, probs = 0.975)
     )

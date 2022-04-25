@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script plots the fluxes and observed mole fractions for the hierarchical results
 
 # read in variables
 cd ../spinup

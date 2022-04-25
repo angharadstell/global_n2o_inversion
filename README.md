@@ -165,7 +165,7 @@ Have to make intermediates for full 10 years before doing window inversion (uses
 ### Plot the results
 1. Plot the fluxes and compare posterior to the observations (run moving_window/plot_inversion_results.sh)
 2. Plot the hyperparameters (run moving_window/plot_hyperparameters.R)
-
+3. Plot the moving window inversion, against the prior and the analytical (run results/plots3.sh)
 
 
 ## Compare moving window inversion to analytical inversion
