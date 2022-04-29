@@ -13,7 +13,7 @@ The adapted N<sub>2</sub>O  repository can be found at https://github.com/anghar
 1. Clone this repo
 2. Clone https://github.com/mbertolacci/wombat-paper (needed for fast sparse and a few random scripts I should move into mine)
 3. Clone https://github.com/angharadstell/wombat
-4. Clone [ACRG REPO] (annoying...)
+4. Clone https://github.com/ACRG-Bristol/acrg
 5. If you want to run GEOSChem, you will have to install it, full instructions are available through the GEOSChem guide (https://geos-chem.seas.harvard.edu/). I used version 13.0.0.
 
 The location of these directories is specified in the config.ini file of this repo, you'll have to change the paths for your system. 
@@ -44,11 +44,11 @@ You have two options to try here:
     'devtools', 'raster', 'argparser', 'codetools', 'ncdf4', 'fst', 'matrixStats',
     'readr', 'argparse', 'scoringRules', 'patchwork', 'lifecycle', 'sf',
     'ggplot2', 'dplyr', 'tidyr', 'RcppEigen', 'rnaturalearth',
-    'rnaturalearthdata', 'rgeos', 'ini', 'here'
+    'rnaturalearthdata', 'rgeos', 'ini', 'here', 'ggthemes'
     ))"
     ```
 
-    Or the local R packages:
+    Or the local packages:
     - cd into the "wombat-paper" directory where you cloned https://github.com/mbertolacci/wombat-paper
         ```
         Rscript -e "devtools::install('fastsparse')"
@@ -57,9 +57,11 @@ You have two options to try here:
         ```
         Rscript -e "devtools::install('wombat')"
         ```
-
-
-
+    - cd into the "global_n2o_inversion" directory where you cloned this repository
+        ```
+        pip install -e .
+        ```
+    - to make the "acrg" directory useable, go to ~/.local/lib/python3.8/site-packages/ and make a paths.pth that contains the path to your acrg directory, e.g. "/user/home/as16992/acrg"
 
 2. If the above options don't work, follow the instructions in the "Installation/setting up an environment" section of https://github.com/mbertolacci/wombat-paper, with a few exceptions: 
     - I made my environment in my default conda location, but where you put it is up to you (you'll have to adapt the paths)
@@ -70,7 +72,7 @@ You have two options to try here:
     There will also be some missing packages, which you can attempt to figure out from environment.yml or just conda install as they come up.
 
 ## Getting data
-- The intermediates and results of this work is available at [OSF LINK]. This does not include: the emissions (except the intermediate used in the inversion), observations (except the intermediate used in the inversion), GEOSChem output, GEOSChem running directories, and pseudodata because this is a lage amount of data that is not required to reproduce the main results of the paper. This data is available if you contact me.
+- The intermediates and results of this work is available at https:doi.org/10.17605/OSF.IO/SN539. This does not include: the emissions (except the intermediate used in the inversion), observations (except the intermediate used in the inversion), GEOSChem output, GEOSChem running directories, and pseudodata because this is a lage amount of data that is not required to reproduce the main results of the paper. This data is available if you contact me.
 The following data is only needed if you want to recreate the geoschem runs:
 - The emissions used can be downloaded from: EDGAR (https://edgar.jrc.ec.europa.eu/dataset_ghg50), Saikawa 2013 (either cotact the authors https://doi.org/10.1002/gbc.20087 or me), GFED (https://www.globalfiredata.org/data.html), Manizza 2012 (either contact the authors https://doi.org/10.3402/tellusb.v64i0.18429 or me)
 - The obspacks used (obspack_multi-species_1_CCGGSurfaceFlask_v2.0_2021-02-09 and obspack_multi-species_1_CCGGAircraftFlask_v2.0_2021-02-09) can be downloaded from https://gml.noaa.gov/ccgg/obspack/data.php
@@ -91,7 +93,7 @@ from within the directory "global_n2o_inversion/tests/testthat", run this comman
 Rscript -e "testthat::test_local()"
 ```
 
-If you have downloaded the intermediates/ results (see section above) and correctly changed the config.ini to have the correct paths, all the tests should pass.
+If you have downloaded the intermediates/ results (see section above) and correctly changed the config.ini to have the correct paths, all the tests should pass (apart from one which needs the obspack data to be downloaded, which you can either ignore or download the data).
 
 ## Getting started
 A good place to start might be tutorials/wombat_intermediates.ipynb which goes through how I create all the WOMBAT intermediates from the GEOSChem runs. To run all of this tutorial, you will either need your own set of GEOSChem runs or contacted me to get my set. However, the tutorial intermediates are included in the easily downloadable intermediates/ results data, so you can still examine the intermediates. Even without the raw GEOSChem runs this is useful script to look at, because it contains descriptions of all the variables in the WOMBAT intermediates.
