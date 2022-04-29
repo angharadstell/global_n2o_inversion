@@ -109,13 +109,13 @@ if __name__ == "__main__":
     hippo_geos_prior_5 = read_geos(hippo_obs_5, GEOSOUT_DIR / BASE_CASE, NO_REGIONS)
 
     # print differences to obs
-    diff = (hippo_geos_prior_4["CH4_sum"] - hippo_obs_4["value"]).mean().values
+    diff = (hippo_geos_prior_4["CH4_sum"] - hippo_obs_4["value"]).median().values
     print(f"prior - HIPP04 (model - obs): {diff:.2f} ppb")
-    diff = (hippo_geos_prior_5["CH4_sum"] - hippo_obs_5["value"]).mean().values
+    diff = (hippo_geos_prior_5["CH4_sum"] - hippo_obs_5["value"]).median().values
     print(f"prior - HIPP05 (model - obs): {diff:.2f} ppb")
-    diff = (hippo_geos_post_4["CH4_sum"] - hippo_obs_4["value"]).mean().values
+    diff = (hippo_geos_post_4["CH4_sum"] - hippo_obs_4["value"]).median().values
     print(f"post - HIPP04 (model - obs): {diff:.2f} ppb")
-    diff = (hippo_geos_post_5["CH4_sum"] - hippo_obs_5["value"]).mean().values
+    diff = (hippo_geos_post_5["CH4_sum"] - hippo_obs_5["value"]).median().values
     print(f"post - HIPP05 (model - obs): {diff:.2f} ppb")
 
     # zonal plot
