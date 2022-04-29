@@ -112,15 +112,32 @@ main <- function() {
   post_growth <- plot_growth_rate(post_mf, "c. Posterior")
   prior_constant_growth <- plot_growth_rate(control_mf_constant, "d. Prior constant met after 2015")
 
+  # get them to share y limits and remove labels and legend
+  ymin <- 0.5
+  ymax <- 1.9
+  obs_growth <- obs_growth +
+                ylim(ymin, ymax) +
+                theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = "none")
+  prior_growth <- prior_growth +
+                  ylim(ymin, ymax) +
+                  theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = "none")
+  post_growth <- post_growth +
+                 ylim(ymin, ymax) +
+                 theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = "none")
+  prior_constant_growth <- prior_constant_growth +
+                           ylim(ymin, ymax) +
+                           theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = "none")
 
   layout <- rbind(c(1, 1, 1, 5), c(2, 2, 2, 5), c(3, 3, 3, 5), c(4, 4, 4, 5))
   legend <- gtable_filter(ggplotGrob(obs_growth), "guide-box")
-  p <- grid.arrange(obs_growth + theme(axis.title.y = element_blank(), legend.position = "none"),
-                    prior_growth + theme(axis.title.y = element_blank(), legend.position = "none"),
-                    post_growth + theme(axis.title.y = element_blank(), legend.position = "none"),
-                    prior_constant_growth + theme(axis.title.y = element_blank(), legend.position = "none"), ncol = 1,
+  p <- grid.arrange(obs_growth,
+                    prior_growth,
+                    post_growth,
+                    prior_constant_growth,
+                    ncol = 1,
                     legend,
                     left = textGrob(expression(paste("Growth rate / ppb ", yr^{-1})), rot = 90, gp = gpar(fontsize = 20)),
+                    bottom = textGrob("Year", hjust = 2.4, gp = gpar(fontsize = 20)),
                     layout_matrix = layout)
   ggsave(paste0(config$paths$obspack_dir, "/all_growth_rate.pdf"), p)
 }

@@ -105,22 +105,35 @@ plot_param_map <- function(window_samples) {
                    mm_scale = mean(mm))
 
   # plot
-  p <- ggplot(data = world) + geom_sf() +
-         coord_sf(ylim = c(-90, 90), expand = FALSE) +
+  p1 <- ggplot(data = world) +
          geom_tile(data = test_df, aes(x = x, y = y, fill = std)) +
-         scale_fill_gradient(low = alpha("black", 0.8), high = alpha("grey", 0.8)) +
-         geom_point(data = obs, aes(x = lon, y = lat, color = mm_scale)) +
-         scale_color_gradient2(midpoint = 1, low = "blue", mid = "white",
-                     high = "red", space = "Lab") +
+         scale_fill_viridis() +
+         geom_sf(color = "black", fill = NA) +
          theme_map() +
-         theme(legend.position = "bottom", legend.box = "vertical", legend.box.just = "right") +
-         labs(fill = "Scaling factor standard deviation   ",
-              color = "Model-measurement error scaling factor   ") +
-         theme(legend.key.width = unit(2, "cm")) +
-         theme(text = element_text(size = 20))
+         theme(legend.position = "bottom", legend.box = "vertical", legend.justification = "right") +
+         labs(fill = "Scaling factor standard deviation   ") +
+         theme(legend.key.width = unit(1, "cm")) +
+         theme(text = element_text(size = 20)) +
+         coord_sf(ylim = c(-90, 90), expand = FALSE) +
+         ggtitle("a. Scaling factor standard deviation")
+
+    p2 <- ggplot(data = world) +
+         geom_sf(color = "black", fill = "#3f3c3c") +
+         geom_point(data = obs, aes(x = lon, y = lat, color = mm_scale), size = 5) +
+         scale_color_gradient2(midpoint = 1, low = "blue", mid = "white",
+                     high = "red") +
+         theme_map() +
+         theme(legend.position = "bottom", legend.box = "vertical", legend.justification = "right") +
+         labs(color = "Model-measurement error scaling factor   ") +
+         theme(legend.key.width = unit(1, "cm")) +
+         theme(text = element_text(size = 20), panel.background = element_rect(fill="#3f3c3c")) +
+         coord_sf(ylim = c(-90, 90), expand = FALSE) +
+         ggtitle("b. Model-measurement error scaling factor")
 
 
-  p
+    p <- grid.arrange(p1, p2, ncol = 1)
+
+    p
 }
 
 # plot model-measurement error data
@@ -235,7 +248,8 @@ main <- function() {
 
   p <- plot_param_map(window_samples)
   plot(p)
-  ggsave(paste0(config$paths$inversion_results, "/hyperparameter_map.pdf"), p)
+  ggsave(paste0(config$paths$inversion_results, "/hyperparameter_map.pdf"),
+         p, width = 9)
 
 
   # plot gamma
