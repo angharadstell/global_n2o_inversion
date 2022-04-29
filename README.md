@@ -72,7 +72,7 @@ You have two options to try here:
     There will also be some missing packages, which you can attempt to figure out from environment.yml or just conda install as they come up.
 
 ## Getting data
-- The intermediates and results of this work is available at https:doi.org/10.17605/OSF.IO/SN539. This does not include: the emissions (except the intermediate used in the inversion), observations (except the intermediate used in the inversion), GEOSChem output, GEOSChem running directories, and pseudodata because this is a lage amount of data that is not required to reproduce the main results of the paper. This data is available if you contact me.
+- The intermediates and results of this work is available at https://doi.org/10.17605/OSF.IO/SN539. This does not include: the emissions (except the intermediate used in the inversion), observations (except the intermediate used in the inversion), GEOSChem output, GEOSChem running directories, and pseudodata because this is a lage amount of data that is not required to reproduce the main results of the paper. This data is available if you contact me.
 The following data is only needed if you want to recreate the geoschem runs:
 - The emissions used can be downloaded from: EDGAR (https://edgar.jrc.ec.europa.eu/dataset_ghg50), Saikawa 2013 (either cotact the authors https://doi.org/10.1002/gbc.20087 or me), GFED (https://www.globalfiredata.org/data.html), Manizza 2012 (either contact the authors https://doi.org/10.3402/tellusb.v64i0.18429 or me)
 - The obspacks used (obspack_multi-species_1_CCGGSurfaceFlask_v2.0_2021-02-09 and obspack_multi-species_1_CCGGAircraftFlask_v2.0_2021-02-09) can be downloaded from https://gml.noaa.gov/ccgg/obspack/data.php
