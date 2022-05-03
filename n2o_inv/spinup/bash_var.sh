@@ -12,8 +12,6 @@ eval "$(cat $SCRIPT_DIR/../../config.ini  | $SCRIPT_DIR/ini2arr.py)"
 # variables
 # this seemed like a good idea at the time but is actually just annoying
 # should just read variables directly form the config
-location_of_this_file=${paths[location_of_this_file]}
-
 geo_wrapper_dir=${paths[geo_wrapper_dir]}
 geo_rundirs=${paths[geo_rundirs]}
 

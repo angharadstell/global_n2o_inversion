@@ -14,13 +14,13 @@ echo "third bash arg (intermediate dir):"
 echo $3
 
 # Create aggregated flux areas
-Rscript ${paths[location_of_this_file]}/../results/flux-aggregators.R \
+Rscript ${paths[root_code_dir]}/results/flux-aggregators.R \
     --process-model $3/$2.rds \
     --transcom-mask ${inversion_constants[geo_transcom_mask]} \
     --output ${paths[inversion_results]}/flux-aggregators-$1.rds
 
 # Aggregate MCMC samples
-Rscript ${paths[location_of_this_file]}/../results/flux-aggregates-samples.R \
+Rscript ${paths[root_code_dir]}/results/flux-aggregates-samples.R \
     --flux-aggregators ${paths[inversion_results]}/flux-aggregators-$1.rds \
     --model-case $3/real-model-$1.rds \
     --process-model $3/$2.rds \

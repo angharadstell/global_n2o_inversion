@@ -39,7 +39,7 @@ sed -i "s#DiagnPrefix:                 $output_dir/$case/HEMCO_diagnostics#Diagn
 
 # Get submission script
 cd $geo_rundirs/${inversion_constants[model_err_case]}
-cp $location_of_this_file/templates/gcclassic_submit.sh .
+cp ${paths[root_code_dir]}/spinup/templates/gcclassic_submit.sh .
 sed -i "s#%exe_path%#$geo_rundirs/${inversion_constants[model_err_case]}#" gcclassic_submit.sh
 
 # Compile

@@ -37,7 +37,7 @@ cd ../results
 ./flux_aggregators.sh $CASE process-model-$CASE ${paths[moving_window_dir]}
 
 echo "obs_matched_samples.R"
-Rscript ${paths[location_of_this_file]}/../results/obs_matched_samples.R \
+Rscript ${paths[root_code_dir]}/results/obs_matched_samples.R \
     --model-case ${paths[moving_window_dir]}/real-model-$CASE.rds \
     --process-model ${paths[moving_window_dir]}/process-model-$CASE.rds \
     --samples ${paths[moving_window_dir]}/real-mcmc-samples-$CASE.rds \

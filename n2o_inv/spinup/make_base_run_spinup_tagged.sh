@@ -22,7 +22,7 @@ cd $geo_rundirs/$case
 sed -i -e "s/Start YYYYMMDD, hhmmss  : .*/Start YYYYMMDD, hhmmss  : ${dates[spinup_start]//-} 000000/" -e "s/End   YYYYMMDD, hhmmss  : .*/End   YYYYMMDD, hhmmss  : ${dates[perturb_start]//-} 000000/" input.geos
 
 # Copy HEMCO_Config_template across
-cp $location_of_this_file/templates/HEMCO_Config_template.rc ./HEMCO_Config.rc
+cp ${paths[root_code_dir]}/spinup/templates/HEMCO_Config_template.rc ./HEMCO_Config.rc
 
 # Remove species names
 sed -i '/Species name            : CH4.*/d' input.geos
@@ -56,7 +56,7 @@ sed -i "/^%%% ADVECTED SPECIES MENU %%%:/a Species name            : CH4" input.
 #################
 # Modify global_ch4_mod
 cd $geo_rundirs/$case/CodeDir/src/GEOS-Chem/GeosCore
-cp $location_of_this_file/templates/global_ch4_mod_tagged_template.txt .
+cp ${paths[root_code_dir]}/spinup/templates/global_ch4_mod_tagged_template.txt .
 
 # delete print statements
 sed -i "/^       WRITE(\*,\*) 'Oil          : ', SUM(CH4_EMIS(:,:,2))/,/^       WRITE(\*,\*) 'Soil absorb  : ', SUM(CH4_EMIS(:,:,15))/d" global_ch4_mod.F90
@@ -81,7 +81,7 @@ rm global_ch4_mod_tagged_template.txt
 
 #################
 # Modify hcoi_gc_diagn_mod
-cp $location_of_this_file/templates/hcoi_gc_diagn_mod_template.txt .
+cp ${paths[root_code_dir]}/spinup/templates/hcoi_gc_diagn_mod_template.txt .
 
 ## delete old tracers
 sed -i '/! %%%%% CH4 from /,+28d' hcoi_gc_diagn_mod.F90

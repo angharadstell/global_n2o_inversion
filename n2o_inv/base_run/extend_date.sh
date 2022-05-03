@@ -62,7 +62,7 @@ done
 
 # # NEW PERTURBED RUNS
 # # HAVE TO WAIT FOR BASE RUN TO FINISH
-# cd ${paths[location_of_this_file]}/../perturbed_runs
+# cd ${paths[root_code_dir]}/perturbed_runs
 # # only replace first match of date as want to keep second which specifies correct ic file location
 # sed -e "0,/\${dates\[perturb_start\]:0:4}/{s/\${dates\[perturb_start\]:0:4}/${old_end:0:4}/}" -e "s/10:00:00/$new_walltime:00:00/" setup_perturbed.sh > extend_setup_perturbed.sh
 # chmod +x extend_setup_perturbed.sh

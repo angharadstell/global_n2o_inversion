@@ -18,7 +18,7 @@ args <- arg_parser('', hide.opts = TRUE) %>%
 
 config <- read.ini(paste0(here(), "/config.ini"))
 source(paste0(config$paths$wombat_paper, "/3_inversion/src/partials/display.R"))
-source(paste0(config$paths$location_of_this_file, "/../results/partials/tables.R"))
+source(paste0(config$paths$root_code_dir, "/results/partials/tables.R"))
 
 ###############################################################################
 # EXECUTION

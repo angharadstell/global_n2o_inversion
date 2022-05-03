@@ -28,7 +28,7 @@ param_w=TRUE
 # Make measurement model
 if [[ $param_gamma = TRUE ]]
 then
-    Rscript ${paths[location_of_this_file]}/../intermediates/measurement-model.R \
+    Rscript ${paths[root_code_dir]}/intermediates/measurement-model.R \
     --observations ${paths[pseudodata_dir]}/observations_${case}_`printf %04d $SLURM_ARRAY_TASK_ID`.fst \
     --process-model ${paths[pseudodata_dir]}/process-model.rds \
     --gamma-prior-min 0.1 \
@@ -38,7 +38,7 @@ fi
 if [[ $param_a = TRUE ]] || [[ $param_w = TRUE ]]
 then
     # Make measurement model with fixed gamma
-    Rscript ${paths[location_of_this_file]}/../intermediates/measurement-model.R \
+    Rscript ${paths[root_code_dir]}/intermediates/measurement-model.R \
     --observations ${paths[pseudodata_dir]}/observations_${case}_`printf %04d $SLURM_ARRAY_TASK_ID`.fst \
     --process-model ${paths[pseudodata_dir]}/process-model.rds \
     --gamma-prior-shape 100000000 \
@@ -51,7 +51,7 @@ fi
 # vary a
 if [[ $param_a = TRUE ]]
 then
-    Rscript ${paths[location_of_this_file]}/../intermediates/real-model-case.R \
+    Rscript ${paths[root_code_dir]}/intermediates/real-model-case.R \
     --case IS-RHO0-FIXEDGAMMA-VARYA-FIXEDW-NOBIAS \
     --measurement-model ${paths[pseudodata_dir]}/measurement-model-FIXEDGAMMA_${case}_`printf %04d $SLURM_ARRAY_TASK_ID`.rds \
     --process-model ${paths[pseudodata_dir]}/process-model.rds \
@@ -61,7 +61,7 @@ fi
 # vary w
 if [[ $param_w = TRUE ]]
 then
-    Rscript ${paths[location_of_this_file]}/../intermediates/real-model-case.R \
+    Rscript ${paths[root_code_dir]}/intermediates/real-model-case.R \
     --case IS-RHO0-FIXEDGAMMA-FIXEDA-VARYW-NOBIAS \
     --measurement-model ${paths[pseudodata_dir]}/measurement-model-FIXEDGAMMA_${case}_`printf %04d $SLURM_ARRAY_TASK_ID`.rds \
     --process-model ${paths[pseudodata_dir]}/process-model.rds \
@@ -71,7 +71,7 @@ fi
 # vary gamma
 if [[ $param_gamma = TRUE ]]
 then
-    Rscript ${paths[location_of_this_file]}/../intermediates/real-model-case.R \
+    Rscript ${paths[root_code_dir]}/intermediates/real-model-case.R \
     --case IS-RHO0-FIXEDA-FIXEDW-NOBIAS \
     --measurement-model ${paths[pseudodata_dir]}/measurement-model_${case}_`printf %04d $SLURM_ARRAY_TASK_ID`.rds \
     --process-model ${paths[pseudodata_dir]}/process-model.rds \

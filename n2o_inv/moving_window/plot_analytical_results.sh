@@ -36,14 +36,14 @@ rm make_models_analytical_$CASE.sh
 
 # traceplot
 echo "traceplots.R"
-Rscript ${paths[location_of_this_file]}/../inversion/traceplots.R --casename $CASE --sampledir ${paths[geos_inte]}
+Rscript ${paths[root_code_dir]}/inversion/traceplots.R --casename $CASE --sampledir ${paths[geos_inte]}
 
 # flux aggregate
 cd ../results
 ./flux_aggregators.sh $CASE process-model-$CASE ${paths[geos_inte]}
 
 echo "obs_matched_samples.R"
-Rscript ${paths[location_of_this_file]}/../results/obs_matched_samples.R \
+Rscript ${paths[root_code_dir]}/results/obs_matched_samples.R \
     --model-case ${paths[geos_inte]}/real-model-${CASE}.rds \
     --process-model ${paths[geos_inte]}/process-model-${CASE}.rds \
     --samples ${paths[geos_inte]}/real-mcmc-samples-${CASE}.rds \

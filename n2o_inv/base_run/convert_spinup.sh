@@ -22,5 +22,5 @@ sed -i "s#/su_$(printf '%02d' $((no_spinup_years+1)))##" HEMCO_Config.rc
 # alter submission script
 cd $geo_rundirs/$case
 rm gcclassic_submit.sh
-cp $location_of_this_file/templates/gcclassic_submit.sh ./gcclassic_submit.sh
+cp ${paths[root_code_dir]}/spinup/templates/gcclassic_submit.sh ./gcclassic_submit.sh
 sed -i "s#%exe_path%#$geo_rundirs/$case#" gcclassic_submit.sh

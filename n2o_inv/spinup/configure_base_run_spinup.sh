@@ -8,7 +8,7 @@ source bash_var.sh
 source make_base_run_spinup_tagged.sh
 
 # Change CH4 to N2O
-cd $location_of_this_file
+cd ${paths[root_code_dir]}/spinup
 source make_base_run_spinup_n2o.sh
 
 # Try to get CH4 collection to check losses
@@ -40,12 +40,12 @@ make install
 
 # Get submission script
 cd $geo_rundirs/$case
-cp $location_of_this_file/templates/gcclassic_submit.sh .
+cp ${paths[root_code_dir]}/spinup/templates/gcclassic_submit.sh .
 sed -i -e "s#%exe_path%#$geo_rundirs/$case#" -e "s#GC.log#GC_su_01.log#" gcclassic_submit.sh
 
 # copy bash_var across and append repeating met code to the submission script
-cp $location_of_this_file/bash_var.sh .
-cat $location_of_this_file/spinup_repeat_met.sh >> gcclassic_submit.sh
+cp ${paths[root_code_dir]}/spinup/bash_var.sh .
+cat ${paths[root_code_dir]}/spinup/spinup_repeat_met.sh >> gcclassic_submit.sh
 
 # download any required data
 ./gcclassic --dryrun > log.dryrun

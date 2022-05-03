@@ -43,7 +43,7 @@ sed -i "s#base_emissions_tagged.nc#ems_posterior.nc#" HEMCO_Config.rc
 
 # Get submission script
 cd $geo_rundirs/${inversion_constants[validation_case]}
-cp $location_of_this_file/templates/gcclassic_submit.sh .
+cp ${paths[root_code_dir]}/spinup/templates/gcclassic_submit.sh .
 sed -i -e "s#%exe_path%#$geo_rundirs/${inversion_constants[validation_case]}#" -e "s/72:00:00/120:00:00/" gcclassic_submit.sh
 
 # Compile

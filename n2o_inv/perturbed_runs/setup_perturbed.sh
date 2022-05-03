@@ -61,7 +61,7 @@ do
         fi
 
         # Run script
-        cp $location_of_this_file/templates/gcclassic_submit.sh $geo_rundirs/$perturb_case/gcclassic_submit.sh
+        cp ${paths[root_code_dir]}/spinup/templates/gcclassic_submit.sh $geo_rundirs/$perturb_case/gcclassic_submit.sh
         sed -i -e "s#%exe_path%#$geo_rundirs/$perturb_case#" -e "s/72:00:00/24:00:00/" gcclassic_submit.sh
 
         # Compile

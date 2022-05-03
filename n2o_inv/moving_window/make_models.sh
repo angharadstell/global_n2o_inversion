@@ -42,7 +42,7 @@ echo "window02d in make_models: $window02d"
 if [ $window02d = 01 ]
 then
     echo ${paths[geos_inte]}/control-mole-fraction-window${window02d}${rescaled}.fst
-    Rscript ${paths[location_of_this_file]}/../intermediates/process-model.R \
+    Rscript ${paths[root_code_dir]}/intermediates/process-model.R \
     --control-emissions ${paths[geos_inte]}/control-emissions-window${window02d}${rescaled}.fst \
     --perturbations ${paths[geos_inte]}/perturbations_window${window02d}${rescaled}.fst \
     --control-mole-fraction ${paths[geos_inte]}/control-mole-fraction-window${window02d}${rescaled}.fst \
@@ -50,7 +50,7 @@ then
     --output ${paths[moving_window_dir]}/process-model-${CASE}_window$window02d.rds
 else
     echo ${paths[geos_inte]}/control-mole-fraction-${CASE}-window${window02d}${rescaled}-mcmc-rescaled.fst
-    Rscript ${paths[location_of_this_file]}/../intermediates/process-model.R \
+    Rscript ${paths[root_code_dir]}/intermediates/process-model.R \
     --control-emissions ${paths[geos_inte]}/control-emissions-window${window02d}${rescaled}.fst \
     --perturbations ${paths[geos_inte]}/perturbations_window${window02d}${rescaled}.fst \
     --control-mole-fraction ${paths[geos_inte]}/control-mole-fraction-${CASE}-window${window02d}${rescaled}-mcmc-rescaled.fst \
@@ -62,7 +62,7 @@ fi
 if [[ "$CASE" == *"FIXEDGAMMA"* ]]
 then
     echo "making fixed gamma measurement model..." 
-    Rscript ${paths[location_of_this_file]}/../intermediates/measurement-model.R \
+    Rscript ${paths[root_code_dir]}/intermediates/measurement-model.R \
     --observations ${paths[geos_inte]}/${observations}_window$window02d.fst \
     --process-model ${paths[moving_window_dir]}/process-model-${CASE}_window$window02d.rds \
     --gamma-prior-shape 100000000 \
@@ -70,7 +70,7 @@ then
     --output ${paths[moving_window_dir]}/measurement-model-${CASE}_window$window02d.rds
 else
     echo "making varying gamma measurement model..."
-    Rscript ${paths[location_of_this_file]}/../intermediates/measurement-model.R \
+    Rscript ${paths[root_code_dir]}/intermediates/measurement-model.R \
     --observations ${paths[geos_inte]}/${observations}_window$window02d.fst \
     --process-model ${paths[moving_window_dir]}/process-model-${CASE}_window$window02d.rds \
     --gamma-prior-min 0.1 \
@@ -79,7 +79,7 @@ else
 fi
 
 # Make real model case
-Rscript ${paths[location_of_this_file]}/../intermediates/real-model-case.R \
+Rscript ${paths[root_code_dir]}/intermediates/real-model-case.R \
 --case $CASE \
 --measurement-model ${paths[moving_window_dir]}/measurement-model-${CASE}_window$window02d.rds \
 --process-model ${paths[moving_window_dir]}/process-model-${CASE}_window$window02d.rds \

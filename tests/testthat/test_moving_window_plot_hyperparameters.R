@@ -122,7 +122,7 @@ test_that("plot_param_map works", {
 
      # for some reason grid.arrange makes Rplots.pdf, just remove it
      # couldnt find a more intelligent solution
-     rplots_file <- sprintf("%s/../../tests/testthat/Rplots.pdf", config$paths$location_of_this_file)
+     rplots_file <- sprintf("%s/../tests/testthat/Rplots.pdf", config$paths$root_code_dir)
      if (file.exists(rplots_file)) {
           file.remove(rplots_file)
      }

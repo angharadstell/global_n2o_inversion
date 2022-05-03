@@ -57,14 +57,14 @@ do
 
     # traceplot
     # echo "traceplots.R"
-    # Rscript ${paths[location_of_this_file]}/../inversion/traceplots.R --casename $window_case --sampledir ${paths[moving_window_dir]}
+    # Rscript ${paths[root_code_dir]}/inversion/traceplots.R --casename $window_case --sampledir ${paths[moving_window_dir]}
 
     # flux aggregate
     cd ../results
     ./flux_aggregators.sh $window_case process-model-$window_case $DIR
 
     echo "obs_matched_samples.R"
-    Rscript ${paths[location_of_this_file]}/../results/obs_matched_samples.R \
+    Rscript ${paths[root_code_dir]}/results/obs_matched_samples.R \
         --model-case $DIR/real-model-$window_case.rds \
         --process-model $DIR/process-model-$window_case.rds \
         --samples $DIR/real-mcmc-samples-$window_case.rds \

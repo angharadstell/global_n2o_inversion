@@ -33,7 +33,7 @@ Rscript pseudodata.R --measurement-noise 1 --acorr 0 --alpha-range 0.5 --output-
 # only need one process model, but need loads of measurement / real case models, so make separately
 export INVERSION_BASE_PARTIAL=${paths[wombat_paper]}/3_inversion/src/partials/base.R
 # Make process model
-Rscript ${paths[location_of_this_file]}/../intermediates/process-model.R \
+Rscript ${paths[root_code_dir]}/intermediates/process-model.R \
 --control-emissions ${paths[geos_inte]}/control-emissions-window01.fst \
 --perturbations ${paths[geos_inte]}/perturbations_window01.fst \
 --control-mole-fraction ${paths[geos_inte]}/control-mole-fraction-window01.fst \

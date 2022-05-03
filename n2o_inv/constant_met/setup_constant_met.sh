@@ -46,12 +46,12 @@ sed -i "s#DiagnPrefix:                 $output_dir/$case/HEMCO_diagnostics#Diagn
 
 # Get submission script
 cd $geo_rundirs/${inversion_constants[constant_case]}
-cp $location_of_this_file/templates/gcclassic_submit.sh .
+cp ${paths[root_code_dir]}/spinup/templates/gcclassic_submit.sh .
 sed -i -e "s#%exe_path%#$geo_rundirs/${inversion_constants[constant_case]}#" -e "s#GC.log#GC_su_01.log#" -e "s/72:00:00/48:00:00/" gcclassic_submit.sh
 
-cp $location_of_this_file/bash_var.sh .
+cp ${paths[root_code_dir]}/spinup/bash_var.sh .
 # NEEEDS TO BE ADAPTED
-cp $location_of_this_file/spinup_repeat_met.sh $geo_rundirs/${inversion_constants[constant_case]}/.
+cp ${paths[root_code_dir]}/spinup/spinup_repeat_met.sh $geo_rundirs/${inversion_constants[constant_case]}/.
 sed -i -e "s/no_spinup_years/{inversion_constants[no_constant_years]}/g" -e "s/case/{inversion_constants[constant_case]}/g" -e "s/perturb_start/constant_end/g" -e "s/spinup_start/constant_start/g" $geo_rundirs/${inversion_constants[constant_case]}/spinup_repeat_met.sh
 cat $geo_rundirs/${inversion_constants[constant_case]}/spinup_repeat_met.sh >> gcclassic_submit.sh
 

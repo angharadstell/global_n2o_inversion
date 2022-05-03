@@ -37,7 +37,7 @@ echo "Using rescaled suffix: $rescaled"
 
 # Make process model
 echo "making process model..."
-Rscript ${paths[location_of_this_file]}/../intermediates/process-model.R \
+Rscript ${paths[root_code_dir]}/intermediates/process-model.R \
     --control-emissions ${paths[geos_inte]}/control-emissions${rescaled}.fst \
     --perturbations ${paths[geos_inte]}/perturbations${rescaled}.fst \
     --control-mole-fraction ${paths[geos_inte]}/control-mole-fraction.fst \
@@ -46,7 +46,7 @@ Rscript ${paths[location_of_this_file]}/../intermediates/process-model.R \
 
 # Make measurement model
 echo "making fixed gamma measurement model..." 
-Rscript ${paths[location_of_this_file]}/../intermediates/measurement-model.R \
+Rscript ${paths[root_code_dir]}/intermediates/measurement-model.R \
 --observations ${paths[geos_inte]}/${observations}.fst \
 --process-model ${paths[geos_inte]}/process-model-${CASE}.rds \
 --gamma-prior-shape 100000000 \
@@ -55,7 +55,7 @@ Rscript ${paths[location_of_this_file]}/../intermediates/measurement-model.R \
 
 # Make real model case
 echo "making real model..."
-Rscript ${paths[location_of_this_file]}/../intermediates/real-model-case.R \
+Rscript ${paths[root_code_dir]}/intermediates/real-model-case.R \
 --case $CASE \
 --measurement-model ${paths[geos_inte]}/measurement-model-${CASE}.rds \
 --process-model ${paths[geos_inte]}/process-model-${CASE}.rds \
