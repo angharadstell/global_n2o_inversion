@@ -116,10 +116,16 @@ test_that("plot_param_map works", {
                            list("gamma" = matrix(0, n_samples, n_gammas, dimnames = list(NULL, c("sitea", "siteb"))),
                                 "w" = matrix(0, n_samples, n_regions)))
 
-
     # just test that this doesn't error
     # could do a better job with vdiffr/ snapshots but not worth the effort
     expect_error(plot_param_map(window_samples), NA)
+
+     # for some reason grid.arrange makes Rplots.pdf, just remove it
+     # couldnt find a more intelligent solution
+     rplots_file <- sprintf("%s/../../tests/testthat/Rplots.pdf", config$paths$location_of_this_file)
+     if (file.exists(rplots_file)) {
+          file.remove(rplots_file)
+     }
 })
 
 test_that("plot_model_measurement_error", {
