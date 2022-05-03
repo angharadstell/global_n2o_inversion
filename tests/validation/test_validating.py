@@ -3,9 +3,9 @@ Tests validating.py
 
 @author: Angharad Stell
 """
+from unittest.mock import patch
+
 import numpy as np
-import pandas as pd
-import pytest
 import xarray as xr
 
 from n2o_inv.validation import validating
@@ -32,6 +32,7 @@ def test_read_geos_runs(tmp_path):
     assert (func_out["CH4_R01"] == np.array([5E9, 6E9, 7E9, 8E9])).all()
     assert (func_out["CH4_sum"] == np.array([6E9, 8E9, 10E9, 12E9])).all()
 
+@patch("validating.plt.show")
 def test_zonal_plot_runs(tmp_path):
 
     obspack_obs = xr.Dataset({"obspack_id": (("obs"), ["sitea_1", "siteb_2", "sitea_3", "siteb_4"]),

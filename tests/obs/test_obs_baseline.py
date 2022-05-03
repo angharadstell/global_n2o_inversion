@@ -1,4 +1,5 @@
 import configparser
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -69,6 +70,7 @@ def test_raw_obs_to_baseline_NOAAsurf_delete():
 
     assert output["baseline"] == 0
 
+@patch("obs_baseline.plt.show")
 def test_raw_obs_to_baseline_AGAGEsurf():
     obspack_obs = xr.Dataset({"value": (("obs"), np.array([330, 340])),
                               "site": (("obs"), np.array(["tstAGAGEsurf", "tstAGAGEsurf"])),

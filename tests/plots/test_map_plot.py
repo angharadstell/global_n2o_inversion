@@ -3,8 +3,9 @@ Tests map_plot.py
 
 @author: Angharad Stell
 """
+from unittest.mock import patch
+
 import numpy as np
-import pandas as pd
 import xarray as xr
 
 from n2o_inv.plots import map_plot
@@ -20,6 +21,7 @@ def test_colormesh_lon_geoschem():
 def test_colormesh_lat_two_boxes():
     assert (map_plot.colormesh_lat(np.array([-45, 45])) == np.array([-90, 0, 90])).all()
 
+@patch("map_plot.plt.show")
 def test_cartopy_plot_runs():
     ems_field = np.zeros((2, 4))
     ems = xr.DataArray(ems_field,
@@ -27,6 +29,7 @@ def test_cartopy_plot_runs():
                                     "lon":np.array([-135, -45, 45, 135])})
     map_plot.cartopy_plot(ems, "test", None)
 
+@patch("map_plot.plt.show")
 def test_cartopy_plot_savefile(tmp_path):
     ems_field = np.zeros((2, 4))
     ems = xr.DataArray(ems_field,

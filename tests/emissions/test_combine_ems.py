@@ -5,6 +5,7 @@ Tests agage_obs.py
 """
 import configparser
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -136,6 +137,7 @@ def test_make_climatology_one_one():
     assert len(combine_ems.make_climatology(ems, 2014)["time"]) == 12
     assert (combine_ems.make_climatology(ems, 2014)["emi_n2o"][0, :, :] == 0.5).all()
 
+@patch("combine_ems.plt.show")
 def test_basic_plot_runs():
     ems_field = np.zeros((24, 2, 4))
     ems_time = pd.date_range(start="1/1/2012", end="12/31/2013", freq="MS")
