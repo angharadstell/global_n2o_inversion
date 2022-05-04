@@ -8,6 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 import xarray as xr
 
 from n2o_inv.obs import format_obspack_geoschem
@@ -79,15 +80,22 @@ def test_preprocess_aircraft_no_value_unc():
 
     xr.testing.assert_equal(format_obspack_geoschem.preprocess(in_df), out_df)
 
-# requires config is set up right...
-def test_read_noaa_obspack_runs():
+# this function creates the filename of the NOAA obspack
+def noaa_obspack_file():
     config = configparser.ConfigParser()
     config.read("config.ini")
     RAW_OBSPACK_DIR = Path(config["paths"]["raw_obspack_dir"])
-    format_obspack_geoschem.read_noaa_obspack(RAW_OBSPACK_DIR / "obspack_multi-species_1_CCGGSurfaceFlask_v2.0_2021-02-09")
+
+    return RAW_OBSPACK_DIR / "obspack_multi-species_1_CCGGSurfaceFlask_v2.0_2021-02-09"
+
+# requires config is set up right, and the raw data is downloaded...
+# so skip it if the data is not downloaded
+@pytest.mark.skipif(not noaa_obspack_file().exists(), reason="no NOAA obspack downloaded")
+def test_read_noaa_obspack_runs():
+    filename = noaa_obspack_file()
+    format_obspack_geoschem.read_noaa_obspack(filename)
 
 def test_geoschem_date_mask_2355():
-
     df = xr.Dataset({"time_components":(("obs", "calendar_components"), [[2012, 2, 29, 23, 55, 0]]),
                      "fake_value":(("obs"), np.array([300]))},
                      coords={"obs": np.array([888]), "calendar_components": range(6)})
@@ -99,7 +107,6 @@ def test_geoschem_date_mask_2355():
         assert format_obspack_geoschem.geoschem_date_mask(df, dates[i]) == correct_answer[i]
 
 def test_geoschem_date_mask_2354():
-
     df = xr.Dataset({"time_components":(("obs", "calendar_components"), [[2012, 2, 29, 23, 54, 0]]),
                      "fake_value":(("obs"), np.array([300]))},
                      coords={"obs": np.array([888]), "calendar_components": range(6)})
