@@ -1,5 +1,8 @@
 library(dplyr)
 library(ggplot2)
+library(grid)
+library(gridExtra)
+library(gtable)
 library(here)
 library(ini)
 library(reshape2)
@@ -27,18 +30,10 @@ plot_bar <- function(df) {
     p
 }
 
-# select the desired years and subtract the mean flux for the time series
-subtract_mean <- function(df) {
-    df <- df %>% filter(year >= 2011, year <= 2020)
-    mean_flux <- mean(df$flux)
-    df <- df %>% mutate_at(vars(matches(regex("^flux"))), ~ .x - mean_flux)
-    df
-}
-
 # get my flux aggregates to right format for inter annual variation plot
-process_fluxes_iav <- function(fluxes) {
+process_fluxes_iav <- function(my_word, fluxes) {
     fluxes_iav <- fluxes %>%
-                  filter(estimate == "Posterior", name == "Global", month_start >= as.Date("2011-01-01")) %>%
+                  filter(estimate == "Posterior", name == my_word, month_start >= as.Date("2011-01-01")) %>%
                   mutate(year = as.integer(format(month_start, format = "%Y"))) %>%
                   group_by(year) %>%
                   summarise(flux = sum(flux_mean),
@@ -48,29 +43,95 @@ process_fluxes_iav <- function(fluxes) {
     fluxes_iav
 }
 
+# plot a time series of fluxes from different inversions, for either global land, global ocean, or global total
+plot_iav <- function(my_word, other_word, my_fluxes, patra, thompson_1, thompson_2, thompson_3) {
+    # my hierarchical results
+    my_fluxes_iav <- process_fluxes_iav(my_word, my_fluxes)
+
+    # my analytical results
+    ana_fluxes <- readRDS(sprintf("%s/real-flux-aggregates-samples-analytical-IS-FIXEDGAMMA-NOBIAS-model-err-n2o_std.rds", config$paths$inversion_results))
+    ana_fluxes_iav <- process_fluxes_iav(my_word, ana_fluxes)
+
+    # select and rename variables
+    patra <- patra %>% select(year, other_word) %>% rename(flux = other_word)
+    thompson_1 <- thompson_1 %>% select(year, other_word) %>% rename(flux = other_word)
+    thompson_2 <- thompson_2 %>% select(year, other_word) %>% rename(flux = other_word)
+    thompson_3 <- thompson_3 %>% select(year, other_word) %>% rename(flux = other_word)
+
+    # join results together
+    full_tibble <-  full_join(my_fluxes_iav %>% dplyr::select(year, flux), ana_fluxes_iav %>% dplyr::select(year, flux), by = "year") %>%
+                    full_join(patra, by = "year") %>%
+                    full_join(thompson_1, by = "year") %>%
+                    full_join(thompson_2, by = "year") %>%
+                    full_join(thompson_3, by = "year")
+    names(full_tibble) <- c("year", "This work (hierarchical)", "This work (analytical)", "Patra 2022", "Thompson 2019 INV1", "Thompson 2019 INV2", "Thompson 2019 INV3")
+    full_tibble_melted <- melt(full_tibble, id.vars = "year")
+
+    # only include years in my inversion
+    full_tibble_melted <- full_tibble_melted %>% filter(year >= 2011, year <= 2020)
+
+    # colour blind friendly colours
+    cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+    # plotting
+    p <- ggplot() +
+        geom_ribbon(data = my_fluxes_iav, aes(x = year, ymin = flux_lower, ymax = flux_upper), alpha = 0.25) +
+        geom_line(data = full_tibble_melted, aes(x = year, y = value, color = variable)) +
+        ylab(expression(N[2] * "O Flux / TgN " * yr^-1)) +
+        scale_x_continuous(breaks = seq(2011, 2020, 2), expand = c(0, 0)) +
+        xlab("") +
+        scale_color_manual(values = cbbPalette,
+                           name = "") +
+        theme(text = element_text(size = 20))
+
+    p
+}
+
 ###############################################################################
 # CODE
 ###############################################################################
 
 main <- function() {
-    # assemble literature values into a dataset
-    # mine and Wells values are for 2011
-    # Patra values for 2010s, could get this for 2011 but would have to download their data and try to extract
-    # Thompson values for 1998-2016, could get this for 2011 but would have to download their data and try to extract
+    ###############################################################################
+    # Read in fluxes
+    ###############################################################################
+
+    filename <- sprintf("%s/others_results/annual_global_total_thompson_INV1.csv", config$paths$data_dir)
+    thompson_1 <- tibble(read.csv(filename))
+
+    filename <- sprintf("%s/others_results/annual_global_total_thompson_INV2.csv", config$paths$data_dir)
+    thompson_2 <- tibble(read.csv(filename))
+
+    filename <- sprintf("%s/others_results/annual_global_total_thompson_INV3.csv", config$paths$data_dir)
+    thompson_3 <- tibble(read.csv(filename))
+
+    filename <- sprintf("%s/others_results/annual_global_total_patra.csv", config$paths$data_dir)
+    patra <- tibble(read.csv(filename))
+
+    my_fluxes <- readRDS(sprintf("%s/real-flux-aggregates-samples-IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std_windowall.rds", config$paths$inversion_results))
+
+    ###############################################################################
+    # Plot literature values for 2011
+    ###############################################################################
+    # compare literature dataset for 2011
+    thompson_1_2011 <- thompson_1 %>% filter(year == 2011)
+    thompson_2_2011 <- thompson_2 %>% filter(year == 2011)
+    thompson_3_2011 <- thompson_3 %>% filter(year == 2011)
+    patra_2011 <- patra %>% filter(year == 2011)
+
     df <- data.frame(Case = c("Patra 2022", "Wells 2018 a", "Wells 2018 b", "Wells 2018 c", "Thompson 2019 a", "Thompson 2019 b", "Thompson 2019 c"),
-                    Global = c(17.2, 17.7, 17.5, 15.9, 17.4, 17, 16.6),
-                    Land = c(14.3, 14.29, 14.05, 12.52, 10.2, 10.5, 13.2),
-                    Ocean = c(2.91, 3.41, 3.45, 3.38, 7.2, 6.5, 3.4))
+                    Global = c(patra_2011$total, 17.7, 17.5, 15.9, thompson_1_2011$total, thompson_2_2011$total, thompson_3_2011$total),
+                    Land = c(patra_2011$land, 14.29, 14.05, 12.52, thompson_1_2011$land, thompson_2_2011$land, thompson_3_2011$land),
+                    Ocean = c(patra_2011$ocean, 3.41, 3.45, 3.38, thompson_1_2011$ocean, thompson_2_2011$ocean, thompson_3_2011$ocean))
 
     # plot
-    p <- plot_bar(df %>% arrange(desc(Global)))
+    p <- plot_bar(df)
     plot(p)
     ggsave(sprintf("%s/compare_literature_chart.png", config$paths$inversion_results))
 
 
 
     # add in my results
-    my_fluxes <- readRDS(sprintf("%s/real-flux-aggregates-samples-IS-RHO0-FIXEDA-VARYW-NOBIAS-model-err-n2o_std_windowall.rds", config$paths$inversion_results))
     my_fluxes_2011 <- my_fluxes %>%
                         filter(estimate == "Posterior", month_start >= as.Date("2011-01-01"), month_start <= as.Date("2011-12-01")) %>%
                         dplyr::select(name, estimate, month_start, flux_mean) %>%
@@ -89,101 +150,52 @@ main <- function() {
 
 
 
+    ###############################################################################
+    # Plot comparing IAV
+    ###############################################################################
+
+    # plot each IAV plot
+    p_land <- plot_iav("Global land", "land", my_fluxes, patra, thompson_1, thompson_2, thompson_3)
+    p_ocean <- plot_iav("Global oceans", "ocean", my_fluxes, patra, thompson_1, thompson_2, thompson_3)
+    p_total <- plot_iav("Global", "total", my_fluxes, patra, thompson_1, thompson_2, thompson_3)
 
 
-    # compare IAV
-    thompson_1 <- tibble(
-                    year = 1998:2014,
-                    land_flux = c(10.094, 9.29, 9.454, 10.112, 9.601,
-                            9.601, 9.911, 9.491, 10.057, 9.71,
-                            9.436, 9.418, 12.178, 10.606, 10.496,
-                            11.465, 11.227),
-                    ocean_flux = c(3.269, 3.269, 3.261, 3.344, 3.224,
-                                3.224, 3.284, 3.193, 3.276, 3.171,
-                                3.141, 3.028, 3.337, 3.209, 3.171,
-                                3.269, 3.171))
+    # plot together
+    p_land <- p_land + theme(legend.position = "bottom")
+    legend <- gtable_filter(ggplotGrob(p_land), "guide-box")
 
-    thompson_2 <- tibble(
-                    year = 1998:2016,
-                    land_flux = c(10.332, 9.674, 8.979, 10.35, 9.728,
-                                10.131, 10.24, 8.705, 10.88, 9.491,
-                                10.624, 9.326, 11.94, 10.185, 10.77,
-                                13.292, 10.77, 11.794, 11.483),
-                    ocean_flux = c(2.945, 2.96, 2.862, 2.952, 2.839,
-                                2.915, 2.937, 2.892, 2.982, 2.869,
-                                2.907, 2.764, 3.035, 2.93, 2.907,
-                                3.148, 2.839, 2.839, 2.99))
+    p_land_neat <- p_land +
+                     ggtitle("a. global land emissions") +
+                     theme(legend.position = "none",
+                           plot.title.position = "plot",
+                           axis.title.y = element_blank())
 
-    thompson_3 <- tibble(
-                    year = 2000:2016,
-                    land_flux = c(11.812, 12.708, 12.031, 12.616, 12.251,
-                            11.775, 13.11, 12.36, 13.292, 12.232,
-                            14.48, 12.159, 13.475, 14.883, 13.731,
-                            13.786, 15.796),
-                    ocean_flux = c(1.603, 1.603, 1.399, 1.392, 1.528,
-                                1.618, 1.55, 1.49, 1.626, 1.58,
-                                1.754, 1.663, 1.626, 1.648, 1.656,
-                                1.693, 1.573))
+    p_ocean_neat <- p_ocean +
+                     ggtitle("b. global ocean emissions") +
+                     theme(legend.position = "none",
+                           plot.title.position = "plot",
+                           axis.title.y = element_blank())
 
-    patra <- tibble(
-            year = 1997:2019,
-            land_flux = c(11.827, 12.988, 13.383, 12.506, 13.099,
-                        12.79, 12.765, 12.951, 12.506, 13.568,
-                        13.099, 13.432, 12.728, 14.679, 13.173,
-                        13.852, 14.852, 14.074, 14.272, 14.444,
-                        13.988, 15.123, 14.481),
-            ocean_flux = c(2.862, 2.782, 2.968, 2.702, 2.766,
-                            2.585, 2.723, 2.755, 2.782, 2.803,
-                            2.489, 2.995, 2.803, 3.112, 2.819,
-                            2.819, 2.963, 2.872, 2.926, 2.638,
-                            2.83, 3.149, 2.856))
+    p_total_neat <- p_total +
+                      ggtitle("c. global total emissions") +
+                      theme(legend.position = "none",
+                            plot.title.position = "plot",
+                            axis.title.y = element_blank())
 
-    # my hierarchical results
-    my_fluxes_iav <- process_fluxes_iav(my_fluxes)
+    layout <- c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4)
+    dim(layout) <- c(13, 1)
 
-    # my analytical results
-    ana_fluxes <- readRDS(sprintf("%s/real-flux-aggregates-samples-analytical-IS-FIXEDGAMMA-NOBIAS-model-err-n2o_std.rds", config$paths$inversion_results))
-    ana_fluxes_iav <- process_fluxes_iav(ana_fluxes)
-
-
-    thompson_1 <- thompson_1 %>% mutate(flux = land_flux + ocean_flux) %>% dplyr::select(year, flux)
-    thompson_2 <- thompson_2 %>% mutate(flux = land_flux + ocean_flux) %>% dplyr::select(year, flux)
-    thompson_3 <- thompson_3 %>% mutate(flux = land_flux + ocean_flux) %>% dplyr::select(year, flux)
-    patra <- patra %>% mutate(flux = land_flux + ocean_flux) %>% dplyr::select(year, flux)
-
-    # subtract mean for 2011-2020 so IAV can be clearly seen
-    thompson_1 <- subtract_mean(thompson_1)
-    thompson_2 <- subtract_mean(thompson_2)
-    thompson_3 <- subtract_mean(thompson_3)
-    patra <- subtract_mean(patra)
-    my_fluxes_iav <- subtract_mean(my_fluxes_iav)
-    ana_fluxes_iav <- subtract_mean(ana_fluxes_iav)
-
-    # join results together
-    full_tibble <-  full_join(my_fluxes_iav %>% dplyr::select(year, flux), ana_fluxes_iav %>% dplyr::select(year, flux), by = "year") %>%
-                    full_join(patra, by = "year") %>%
-                    full_join(thompson_1, by = "year") %>%
-                    full_join(thompson_2, by = "year") %>%
-                    full_join(thompson_3, by = "year")
-    names(full_tibble) <- c("year", "This work (hierarchical)", "This work (analytical)", "Patra 2022", "Thompson 2019 INV1", "Thompson 2019 INV2", "Thompson 2019 INV3")
-    full_tibble_melted <- melt(full_tibble, id.vars = "year")
-
-    # colour blind friendly colours
-    cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-
-    # plotting
-    p <- ggplot() +
-        geom_ribbon(data = my_fluxes_iav, aes(x = year, ymin = flux_lower, ymax = flux_upper), alpha = 0.25) +
-        geom_line(data = full_tibble_melted, aes(x = year, y = value, color = variable)) +
-        ylab(expression(N[2] * "O Flux / TgN " * yr^-1)) +
-        scale_x_continuous(breaks = seq(2011, 2020, 2), expand = c(0, 0)) +
-        xlab("") +
-        scale_color_manual(values = cbbPalette,
-                           name = "") +
-        theme(text = element_text(size = 20))
-
+    p <- grid.arrange(p_land_neat,
+                      p_ocean_neat,
+                      p_total_neat,
+                      legend,
+                      left = textGrob(expression(N[2] * "O Flux / TgN " * yr^-1), rot = 90, hjust = -0.01, gp = gpar(fontsize = 18)),
+                      ncol = 1,
+                      layout_matrix = layout)
     plot(p)
-    ggsave(sprintf("%s/compare_mine_and_literature_iav.pdf", config$paths$inversion_results))
+    ggsave(sprintf("%s/compare_mine_and_literature_iav_all.pdf", config$paths$inversion_results), 
+           p, height = 15, width = 10)
+
 }
 
 if (getOption("run.main", default = TRUE)) {
