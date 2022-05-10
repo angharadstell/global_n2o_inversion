@@ -72,17 +72,11 @@ def to_tgyr(ems, var="emi_n2o"):
         area = xr.Dataset({"area":(("lat", "lon"), areagrid(ems["lat"].values, ems["lon"].values))},
                             coords={"lat":ems["lat"].values, "lon":ems["lon"].values})
 
-    year = ems.time.dt.year
-    month = ems.time.dt.month
-    if year.values.size > 1:
-        zipped = zip(year.values, month.values)
-    else:
-        zipped = [(year.values, month.values)]
-    days_in_month = np.array([calendar.monthrange(m[0], m[1])[1] for m in zipped])
+    days_in_month_arr = days_in_month(ems)
     
     area_weight_sum = (ems[var] * area["area"]).sum(["lat", "lon"]).values
     
-    return np.sum(area_weight_sum * days_in_month * (60*60*24) * 10**-9)
+    return np.sum(area_weight_sum * days_in_month_arr * (60*60*24) * 10**-9)
 
 def make_climatology(ems, new_year):
     """ Turn time varying emissions into a monthly climatology. """
@@ -97,6 +91,18 @@ def basic_plot(ems):
     plt.plot(ems.resample(time="Y").mean()["time"], annual_sum)
     plt.show()
     plt.close()
+
+def days_in_month(xr_df):
+    """ Calculate the number of days in the months in a dataframe. """
+    year = xr_df.time.dt.year
+    month = xr_df.time.dt.month
+    if year.values.size > 1:
+        zipped = zip(year.values, month.values)
+    else:
+        zipped = [(year.values, month.values)]
+    days_in_month = np.array([calendar.monthrange(m[0], m[1])[1] for m in zipped])
+
+    return days_in_month
 
 if __name__ == "__main__":
     # read in variables from the config file

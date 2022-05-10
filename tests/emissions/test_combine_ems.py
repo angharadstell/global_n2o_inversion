@@ -144,3 +144,17 @@ def test_basic_plot_runs():
                                     "lat":np.array([-45, 45]),
                                     "lon":np.array([-180, -90, 0, 90])})
     combine_ems.basic_plot(ems)
+
+def test_days_in_month_works():
+    ems_field = np.zeros((24, 2, 4))
+    ems_time = pd.date_range(start="1/1/2012", end="12/31/2013", freq="MS")
+    ems = xr.Dataset({"emi_n2o":(("time", "lat", "lon"), ems_field)},
+                            coords={"time":ems_time,
+                                    "lat":np.array([-45, 45]),
+                                    "lon":np.array([-180, -90, 0, 90])})
+
+    result = combine_ems.days_in_month(ems)
+
+    assert len(result) == 24
+    assert (result == np.array([31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 
+                                31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])).all()
