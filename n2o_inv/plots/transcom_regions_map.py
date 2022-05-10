@@ -38,7 +38,7 @@ text_color = ["k", "k", "k", "k", "k", "k", "k", "k", "w", "w", "w",
               "w", "w", "k", "k", "k", "k", "k", "k", "k", "k", "k"]
 
 # label each region
-for i in range(1,23):
+for i in range(1, (int(config["inversion_constants"]["no_regions"]) + 1)):
     masked_region = mask.where(mask["regions"] == i, drop=True)
     med_lat = masked_region["lat"].median()
     med_lon = masked_region["lon"].median()
