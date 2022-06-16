@@ -73,6 +73,7 @@ def surround_obspack(obspack_nc):
 
     # could be doubles at poles
     # this does mean anything at the poles repeats so will have an artificially low std...
+    # but SPO is only site affected, and it's mostly 0 for std anyway
     merged["latitude"] = xr.where(merged["latitude"] > 90, 
                                   90.0,
                                   merged["latitude"])
