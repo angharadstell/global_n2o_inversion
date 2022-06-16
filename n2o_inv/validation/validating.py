@@ -49,15 +49,15 @@ def zonal_plot(hippo_obs, hippo_geos_prior, hippo_geos_post, campaign_name, file
 
     # 1-3km scatter plot
     axs[0].set_title(f"a. {campaign_name}, 1-3 km", loc="left")
-    axs[0].scatter(hippo_obs_low["latitude"], hippo_obs_low["value"], label = "observed")
-    axs[0].scatter(hippo_obs_low["latitude"], hippo_geos_prior_low["CH4_sum"], label = "prior")
-    axs[0].scatter(hippo_obs_low["latitude"], hippo_geos_post_low["CH4_sum"], label = "posterior")
+    axs[0].scatter(hippo_obs_low["latitude"], hippo_obs_low["value"], color = "#000000", label = "observed")
+    axs[0].scatter(hippo_obs_low["latitude"], hippo_geos_prior_low["CH4_sum"], color = "#56B4E9", label = "prior")
+    axs[0].scatter(hippo_obs_low["latitude"], hippo_geos_post_low["CH4_sum"], color = "#E69F00", label = "posterior")
     axs[0].legend(bbox_to_anchor=(1.3, 0.15), fontsize="medium")
     # 3-7km scatter plot 
     axs[1].set_title(f"\n b. {campaign_name}, 3-7 km", loc="left")
-    axs[1].scatter(hippo_obs_high["latitude"], hippo_obs_high["value"], label = "observed")
-    axs[1].scatter(hippo_obs_high["latitude"], hippo_geos_prior_high["CH4_sum"], label = "prior")
-    axs[1].scatter(hippo_obs_high["latitude"], hippo_geos_post_high["CH4_sum"], label = "posterior")
+    axs[1].scatter(hippo_obs_high["latitude"], hippo_obs_high["value"], color = "#000000", label = "observed")
+    axs[1].scatter(hippo_obs_high["latitude"], hippo_geos_prior_high["CH4_sum"], color = "#56B4E9", label = "prior")
+    axs[1].scatter(hippo_obs_high["latitude"], hippo_geos_post_high["CH4_sum"], color = "#E69F00", label = "posterior")
 
     # x axis label
     for ax in axs.flat:
@@ -65,7 +65,7 @@ def zonal_plot(hippo_obs, hippo_geos_prior, hippo_geos_post, campaign_name, file
         ax.label_outer()
 
     # y axis label
-    fig.text(0.01, 0.5, 'N$_2$O Mole fraction / ppb', va='center', rotation='vertical', size="large", color="#555555")
+    fig.text(0.01, 0.5, 'N$_2$O Mole fraction [ppb]', va='center', rotation='vertical', size="large", color="#555555")
 
     # move plots further apart
     plt.subplots_adjust(hspace=0.3)
@@ -108,15 +108,24 @@ if __name__ == "__main__":
     hippo_geos_prior_4 = read_geos(hippo_obs_4, GEOSOUT_DIR / BASE_CASE, NO_REGIONS)
     hippo_geos_prior_5 = read_geos(hippo_obs_5, GEOSOUT_DIR / BASE_CASE, NO_REGIONS)
 
+    # count both HIPPOs together
+    hippo_geos_post_both = xr.concat([hippo_geos_post_4["CH4_sum"], hippo_geos_post_5["CH4_sum"]], dim="obs")
+    hippo_geos_prior_both = xr.concat([hippo_geos_prior_4["CH4_sum"], hippo_geos_prior_5["CH4_sum"]], dim="obs")
+    hippo_obs_both = xr.concat([hippo_obs_4["value"], hippo_obs_5["value"]], dim="obs")
+
     # print differences to obs
     diff = (hippo_geos_prior_4["CH4_sum"] - hippo_obs_4["value"]).median().values
     print(f"prior - HIPP04 (model - obs): {diff:.2f} ppb")
     diff = (hippo_geos_prior_5["CH4_sum"] - hippo_obs_5["value"]).median().values
     print(f"prior - HIPP05 (model - obs): {diff:.2f} ppb")
+    diff = (hippo_geos_prior_both - hippo_obs_both).median().values
+    print(f"prior - HIPP0 (model - obs): {diff:.2f} ppb")
     diff = (hippo_geos_post_4["CH4_sum"] - hippo_obs_4["value"]).median().values
     print(f"post - HIPP04 (model - obs): {diff:.2f} ppb")
     diff = (hippo_geos_post_5["CH4_sum"] - hippo_obs_5["value"]).median().values
     print(f"post - HIPP05 (model - obs): {diff:.2f} ppb")
+    diff = (hippo_geos_post_both - hippo_obs_both).median().values
+    print(f"post - HIPP0 (model - obs): {diff:.2f} ppb")
 
     # zonal plot
     with plt.style.context('ggplot'):
