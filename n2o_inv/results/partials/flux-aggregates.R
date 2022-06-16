@@ -96,7 +96,7 @@ region_plots <- lapply(args$region, function(region_i) {
       linetype = guide_legend(ncol = legend_n_columns)
     ) +
     scale_x_discrete(breaks = seq(substr(start_date, 1, 4), substr(end_date, 1, 4), 3)) +
-    labs(x = 'Year', y = expression('Flux / TgN '*yr^-1), colour = NULL, fill = NULL, linetype = NULL)
+    labs(x = 'Year', y = expression("Flux [TgN " * yr^-1 * "]"), colour = NULL, fill = NULL, linetype = NULL)
 
   monthly_data <- monthly_fluxes %>%
     filter(name == region_i)
@@ -128,7 +128,7 @@ region_plots <- lapply(args$region, function(region_i) {
     scale_colour_estimate +
     scale_linetype_estimate +
     scale_fill_estimate +
-    labs(x = 'Month', y = expression('Flux / TgN '*mo^-1), colour = NULL, fill = NULL, linetype = NULL) +
+    labs(x = 'Month', y = expression("Flux [TgN " * mo^-1 * "]"), colour = NULL, fill = NULL, linetype = NULL) +
     guides(fill = "none", colour = "none", linetype = "none")
 
   region_name <- region_i

@@ -43,7 +43,7 @@ obs_time_series_monthly <- obs_samples %>%
     Z2_hat_lower = mean(Z2_hat_lower),
     Z2_hat_upper = mean(Z2_hat_upper)
   ) %>%
-  filter(month >= config["dates"]["analyse_start"])
+  filter(month >= config$dates$analyse_start)
 
 anal_samples <- readRDS(args$anal_samples) %>%
   mutate(month = lubridate::floor_date(time, 'month'))
@@ -57,7 +57,7 @@ anal_time_series_monthly <- anal_samples %>%
     Z2_hat_lower = mean(Z2_hat_lower),
     Z2_hat_upper = mean(Z2_hat_upper)
   ) %>%
-  filter(month >= config["dates"]["analyse_start"])
+  filter(month >= config$dates$analyse_start)
 
 df_long <- bind_rows(
 obs_time_series_monthly %>%
@@ -84,6 +84,17 @@ df_complete <- expand.grid(
 ) %>%
   left_join(df_long, by = c('name', 'month', 'obspack_site'))
 
+# print median differences to the observations
+obs_test <- df_complete %>% filter(name == "Observed")
+prior_test <- df_complete %>% filter(name == "Prior")
+hier_test <- df_complete %>% filter(name == "Hierarchical Posterior")
+anal_test <- df_complete %>% filter(name == "Analytical Posterior")
+
+print(median(prior_test$value - obs_test$value, na.rm = TRUE))
+print(median(hier_test$value - obs_test$value, na.rm = TRUE))
+print(median(anal_test$value - obs_test$value, na.rm = TRUE))
+
+
 output <- df_complete %>%
   mutate(
     name = factor(name, levels = names(NAME_COLOURS)),
@@ -107,7 +118,7 @@ output <- df_complete %>%
     facet_wrap(~ obspack_site, ncol = 5) +
     labs(
       x = NULL,
-      y = 'Mole fraction / ppb',
+      y = 'Mole fraction [ppb]',
       colour = NULL,
       fill = NULL
     ) +
