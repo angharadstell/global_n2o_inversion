@@ -76,7 +76,7 @@ plot_iav <- function(my_word, other_word, my_fluxes, patra, thompson_1, thompson
     # plotting
     p <- ggplot() +
         geom_ribbon(data = my_fluxes_iav, aes(x = year, ymin = flux_lower, ymax = flux_upper), alpha = 0.25) +
-        geom_line(data = full_tibble_melted, aes(x = year, y = value, color = variable)) +
+        geom_line(data = full_tibble_melted, aes(x = year, y = value, color = variable), size = 2) +
         ylab(expression(N[2] * "O Flux / TgN " * yr^-1)) +
         scale_x_continuous(breaks = seq(2011, 2020, 2), expand = c(0, 0)) +
         xlab("") +
@@ -189,11 +189,11 @@ main <- function() {
                       p_ocean_neat,
                       p_total_neat,
                       legend,
-                      left = textGrob(expression(N[2] * "O Flux / TgN " * yr^-1), rot = 90, hjust = -0.01, gp = gpar(fontsize = 18)),
+                      left = textGrob(expression(N[2] * "O Flux [TgN " * yr^-1 * "]"), rot = 90, hjust = -0.01, gp = gpar(fontsize = 18)),
                       ncol = 1,
                       layout_matrix = layout)
     plot(p)
-    ggsave(sprintf("%s/compare_mine_and_literature_iav_all.pdf", config$paths$inversion_results), 
+    ggsave(sprintf("%s/compare_mine_and_literature_iav_all.pdf", config$paths$inversion_results),
            p, height = 15, width = 10)
 
 }

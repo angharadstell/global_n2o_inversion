@@ -1,5 +1,6 @@
 # This script plots the location of the observations on a map
 library(ggplot2)
+library(ggthemes)
 library(here)
 library(ini)
 library(ncdf4)
@@ -36,10 +37,15 @@ world <- ne_countries(scale = "medium", returnclass = "sf")
 # what about ship data?!
 p <- ggplot(data = world) + geom_sf() +
        coord_sf(ylim = c(-90, 90), expand = FALSE) +
-       geom_point(data = obs, aes(x = longitude, y = latitude), color = "red", size = 3) +
+       geom_point(data = obs, aes(x = longitude, y = latitude), color = "#E69F00", size = 6) +
        xlab('Longitude') +
        ylab('Latitude') +
-       theme(text = element_text(size = 20))
+       theme(axis.title.x = element_blank(),
+             axis.title.y = element_blank(),
+             axis.ticks.x = element_blank(),
+             axis.ticks.y = element_blank(),
+             axis.text.x = element_blank(),
+             axis.text.y = element_blank())
 
 plot(p)
 

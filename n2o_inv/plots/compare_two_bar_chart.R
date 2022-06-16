@@ -106,7 +106,7 @@ dim(layout) <- c(12, 1)
 legend <- gtable_filter(ggplotGrob(p_land), "guide-box")
 p <- grid.arrange(p_land_neat,
                   p_ocean_neat,
-                  textGrob(expression(N[2] * "O Flux / TgN " * yr^-1), gp = gpar(fontsize = 18)),
+                  textGrob(expression(N[2] * "O Flux [TgN " * yr^-1 * "]"), gp = gpar(fontsize = 18)),
                   legend,
                   ncol = 1,
                   layout_matrix = layout)
