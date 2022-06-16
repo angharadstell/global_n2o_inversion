@@ -53,22 +53,24 @@ plot_growth_rate <- function(obs, title) {
     obs_glob_aw_mm <- area_weighted_monthly_mean(obs)
 
 
-    colors <- c("30N - 90N" = "blue", "00N - 30N" = "green",
-                "30S - 00S" = "purple", "90S - 30S" = "red",
+    colors <- c("30N - 90N" = "#E69F00", "00N - 30N" = "#56B4E9",
+                "30S - 00S" = "#009E73", "90S - 30S" = "#F0E442",
                 "Global" = "black")
 
+    span <- 0.3
+
     p <- ggplot(NULL, aes(time, growth)) +
-    geom_smooth(data = obs_nh_et_aw_mm, aes(color = "30N - 90N"), se = FALSE, span = 0.3) +
-    geom_smooth(data = obs_nh_tr_aw_mm, aes(color = "00N - 30N"), se = FALSE, span = 0.3) +
-    geom_smooth(data = obs_sh_et_aw_mm, aes(color = "90S - 30S"), se = FALSE, span = 0.3) +
-    geom_smooth(data = obs_glob_aw_mm, aes(color = "Global"), se = FALSE, span = 0.3, size = 2) +
+    geom_smooth(data = obs_nh_et_aw_mm, aes(color = "30N - 90N"), se = FALSE, span = span, size = 2) +
+    geom_smooth(data = obs_nh_tr_aw_mm, aes(color = "00N - 30N"), se = FALSE, span = span, size = 2) +
+    geom_smooth(data = obs_sh_et_aw_mm, aes(color = "90S - 30S"), se = FALSE, span = span, size = 2) +
+    geom_smooth(data = obs_glob_aw_mm, aes(color = "Global"), se = FALSE, span = span, size = 2) +
     scale_color_manual(values = colors) +
-    ggtitle(title) + ylab(expression(paste("Growth rate / ppb ", yr^{-1}))) +
+    ggtitle(title) + ylab(expression(paste("Growth rate [ppb ", yr^{-1}, "]"))) +
     xlab("Year") + guides(color = guide_legend(title = "Region")) + theme(text = element_text(size = 20))
 
     # if restricted sites can have no sites in this band
     if (dim(obs_sh_tr_aw_mm)[1] > 0) {
-      p <- p + geom_smooth(data = obs_sh_tr_aw_mm, aes(color = "30S - 00S"), se = FALSE, span = 0.3)
+      p <- p + geom_smooth(data = obs_sh_tr_aw_mm, aes(color = "30S - 00S"), se = FALSE, span = span, size = 2)
     }
 
     p
@@ -102,8 +104,9 @@ main <- function() {
 
 
   # save just obs plot for intro
-  plot_growth_rate(obs, NULL)
-  ggsave(paste0(config$paths$obspack_dir, "/obs_growth_rate.pdf"))
+  p <- plot_growth_rate(obs, NULL)
+  plot(p)
+  ggsave(paste0(config$paths$obspack_dir, "/obs_growth_rate.pdf"), p, height = 10, width = 12)
 
 
   # create panel plot of all growth rates
@@ -112,7 +115,11 @@ main <- function() {
   post_growth <- plot_growth_rate(post_mf, "c. Posterior")
   prior_constant_growth <- plot_growth_rate(control_mf_constant, "d. Prior constant met after 2015")
 
+  obs_growth <- obs_growth + theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 2)) + labs(color="Latitude band")
+
+
   # get them to share y limits and remove labels and legend
+  legend <- gtable_filter(ggplotGrob(obs_growth), "guide-box")
   ymin <- 0.5
   ymax <- 1.9
   obs_growth <- obs_growth +
@@ -128,18 +135,18 @@ main <- function() {
                            ylim(ymin, ymax) +
                            theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = "none")
 
-  layout <- rbind(c(1, 1, 1, 5), c(2, 2, 2, 5), c(3, 3, 3, 5), c(4, 4, 4, 5))
-  legend <- gtable_filter(ggplotGrob(obs_growth), "guide-box")
+  layout <- c(1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5)
+  dim(layout) <- c(13, 1)
+
   p <- grid.arrange(obs_growth,
                     prior_growth,
                     post_growth,
                     prior_constant_growth,
                     ncol = 1,
                     legend,
-                    left = textGrob(expression(paste("Growth rate / ppb ", yr^{-1})), rot = 90, gp = gpar(fontsize = 20)),
-                    bottom = textGrob("Year", hjust = 2.4, gp = gpar(fontsize = 20)),
+                    left = textGrob(expression(paste("Growth rate [ppb ", yr^{-1}, "]")), rot = 90, gp = gpar(fontsize = 20)),
                     layout_matrix = layout)
-  ggsave(paste0(config$paths$obspack_dir, "/all_growth_rate.pdf"), p)
+  ggsave(paste0(config$paths$obspack_dir, "/all_growth_rate.pdf"), p, height = 15, width = 10)
 }
 
 if (getOption("run.main", default = TRUE)) {
