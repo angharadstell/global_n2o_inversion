@@ -128,7 +128,7 @@ test_that("plot_param_map works", {
      }
 })
 
-test_that("plot_model_measurement_error", {
+test_that("examine_model_measurement_error", {
     # set up some constants
     n_gammas <- 2
     n_samples <- as.numeric(config$inversion_constants$no_samples)
@@ -156,9 +156,9 @@ test_that("plot_model_measurement_error", {
 
     # just test that this doesn't error
     # could do a better job with vdiffr/ snapshots but not worth the effort
-    expect_error(plot_model_measurement_error(window_samples, obs_file), NA)
-    expect_message(plot_model_measurement_error(window_samples, obs_file), "Unscaled model-measurement error: 1.000000 ppb")
-    expect_message(plot_model_measurement_error(window_samples, obs_file), "Posterior model-measurement error: 1.000000 ppb")
+    expect_error(examine_model_measurement_error(window_samples, obs_file), NA)
+    expect_message(examine_model_measurement_error(window_samples, obs_file), "Unscaled model-measurement error: 1.000000 ppb")
+    expect_message(examine_model_measurement_error(window_samples, obs_file), "Posterior model-measurement error: 1.000000 ppb")
 
     # remove fake file
     file.remove(sprintf("%s/%s", config$paths$geos_inte, obs_file))

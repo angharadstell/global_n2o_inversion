@@ -109,27 +109,28 @@ plot_param_map <- function(window_samples) {
   p1 <- ggplot(data = world) +
          geom_tile(data = test_df, aes(x = x, y = y, fill = std)) +
          scale_fill_viridis() +
-         geom_sf(color = "black", fill = NA) +
+         geom_sf(color = "white", fill = NA) +
          theme_map() +
          theme(legend.position = "bottom", legend.box = "vertical", legend.justification = "right") +
-         labs(fill = "Scaling factor standard deviation   ") +
+         labs(fill = expression(paste(1 / sqrt(italic(w)), "   "))) +
          theme(legend.key.width = unit(1, "cm")) +
-         theme(text = element_text(size = 20)) +
-         coord_sf(ylim = c(-90, 90), expand = FALSE) +
-         ggtitle("a. Scaling factor standard deviation")
+         theme(text = element_text(size = 17)) +
+         coord_sf(xlim = c(-180, 180), ylim = c(-90, 90), expand = FALSE) +
+         ggtitle(expression(paste("a. Flux scaling factor precision: ",  1/sqrt(italic(w)))))
 
     p2 <- ggplot(data = world) +
-         geom_sf(color = "black", fill = "#3f3c3c") +
+         geom_sf(color = "white", fill = "#3f3c3c") +
          geom_point(data = obs, aes(x = lon, y = lat, color = mm_scale), size = 5) +
          scale_color_gradient2(midpoint = 1, low = "blue", mid = "white",
                      high = "red") +
          theme_map() +
          theme(legend.position = "bottom", legend.box = "vertical", legend.justification = "right") +
-         labs(color = "Model-measurement error scaling factor   ") +
+         labs(color = expression(paste(1 / sqrt(italic(gamma)), "   "))) +
          theme(legend.key.width = unit(1, "cm")) +
-         theme(text = element_text(size = 20), panel.background = element_rect(fill="#3f3c3c")) +
-         coord_sf(ylim = c(-90, 90), expand = FALSE) +
-         ggtitle("b. Model-measurement error scaling factor")
+         theme(text = element_text(size = 17),
+               panel.background = element_rect(fill = "#3f3c3c")) +
+         coord_sf(xlim = c(-180, 180), ylim = c(-90, 90), expand = FALSE) +
+         ggtitle(expression(paste("b. Error budget scaling factor: ", 1/sqrt(italic(gamma)))))
 
 
     p <- grid.arrange(p1, p2, ncol = 1)
@@ -137,14 +138,16 @@ plot_param_map <- function(window_samples) {
     p
 }
 
-# plot model-measurement error data
-plot_model_measurement_error <- function(window_samples, obs_file) {
+# examine model-measurement error data
+examine_model_measurement_error <- function(window_samples, obs_file) {
   # read in constants from config
   start_year <- year(as.Date(config$dates$perturb_start))
   end_year <- year(as.Date(config$dates$perturb_end)) - 1
 
   # extract gamma values from the runs
   gammas <- extract_time_var(window_samples, "gamma")
+  message(sprintf("Median gamma: %f", median(gammas, na.rm = TRUE)))
+
   # include spinup year values, which have the same gamma as the first year of the real run
   gammas <- cbind(gammas[, 1], gammas)
   colnames(gammas) <- start_year:end_year
@@ -180,14 +183,13 @@ plot_model_measurement_error <- function(window_samples, obs_file) {
   }
 
   # print some useful values
+  # not sure this is a reliable measure because the distribution of co2_err changes
+  # probably better to look at median gamma
   message(sprintf("Unscaled model-measurement error: %f ppb", median(rescaled_obs_err$co2_err, na.rm = TRUE)))
   message(sprintf("Posterior model-measurement error: %f ppb", median(rescaled_obs_err$rescaled_co2_err, na.rm = TRUE)))
 
-  # plot
-  p <- ggplot(data = rescaled_obs_err, aes(x = time, y = rescaled_co2_err, color = site)) +
-         geom_line() + theme(legend.position = "none")
-
-  p
+  print("descending median error at each site before rescaling:")
+  print(head(rescaled_obs_err %>% group_by(site) %>% summarise(median = median(co2_err, na.rm=TRUE)) %>% arrange(median), 10))
 }
 
 ###############################################################################
@@ -257,9 +259,18 @@ main <- function() {
   p <- plot_param_hist(window_samples, "gamma", "year")
   plot(p)
 
-  # plot model-measurement error
-  p <- plot_model_measurement_error(window_samples, obs_file)
-  plot(p)
+  # examine model-measurement error
+  examine_model_measurement_error(window_samples, obs_file)
+
+
+  # look at variation in the mean
+  print("Look at hyper-parameter interannual variation:")
+  gammas <- extract_time_var(window_samples, "gamma")
+  ws <- extract_time_var(window_samples, "w")
+  gamma_sd_df <- data.frame(mean = rowMeans(gammas, na.rm = TRUE), sd = apply(gammas, 1, sd, na.rm = TRUE))
+  w_sd_df <- data.frame(mean = rowMeans(ws, na.rm = TRUE), sd = apply(ws, 1, sd, na.rm = TRUE))
+  print(head(gamma_sd_df))
+  print(head(w_sd_df))
 }
 
 if (getOption("run.main", default = TRUE)) {
