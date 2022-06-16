@@ -12,7 +12,7 @@ The adapted N<sub>2</sub>O  repository can be found at https://github.com/anghar
 ## Getting code
 1. Clone this repo
 2. Clone https://github.com/mbertolacci/wombat-paper (needed for fast sparse and a few random scripts I should move into mine)
-3. Clone https://github.com/angharadstell/wombat
+3. Clone https://github.com/angharadstell/wombat (and switch to n2o branch! The main branch is the original CO2 code)
 4. Clone https://github.com/ACRG-Bristol/acrg
 5. If you want to run GEOSChem, you will have to install it, full instructions are available through the GEOSChem guide (https://geos-chem.seas.harvard.edu/). I used version 13.0.0.
 
