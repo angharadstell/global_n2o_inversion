@@ -77,7 +77,8 @@ The following data is only needed if you want to recreate the geoschem runs:
 - The emissions used can be downloaded from: EDGAR (https://edgar.jrc.ec.europa.eu/dataset_ghg50), Saikawa 2013 (either cotact the authors https://doi.org/10.1002/gbc.20087 or me), GFED (https://www.globalfiredata.org/data.html), Manizza 2012 (either contact the authors https://doi.org/10.3402/tellusb.v64i0.18429 or me)
 - The obspacks used (obspack_multi-species_1_CCGGSurfaceFlask_v2.0_2021-02-09 and obspack_multi-species_1_CCGGAircraftFlask_v2.0_2021-02-09) can be downloaded from https://gml.noaa.gov/ccgg/obspack/data.php
 - The obspack didn't include 2020 when I did this work, so I downloaded the separate NOAA N2O surface data from https://gml.noaa.gov/dv/data.html
-- [AGAGE DATA]
+- AGAGE data can be accessed through https://agage.mit.edu
+- To plot against other people's data (Thompson 2019  and Patra 2022), you will have to download their data (from https://doi.org/10.1038/s41558-019-0613-7 and https://doi.org/10.2151/jmsj.2022-018 respectively) and put the files in their respective folders in the data directory under "others_results".
 
 The location of these directories is specified in the config.ini file of this repo (and in emissions/combine_ems.py for emissions - sorry), you'll have to change the paths for your system. 
 
