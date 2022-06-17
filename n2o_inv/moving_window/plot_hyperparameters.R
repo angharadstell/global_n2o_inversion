@@ -267,8 +267,10 @@ main <- function() {
   print("Look at hyper-parameter interannual variation:")
   gammas <- extract_time_var(window_samples, "gamma")
   ws <- extract_time_var(window_samples, "w")
-  gamma_sd_df <- data.frame(mean = rowMeans(gammas, na.rm = TRUE), sd = apply(gammas, 1, sd, na.rm = TRUE))
-  w_sd_df <- data.frame(mean = rowMeans(ws, na.rm = TRUE), sd = apply(ws, 1, sd, na.rm = TRUE))
+  gamma_sd_df <- data.frame(mean = round(rowMeans(gammas, na.rm = TRUE), digits = 2),
+                            sd = round(apply(gammas, 1, sd, na.rm = TRUE), digits = 2))
+  w_sd_df <- data.frame(mean = round(rowMeans(ws, na.rm = TRUE), digits = 2),
+                        sd = round(apply(ws, 1, sd, na.rm = TRUE), digits = 2))
   print(head(gamma_sd_df))
   print(head(w_sd_df))
 }
