@@ -127,7 +127,8 @@ region_plots <- lapply(args$region, function(region_i) {
     scale_linetype_estimate +
     scale_fill_estimate +
     labs(x = 'Month', y = expression("Flux [TgN " * mo^-1 * "]"), colour = NULL, fill = NULL, linetype = NULL) +
-    guides(fill = "none", colour = "none", linetype = "none")
+    guides(fill = "none", colour = "none", linetype = "none") +
+    theme(panel.grid.major = element_line(colour = "grey"), panel.grid.minor.x = element_line(colour = "grey"))
 
   region_name <- region_i
   if (region_i %in% names(REGION_TITLE)) {
