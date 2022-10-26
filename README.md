@@ -1,5 +1,5 @@
 # global_n2o_inversion
-This repository contains the code to reproduce the results in [PAPER LINK]. This paper uses the WOMBAT framework (https://doi.org/10.5194/gmd-15-45-2022, https://github.com/mbertolacci/wombat-paper), which has been adapted to our use case. The primary differences between the inversion problem in the original version of WOMBAT and this work are:
+This repository contains the code to reproduce the results in https://doi.org/10.5194/acp-22-12945-2022. This paper uses the WOMBAT framework (https://doi.org/10.5194/gmd-15-45-2022, https://github.com/mbertolacci/wombat-paper), which has been adapted to our use case. The primary differences between the inversion problem in the original version of WOMBAT and this work are:
 1. This work solves for N<sub>2</sub>O fluxes rather than CO<sub>2</sub> fluxes
 2. This work solves for 10 years of fluxes rather than 1.5 years
 3. This work solely uses surface observations rather than satellite observations
